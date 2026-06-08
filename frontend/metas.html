@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Metas - LumuzIA</title>
+
+<link rel="stylesheet" href="./css/style.css">
+
+</head>
+<body>
+
+<div class="container">
+
+    <aside class="sidebar">
+
+        <h2>💰 LumuzIA</h2>
+
+        <a href="dashboard.html">📊 Dashboard</a>
+        <a href="gastos.html">💸 Gastos</a>
+        <a href="receitas.html">💵 Receitas</a>
+        <a href="metas.html">🎯 Metas</a>
+        <a href="investimentos.html">📈 Investimentos</a>
+        <a href="chat.html">🤖 Chat</a>
+        <a href="perfil.html">👤 Perfil</a>
+
+    </aside>
+
+    <main>
+
+        <h1>Metas Financeiras</h1>
+
+        <div class="form">
+
+            <input
+                id="nome"
+                placeholder="Nome da Meta">
+
+            <input
+                id="valorObjetivo"
+                type="number"
+                placeholder="Valor Objetivo">
+
+            <input
+                id="prazo"
+                type="number"
+                placeholder="Prazo (meses)">
+
+            <button onclick="salvarMeta()">
+                Salvar Meta
+            </button>
+
+        </div>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Meta</th>
+                    <th>Objetivo</th>
+                    <th>Guardado</th>
+                    <th>Prazo</th>
+                    <th>Progresso</th>
+                </tr>
+            </thead>
+
+            <tbody id="tabelaMetas">
+
+            </tbody>
+
+        </table>
+
+    </main>
+
+</div>
+
+<script src="./js/metas.js"></script>
+
+</body>
+</html> 
