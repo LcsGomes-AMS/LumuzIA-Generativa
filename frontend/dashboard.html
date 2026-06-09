@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - LumuzIA</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<div class="container">
+    <aside class="sidebar">
+        <h2>💰 LumuzIA</h2>
+        <a href="dashboard.html">📊 Dashboard</a>
+        <a href="gastos.html">💸 Gastos</a>
+        <a href="metas.html">🎯 Metas</a>
+        <a href="investimentos.html">📈 Investimentos</a>
+        <a href="chat.html">🤖 Chat</a>
+        <a href="perfil.html">👤 Perfil</a>
+    </aside>
+
+    <main>
+        <h1>Dashboard Financeiro</h1>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Saldo Atual</h3>
+                <p id="saldo">R$ 0,00</p>
+            </div>
+            <div class="card">
+                <h3>Receitas</h3>
+                <p id="receitas">R$ 0,00</p>
+            </div>
+            <div class="card">
+                <h3>Gastos</h3>
+                <p id="gastos">R$ 0,00</p>
+            </div>
+        </div>
+
+        <h2 style="margin-top: 30px;">Gastos por categoria</h2>
+        <div style="max-width: 500px; margin-top: 20px;">
+            <canvas id="graficoGastos"></canvas>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="./js/dashboard.js"></script>
+
+</body>
+</html>

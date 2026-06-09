@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Receitas - LumuzIA</title>
+
+<link rel="stylesheet" href="./css/style.css">
+
+</head>
+<body>
+
+<div class="container">
+
+    <aside class="sidebar">
+
+        <h2>💰 LumuzIA</h2>
+
+        <a href="dashboard.html">📊 Dashboard</a>
+        <a href="gastos.html">💸 Gastos</a>
+        <a href="receitas.html">💵 Receitas</a>
+        <a href="metas.html">🎯 Metas</a>
+        <a href="investimentos.html">📈 Investimentos</a>
+        <a href="chat.html">🤖 Chat</a>
+        <a href="perfil.html">👤 Perfil</a>
+
+    </aside>
+
+    <main>
+
+        <h1>Receitas</h1>
+
+        <div class="form">
+
+            <input
+                id="descricao"
+                placeholder="Descrição da receita">
+
+            <input
+                id="valor"
+                type="number"
+                placeholder="Valor">
+
+            <button onclick="salvarReceita()">
+                Salvar Receita
+            </button>
+
+        </div>
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Descrição</th>
+                    <th>Valor</th>
+                </tr>
+
+            </thead>
+
+            <tbody id="tabelaReceitas">
+
+            </tbody>
+
+        </table>
+
+    </main>
+
+</div>
+
+<script src="./js/receitas.js"></script>
+
+</body>
+</html>
