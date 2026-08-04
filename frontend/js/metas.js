@@ -1,78 +1,79 @@
-function getUserId() {
-    return localStorage.getItem("userId") || 1;
-}
-
 async function salvarMeta() {
-    const nome = document.getElementById("nome").value.trim();
-    const valorObjetivo = parseFloat(document.getElementById("valorObjetivo").value);
-    const prazo = parseInt(document.getElementById("prazo").value);
-    const userId = getUserId();
 
-    if (!nome || isNaN(valorObjetivo) || isNaN(prazo)) {
-        alert("Preencha todos os campos corretamente.");
-        return;
-    }
+    const nome =
+        document.getElementById("nome").value;
 
-    try {
-        const res = await fetch("/metas", {
+    const valorObjetivo =
+        document.getElementById("valorObjetivo").value;
+
+    const prazo =
+        document.getElementById("prazo").value;
+
+    const res = await fetch(
+        "http://localhost:3000/metas",
+        {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                userId,
                 nome,
                 valorObjetivo,
                 prazo
             })
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-            carregarMetas();
-            document.getElementById("nome").value = "";
-            document.getElementById("valorObjetivo").value = "";
-            document.getElementById("prazo").value = "";
         }
-    } catch (erro) {
-        console.error("Erro ao salvar meta:", erro);
+    );
+
+    const data = await res.json();
+
+    if(data.success){
+
+        carregarMetas();
+
+        document.getElementById("nome").value = "";
+        document.getElementById("valorObjetivo").value = "";
+        document.getElementById("prazo").value = "";
+
     }
+
 }
 
-async function carregarMetas() {
-    const userId = getUserId();
-    const tabela = document.getElementById("tabelaMetas");
+async function carregarMetas(){
 
-    try {
-        const res = await fetch(`/metas/${userId}`);
-        const metas = await res.json();
+    const res =
+        await fetch(
+            "http://localhost:3000/metas"
+        );
 
-        tabela.innerHTML = "";
+    const metas =
+        await res.json();
 
-        if (metas.length === 0) {
-            tabela.innerHTML = `<tr><td colspan="5">Nenhuma meta cadastrada.</td></tr>`;
-            return;
-        }
+    const tabela =
+        document.getElementById("tabelaMetas");
 
-        metas.forEach(meta => {
-            const progresso = (
-                (meta.valor_atual / meta.valor_objetivo) * 100
+    tabela.innerHTML = "";
+
+    metas.forEach(meta => {
+
+        const progresso =
+            (
+                (meta.valor_atual /
+                meta.valor_objetivo)
+                * 100
             ).toFixed(1);
 
-            tabela.innerHTML += `
-                <tr>
-                    <td>${meta.nome}</td>
-                    <td>R$ ${Number(meta.valor_objetivo).toFixed(2)}</td>
-                    <td>R$ ${Number(meta.valor_atual).toFixed(2)}</td>
-                    <td>${meta.prazo} meses</td>
-                    <td>${progresso}%</td>
-                </tr>
-            `;
-        });
-    } catch (erro) {
-        console.error("Erro ao carregar metas:", erro);
-    }
+        tabela.innerHTML += `
+            <tr>
+                <td>${meta.nome}</td>
+                <td>R$ ${meta.valor_objetivo}</td>
+                <td>R$ ${meta.valor_atual}</td>
+                <td>${meta.prazo} meses</td>
+                <td>${progresso}%</td>
+            </tr>
+        `;
+
+    });
+
 }
 
 carregarMetas();
