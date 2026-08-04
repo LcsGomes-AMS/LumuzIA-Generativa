@@ -1,60 +1,76 @@
-async function carregarDashboard(){
+import { auth } from "./config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    const res =
-        await fetch(
-            "http://localhost:3000/dashboard"
-        );
+let usuarioAtual = null;
 
-    const data =
-        await res.json();
+// Aguarda a verificação do Firebase Auth antes de buscar os dados do dashboard
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        usuarioAtual = user;
+        localStorage.setItem("userId", user.uid);
+        carregarDashboard();
+        carregarGrafico();
+    } else {
+        window.location.href = "cad.html";
+    }
+});
 
-    document.getElementById("saldo")
-        .innerText =
-        `R$ ${data.saldo.toFixed(2)}`;
+async function carregarDashboard() {
+    if (!usuarioAtual) return;
 
-    document.getElementById("receitas")
-        .innerText =
-        `R$ ${data.receitas.toFixed(2)}`;
+    try {
+        // Envia o UID do Firebase na URL do Dashboard
+        const res = await fetch(`/dashboard/${usuarioAtual.uid}`);
+        
+        if (!res.ok) {
+            throw new Error(`Erro HTTP: ${res.status}`);
+        }
 
-    document.getElementById("gastos")
-        .innerText =
-        `R$ ${data.gastos.toFixed(2)}`;
+        const data = await res.json();
 
+        document.getElementById("saldo").innerText = `R$ ${Number(data.saldo || 0).toFixed(2)}`;
+        document.getElementById("receitas").innerText = `R$ ${Number(data.receitas || 0).toFixed(2)}`;
+        document.getElementById("gastos").innerText = `R$ ${Number(data.gastos || 0).toFixed(2)}`;
+    } catch (erro) {
+        console.error("Erro ao carregar dashboard:", erro);
+    }
 }
-async function carregarGrafico(){
 
-    const res =
-        await fetch(
-            "http://localhost:3000/estatisticas"
-        );
+async function carregarGrafico() {
+    if (!usuarioAtual) return;
 
-    const dados =
-        await res.json();
+    try {
+        // Envia o UID do Firebase na URL de Estatísticas
+        const res = await fetch(`/estatisticas/${usuarioAtual.uid}`);
 
-    const labels =
-        dados.map(item => item.categoria);
+        if (!res.ok) {
+            throw new Error(`Erro HTTP: ${res.status}`);
+        }
 
-    const valores =
-        dados.map(item => item.total);
+        const dados = await res.json();
 
-    new Chart(
-        document.getElementById("graficoGastos"),
-        {
-            type:"pie",
+        const labels = dados.map(item => item.categoria);
+        const valores = dados.map(item => item.total);
 
-            data:{
+        // Destrói gráfico antigo se já existir (evita sobreposição no canvas)
+        const canvas = document.getElementById("graficoGastos");
+        const chartExistente = Chart.getChart(canvas);
+        if (chartExistente) {
+            chartExistente.destroy();
+        }
+
+        new Chart(canvas, {
+            type: "pie",
+            data: {
                 labels,
-
-                datasets:[
+                datasets: [
                     {
                         data: valores
                     }
                 ]
             }
-        }
-    );
-
+        });
+    } catch (erro) {
+        console.error("Erro ao carregar gráfico:", erro);
+    }
 }
-
-carregarGrafico();
-carregarDashboard();
