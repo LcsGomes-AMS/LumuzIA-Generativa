@@ -3,11 +3,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const userInput = document.getElementById("userInput");
     const chatContainer = document.getElementById("chatContainer");
 
+    function getUserId() {
+        return localStorage.getItem("userId") || 1;
+    }
+
     chatForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         const messageText = userInput.value.trim();
         if (!messageText) return;
+
+        const userId = getUserId();
 
         // 1. Exibe a mensagem do usuário na tela
         appendMessage("Você", messageText, "user-message");
@@ -17,13 +23,16 @@ document.addEventListener("DOMContentLoaded", () => {
         const typingIndicator = appendMessage("LumuzIA", "Pensando...", "ai-message typing");
 
         try {
-            // 3. Faz a requisição para o backend local Express
-            const response = await fetch("http://localhost:3000/chat", {
+            // 3. Faz a requisição enviando userId e mensagem
+            const response = await fetch("/chat", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ message: messageText })
+                body: JSON.stringify({ 
+                    userId, 
+                    message: messageText 
+                })
             });
 
             const data = await response.json();
@@ -49,8 +58,6 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.innerHTML = `<strong>${sender}:</strong> <p style="margin-top: 4px; white-space: pre-line;">${text}</p>`;
         
         chatContainer.appendChild(messageDiv);
-        
-        // Mantém o scroll sempre embaixo ao mandar mensagens
         chatContainer.scrollTop = chatContainer.scrollHeight;
         
         return messageDiv;

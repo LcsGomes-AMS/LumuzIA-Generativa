@@ -24,7 +24,7 @@ app.get("/", (req, res) => {
 });
 
 // =====================
-// PERFIL
+// PERFIL / USUÁRIOS
 // =====================
 app.post("/perfil", (req, res) => {
     const { nome, salario, meta, valorMeta } = req.body;
@@ -35,12 +35,13 @@ app.post("/perfil", (req, res) => {
         VALUES (?, ?, ?, ?)
         `,
         [nome, salario, meta, valorMeta],
-        (err) => {
+        function (err) {
             if (err) {
                 console.error(err);
                 return res.status(500).json({ success: false });
             }
-            res.json({ success: true });
+            // Retorna o ID gerado para salvar no frontend (localStorage)
+            res.json({ success: true, userId: this.lastID });
         }
     );
 });
@@ -49,14 +50,14 @@ app.post("/perfil", (req, res) => {
 // RECEITAS
 // =====================
 app.post("/receitas", (req, res) => {
-    const { descricao, valor } = req.body;
+    const { userId, descricao, valor } = req.body;
 
     db.run(
         `
-        INSERT INTO receitas (descricao, valor)
-        VALUES (?, ?)
+        INSERT INTO receitas (user_id, descricao, valor)
+        VALUES (?, ?, ?)
         `,
-        [descricao, valor],
+        [userId, descricao, valor],
         (err) => {
             if (err) {
                 console.error(err);
@@ -67,27 +68,33 @@ app.post("/receitas", (req, res) => {
     );
 });
 
-app.get("/receitas", (req, res) => {
-    db.all("SELECT * FROM receitas ORDER BY id DESC", [], (err, rows) => {
-        if (err) {
-            return res.status(500).json([]);
+app.get("/receitas/:userId", (req, res) => {
+    const { userId } = req.params;
+
+    db.all(
+        "SELECT * FROM receitas WHERE user_id = ? ORDER BY id DESC",
+        [userId],
+        (err, rows) => {
+            if (err) {
+                return res.status(500).json([]);
+            }
+            res.json(rows);
         }
-        res.json(rows);
-    });
+    );
 });
 
 // =====================
 // GASTOS
 // =====================
 app.post("/gastos", (req, res) => {
-    const { descricao, valor, categoria } = req.body;
+    const { userId, descricao, valor, categoria } = req.body;
 
     db.run(
         `
-        INSERT INTO gastos (descricao, valor, categoria)
-        VALUES (?, ?, ?)
+        INSERT INTO gastos (user_id, descricao, valor, categoria)
+        VALUES (?, ?, ?, ?)
         `,
-        [descricao, valor, categoria],
+        [userId, descricao, valor, categoria],
         (err) => {
             if (err) {
                 console.error(err);
@@ -98,27 +105,33 @@ app.post("/gastos", (req, res) => {
     );
 });
 
-app.get("/gastos", (req, res) => {
-    db.all("SELECT * FROM gastos ORDER BY id DESC", [], (err, rows) => {
-        if (err) {
-            return res.status(500).json([]);
+app.get("/gastos/:userId", (req, res) => {
+    const { userId } = req.params;
+
+    db.all(
+        "SELECT * FROM gastos WHERE user_id = ? ORDER BY id DESC",
+        [userId],
+        (err, rows) => {
+            if (err) {
+                return res.status(500).json([]);
+            }
+            res.json(rows);
         }
-        res.json(rows);
-    });
+    );
 });
 
 // =====================
 // METAS
 // =====================
 app.post("/metas", (req, res) => {
-    const { nome, valorObjetivo, prazo } = req.body;
+    const { userId, nome, valorObjetivo, prazo } = req.body;
 
     db.run(
         `
-        INSERT INTO metas (nome, valor_objetivo, prazo)
-        VALUES (?, ?, ?)
+        INSERT INTO metas (user_id, nome, valor_objetivo, prazo)
+        VALUES (?, ?, ?, ?)
         `,
-        [nome, valorObjetivo, prazo],
+        [userId, nome, valorObjetivo, prazo],
         (err) => {
             if (err) {
                 console.error(err);
@@ -129,26 +142,34 @@ app.post("/metas", (req, res) => {
     );
 });
 
-app.get("/metas", (req, res) => {
-    db.all("SELECT * FROM metas ORDER BY id DESC", [], (err, rows) => {
-        if (err) {
-            return res.status(500).json([]);
+app.get("/metas/:userId", (req, res) => {
+    const { userId } = req.params;
+
+    db.all(
+        "SELECT * FROM metas WHERE user_id = ? ORDER BY id DESC",
+        [userId],
+        (err, rows) => {
+            if (err) {
+                return res.status(500).json([]);
+            }
+            res.json(rows);
         }
-        res.json(rows);
-    });
+    );
 });
 
 // =====================
 // DASHBOARD
 // =====================
-app.get("/dashboard", (req, res) => {
+app.get("/dashboard/:userId", (req, res) => {
+    const { userId } = req.params;
+
     db.get(
         `
         SELECT
-        (SELECT IFNULL(SUM(valor),0) FROM receitas) AS receitas,
-        (SELECT IFNULL(SUM(valor),0) FROM gastos) AS gastos
+        (SELECT IFNULL(SUM(valor),0) FROM receitas WHERE user_id = ?) AS receitas,
+        (SELECT IFNULL(SUM(valor),0) FROM gastos WHERE user_id = ?) AS gastos
         `,
-        [],
+        [userId, userId],
         (err, row) => {
             if (err) {
                 return res.status(500).json({});
@@ -168,14 +189,17 @@ app.get("/dashboard", (req, res) => {
 // =====================
 // ESTATÍSTICAS
 // =====================
-app.get("/estatisticas", (req, res) => {
+app.get("/estatisticas/:userId", (req, res) => {
+    const { userId } = req.params;
+
     db.all(
         `
         SELECT categoria, SUM(valor) AS total
         FROM gastos
+        WHERE user_id = ?
         GROUP BY categoria
         `,
-        [],
+        [userId],
         (err, rows) => {
             if (err) {
                 return res.status(500).json([]);
@@ -186,21 +210,20 @@ app.get("/estatisticas", (req, res) => {
 });
 
 // =====================
-// CHAT IA (Com Contexto Financeiro)
+// CHAT IA (Com Contexto Financeiro Isolado por Usuário)
 // =====================
 app.post("/chat", (req, res) => {
-    const { message } = req.body;
+    const { userId, message } = req.body;
 
-    if (!message) {
-        return res.status(400).json({ error: "Mensagem vazia" });
+    if (!message || !userId) {
+        return res.status(400).json({ error: "Mensagem ou Usuário ausente" });
     }
 
-    // 1. Busca saldo total
     db.get(
         `SELECT 
-            (SELECT IFNULL(SUM(valor), 0) FROM receitas) AS total_receitas,
-            (SELECT IFNULL(SUM(valor), 0) FROM gastos) AS total_gastos`,
-        [],
+            (SELECT IFNULL(SUM(valor), 0) FROM receitas WHERE user_id = ?) AS total_receitas,
+            (SELECT IFNULL(SUM(valor), 0) FROM gastos WHERE user_id = ?) AS total_gastos`,
+        [userId, userId],
         async (err, financeRow) => {
             if (err) {
                 return res.status(500).json({ error: "Erro ao buscar contexto financeiro." });
@@ -210,15 +233,16 @@ app.post("/chat", (req, res) => {
             const gastos = financeRow.total_gastos;
             const saldo = receitas - gastos;
 
-            // 2. Busca gastos por categoria para dar detalhes à IA
-            db.all(`SELECT categoria, SUM(valor) AS total FROM gastos GROUP BY categoria`, [], async (err, categoriasRows) => {
-                let resumoCategorias = "";
-                if (!err && categoriasRows) {
-                    resumoCategorias = categoriasRows.map(c => `- ${c.categoria}: R$ ${c.total.toFixed(2)}`).join("\n");
-                }
+            db.all(
+                `SELECT categoria, SUM(valor) AS total FROM gastos WHERE user_id = ? GROUP BY categoria`,
+                [userId],
+                async (err, categoriasRows) => {
+                    let resumoCategorias = "";
+                    if (!err && categoriasRows) {
+                        resumoCategorias = categoriasRows.map(c => `- ${c.categoria}: R$ ${c.total.toFixed(2)}`).join("\n");
+                    }
 
-                // 3. Monta o prompt do sistema instruindo a IA com os dados reais
-                const systemPrompt = `Você é a LumuzIA, uma assistente virtual de IA especializada em finanças pessoais.
+                    const systemPrompt = `Você é a LumuzIA, uma assistente virtual de IA especializada em finanças pessoais.
 Seu tom de voz deve ser amigável, acolhedor e focado em educação financeira.
 
 Aqui estão os dados financeiros ATUAIS e REAIS do usuário:
@@ -231,26 +255,33 @@ ${resumoCategorias || "Nenhum gasto cadastrado ainda."}
 
 Use estritamente esses dados se o usuário perguntar sobre a situação financeira dele. Dê conselhos práticos de economia baseados no cenário dele.`;
 
-                try {
-                    // 4. Envia para o Ollama 3 local
-                    const response = await fetch("http://localhost:11434/api/generate", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            model: "llama3",
-                            prompt: `${systemPrompt}\n\nUsuário: ${message}\nLumuzIA:`,
-                            stream: false
-                        })
-                    });
+                    try {
+                        const response = await fetch("http://localhost:11434/api/generate", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                model: "llama3",
+                                prompt: `${systemPrompt}\n\nUsuário: ${message}\nLumuzIA:`,
+                                stream: false
+                            })
+                        });
 
-                    const data = await response.json();
-                    res.json({ reply: data.response });
+                        const data = await response.json();
+                        
+                        // Salva a conversa vinculada ao usuário no banco
+                        db.run(
+                            "INSERT INTO messages (user_id, role, content) VALUES (?, 'user', ?), (?, 'assistant', ?)",
+                            [userId, message, userId, data.response]
+                        );
 
-                } catch (error) {
-                    console.error(error);
-                    res.status(500).json({ error: "Erro ao comunicar com Ollama. Verifique se ele está rodando." });
+                        res.json({ reply: data.response });
+
+                    } catch (error) {
+                        console.error(error);
+                        res.status(500).json({ error: "Erro ao comunicar com Ollama. Verifique se ele está rodando." });
+                    }
                 }
-            });
+            );
         }
     );
 });
@@ -258,6 +289,6 @@ Use estritamente esses dados se o usuário perguntar sobre a situação financei
 // =====================
 // SERVIDOR
 // =====================
-app.listen(3000, () => {
-    console.log("Servidor rodando em http://localhost:3000");
+app.listen(3000, "0.0.0.0", () => {
+    console.log("Servidor rodando em http://localhost:3000 e liberado para a rede local");
 });

@@ -1,9 +1,15 @@
+// Função para obter o userId salvo no navegador (ou usar 1 como padrão)
+function getUserId() {
+  return localStorage.getItem("userId") || 1;
+}
+
 async function salvarReceita() {
   const descricaoInput = document.getElementById("descricao");
   const valorInput = document.getElementById("valor");
 
   const descricao = descricaoInput.value.trim();
   const valor = parseFloat(valorInput.value);
+  const userId = getUserId(); // Pega o ID do usuário logado
 
   // Validação básica antes de enviar
   if (!descricao || isNaN(valor)) {
@@ -12,12 +18,13 @@ async function salvarReceita() {
   }
 
   try {
-    const res = await fetch("http://localhost:3000/receitas", {
+    const res = await fetch("/receitas", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
+        userId, // <-- Envia o ID exigido pelo banco
         descricao,
         valor
       })
@@ -26,8 +33,6 @@ async function salvarReceita() {
     if (!res.ok) {
       throw new Error(`Erro no servidor: ${res.status}`);
     }
-
-    const data = await res.json();
 
     // Limpa os campos e recarrega a lista
     descricaoInput.value = "";
@@ -42,9 +47,11 @@ async function salvarReceita() {
 
 async function carregarReceitas() {
   const tabela = document.getElementById("tabelaReceitas");
+  const userId = getUserId(); // Pega o ID do usuário logado
 
   try {
-    const res = await fetch("http://localhost:3000/receitas");
+    // Busca apenas as receitas do usuário via Rota Relativa
+    const res = await fetch(`/receitas/${userId}`);
 
     if (!res.ok) {
       throw new Error(`Erro na requisição: ${res.status}`);
@@ -52,7 +59,12 @@ async function carregarReceitas() {
 
     const receitas = await res.json();
 
-    // Constrói toda a string primeiro para atualizar a DOM uma única vez
+    if (receitas.length === 0) {
+      tabela.innerHTML = `<tr><td colspan="2">Nenhuma receita cadastrada.</td></tr>`;
+      return;
+    }
+
+    // Constrói a tabela
     let linhasHtml = "";
     receitas.forEach(receita => {
       linhasHtml += `

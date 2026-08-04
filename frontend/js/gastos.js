@@ -1,69 +1,71 @@
+function getUserId() {
+    return localStorage.getItem("userId") || 1;
+}
+
 async function salvarGasto() {
+    const descricao = document.getElementById("descricao").value.trim();
+    const valor = parseFloat(document.getElementById("valor").value);
+    const categoria = document.getElementById("categoria").value;
+    const userId = getUserId();
 
-    const descricao =
-        document.getElementById("descricao").value;
+    if (!descricao || isNaN(valor)) {
+        alert("Preencha todos os campos corretamente.");
+        return;
+    }
 
-    const valor =
-        document.getElementById("valor").value;
-
-    const categoria =
-        document.getElementById("categoria").value;
-
-    const res = await fetch(
-        "http://localhost:3000/gastos",
-        {
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
+    try {
+        const res = await fetch("/gastos", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
             },
-            body:JSON.stringify({
+            body: JSON.stringify({
+                userId,
                 descricao,
                 valor,
                 categoria
             })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            carregarGastos();
+            document.getElementById("descricao").value = "";
+            document.getElementById("valor").value = "";
         }
-    );
-
-    const data = await res.json();
-
-    if(data.success){
-
-        carregarGastos();
-
-        document.getElementById("descricao").value="";
-        document.getElementById("valor").value="";
-
+    } catch (erro) {
+        console.error("Erro ao salvar gasto:", erro);
     }
-
 }
 
-async function carregarGastos(){
+async function carregarGastos() {
+    const userId = getUserId();
+    const tabela = document.getElementById("tabelaGastos");
 
-    const res =
-        await fetch(
-            "http://localhost:3000/gastos"
-        );
+    try {
+        const res = await fetch(`/gastos/${userId}`);
+        const gastos = await res.json();
 
-    const gastos =
-        await res.json();
+        tabela.innerHTML = "";
 
-    const tabela =
-        document.getElementById("tabelaGastos");
+        if (gastos.length === 0) {
+            tabela.innerHTML = `<tr><td colspan="3">Nenhum gasto cadastrado.</td></tr>`;
+            return;
+        }
 
-    tabela.innerHTML="";
-
-    gastos.forEach(gasto=>{
-
-        tabela.innerHTML += `
-            <tr>
-                <td>${gasto.descricao}</td>
-                <td>R$ ${gasto.valor}</td>
-                <td>${gasto.categoria}</td>
-            </tr>
-        `;
-
-    });
-
+        gastos.forEach(gasto => {
+            tabela.innerHTML += `
+                <tr>
+                    <td>${gasto.descricao}</td>
+                    <td>R$ ${Number(gasto.valor).toFixed(2)}</td>
+                    <td>${gasto.categoria}</td>
+                </tr>
+            `;
+        });
+    } catch (erro) {
+        console.error("Erro ao carregar gastos:", erro);
+    }
 }
 
 carregarGastos();
