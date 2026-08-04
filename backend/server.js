@@ -27,20 +27,30 @@ app.get("/", (req, res) => {
 // PERFIL
 // =====================
 app.post("/perfil", (req, res) => {
-    const { nome, salario, meta, valorMeta } = req.body;
+    const { userId, nome, salario, meta, valorMeta } = req.body;
 
+    if (!userId) {
+        return res.status(400).json({ success: false, error: "userId obrigatório." });
+    }
+
+    // Usa INSERT OR REPLACE para atualizar o perfil se o ID já existir no SQLite
     db.run(
         `
-        INSERT INTO users (nome, salario, meta, valor_meta)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO users (id, nome, salario, meta, valor_meta)
+        VALUES (?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+            nome = excluded.nome,
+            salario = excluded.salario,
+            meta = excluded.meta,
+            valor_meta = excluded.valor_meta
         `,
-        [nome, salario, meta, valorMeta],
+        [userId, nome, salario, meta, valorMeta],
         (err) => {
             if (err) {
                 console.error(err);
                 return res.status(500).json({ success: false });
             }
-            res.json({ success: true });
+            res.json({ success: true, userId });
         }
     );
 });
@@ -49,14 +59,18 @@ app.post("/perfil", (req, res) => {
 // RECEITAS
 // =====================
 app.post("/receitas", (req, res) => {
-    const { descricao, valor } = req.body;
+    const { userId, descricao, valor } = req.body;
+
+    if (!userId || !descricao || valor == null) {
+        return res.status(400).json({ success: false, error: "Dados incompletos." });
+    }
 
     db.run(
         `
-        INSERT INTO receitas (descricao, valor)
-        VALUES (?, ?)
+        INSERT INTO receitas (user_id, descricao, valor)
+        VALUES (?, ?, ?)
         `,
-        [descricao, valor],
+        [userId, descricao, valor],
         (err) => {
             if (err) {
                 console.error(err);
@@ -67,9 +81,12 @@ app.post("/receitas", (req, res) => {
     );
 });
 
-app.get("/receitas", (req, res) => {
-    db.all("SELECT * FROM receitas ORDER BY id DESC", [], (err, rows) => {
+app.get("/receitas/:userId", (req, res) => {
+    const { userId } = req.params;
+
+    db.all("SELECT * FROM receitas WHERE user_id = ? ORDER BY id DESC", [userId], (err, rows) => {
         if (err) {
+            console.error(err);
             return res.status(500).json([]);
         }
         res.json(rows);
@@ -80,14 +97,18 @@ app.get("/receitas", (req, res) => {
 // GASTOS
 // =====================
 app.post("/gastos", (req, res) => {
-    const { descricao, valor, categoria } = req.body;
+    const { userId, descricao, valor, categoria } = req.body;
+
+    if (!userId || !descricao || valor == null) {
+        return res.status(400).json({ success: false, error: "Dados incompletos." });
+    }
 
     db.run(
         `
-        INSERT INTO gastos (descricao, valor, categoria)
-        VALUES (?, ?, ?)
+        INSERT INTO gastos (user_id, descricao, valor, categoria)
+        VALUES (?, ?, ?, ?)
         `,
-        [descricao, valor, categoria],
+        [userId, descricao, valor, categoria],
         (err) => {
             if (err) {
                 console.error(err);
@@ -98,9 +119,12 @@ app.post("/gastos", (req, res) => {
     );
 });
 
-app.get("/gastos", (req, res) => {
-    db.all("SELECT * FROM gastos ORDER BY id DESC", [], (err, rows) => {
+app.get("/gastos/:userId", (req, res) => {
+    const { userId } = req.params;
+
+    db.all("SELECT * FROM gastos WHERE user_id = ? ORDER BY id DESC", [userId], (err, rows) => {
         if (err) {
+            console.error(err);
             return res.status(500).json([]);
         }
         res.json(rows);
@@ -111,14 +135,18 @@ app.get("/gastos", (req, res) => {
 // METAS
 // =====================
 app.post("/metas", (req, res) => {
-    const { nome, valorObjetivo, prazo } = req.body;
+    const { userId, nome, valorObjetivo, prazo } = req.body;
+
+    if (!userId || !nome) {
+        return res.status(400).json({ success: false, error: "Dados incompletos." });
+    }
 
     db.run(
         `
-        INSERT INTO metas (nome, valor_objetivo, prazo)
-        VALUES (?, ?, ?)
+        INSERT INTO metas (user_id, nome, valor_objetivo, prazo)
+        VALUES (?, ?, ?, ?)
         `,
-        [nome, valorObjetivo, prazo],
+        [userId, nome, valorObjetivo, prazo],
         (err) => {
             if (err) {
                 console.error(err);
@@ -129,9 +157,12 @@ app.post("/metas", (req, res) => {
     );
 });
 
-app.get("/metas", (req, res) => {
-    db.all("SELECT * FROM metas ORDER BY id DESC", [], (err, rows) => {
+app.get("/metas/:userId", (req, res) => {
+    const { userId } = req.params;
+
+    db.all("SELECT * FROM metas WHERE user_id = ? ORDER BY id DESC", [userId], (err, rows) => {
         if (err) {
+            console.error(err);
             return res.status(500).json([]);
         }
         res.json(rows);
@@ -141,20 +172,23 @@ app.get("/metas", (req, res) => {
 // =====================
 // DASHBOARD
 // =====================
-app.get("/dashboard", (req, res) => {
+app.get("/dashboard/:userId", (req, res) => {
+    const { userId } = req.params;
+
     db.get(
         `
         SELECT
-        (SELECT IFNULL(SUM(valor),0) FROM receitas) AS receitas,
-        (SELECT IFNULL(SUM(valor),0) FROM gastos) AS gastos
+        (SELECT IFNULL(SUM(valor),0) FROM receitas WHERE user_id = ?) AS receitas,
+        (SELECT IFNULL(SUM(valor),0) FROM gastos WHERE user_id = ?) AS gastos
         `,
-        [],
+        [userId, userId],
         (err, row) => {
             if (err) {
+                console.error(err);
                 return res.status(500).json({});
             }
-            const receitas = row.receitas;
-            const gastos = row.gastos;
+            const receitas = row ? row.receitas : 0;
+            const gastos = row ? row.gastos : 0;
 
             res.json({
                 receitas,
@@ -168,16 +202,20 @@ app.get("/dashboard", (req, res) => {
 // =====================
 // ESTATÍSTICAS
 // =====================
-app.get("/estatisticas", (req, res) => {
+app.get("/estatisticas/:userId", (req, res) => {
+    const { userId } = req.params;
+
     db.all(
         `
         SELECT categoria, SUM(valor) AS total
         FROM gastos
+        WHERE user_id = ?
         GROUP BY categoria
         `,
-        [],
+        [userId],
         (err, rows) => {
             if (err) {
+                console.error(err);
                 return res.status(500).json([]);
             }
             res.json(rows);
@@ -186,38 +224,39 @@ app.get("/estatisticas", (req, res) => {
 });
 
 // =====================
-// CHAT IA (Com Contexto Financeiro)
+// CHAT IA (Com Contexto Financeiro Isolado por Usuário)
 // =====================
 app.post("/chat", (req, res) => {
-    const { message } = req.body;
+    const { userId, message } = req.body;
 
-    if (!message) {
-        return res.status(400).json({ error: "Mensagem vazia" });
+    if (!userId || !message) {
+        return res.status(400).json({ error: "userId ou mensagem vazia" });
     }
 
-    // 1. Busca saldo total
+    // 1. Busca saldo total do usuário específico
     db.get(
         `SELECT 
-            (SELECT IFNULL(SUM(valor), 0) FROM receitas) AS total_receitas,
-            (SELECT IFNULL(SUM(valor), 0) FROM gastos) AS total_gastos`,
-        [],
+            (SELECT IFNULL(SUM(valor), 0) FROM receitas WHERE user_id = ?) AS total_receitas,
+            (SELECT IFNULL(SUM(valor), 0) FROM gastos WHERE user_id = ?) AS total_gastos`,
+        [userId, userId],
         async (err, financeRow) => {
             if (err) {
+                console.error(err);
                 return res.status(500).json({ error: "Erro ao buscar contexto financeiro." });
             }
 
-            const receitas = financeRow.total_receitas;
-            const gastos = financeRow.total_gastos;
+            const receitas = financeRow ? financeRow.total_receitas : 0;
+            const gastos = financeRow ? financeRow.total_gastos : 0;
             const saldo = receitas - gastos;
 
-            // 2. Busca gastos por categoria para dar detalhes à IA
-            db.all(`SELECT categoria, SUM(valor) AS total FROM gastos GROUP BY categoria`, [], async (err, categoriasRows) => {
+            // 2. Busca gastos por categoria do usuário específico
+            db.all(`SELECT categoria, SUM(valor) AS total FROM gastos WHERE user_id = ? GROUP BY categoria`, [userId], async (err, categoriasRows) => {
                 let resumoCategorias = "";
                 if (!err && categoriasRows) {
                     resumoCategorias = categoriasRows.map(c => `- ${c.categoria}: R$ ${c.total.toFixed(2)}`).join("\n");
                 }
 
-                // 3. Monta o prompt do sistema instruindo a IA com os dados reais
+                // 3. Monta o prompt do sistema
                 const systemPrompt = `Você é a LumuzIA, uma assistente virtual de IA especializada em finanças pessoais.
 Seu tom de voz deve ser amigável, acolhedor e focado em educação financeira.
 
@@ -232,7 +271,7 @@ ${resumoCategorias || "Nenhum gasto cadastrado ainda."}
 Use estritamente esses dados se o usuário perguntar sobre a situação financeira dele. Dê conselhos práticos de economia baseados no cenário dele.`;
 
                 try {
-                    // 4. Envia para o Ollama 3 local
+                    // 4. Envia para o Ollama
                     const response = await fetch("http://localhost:11434/api/generate", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },

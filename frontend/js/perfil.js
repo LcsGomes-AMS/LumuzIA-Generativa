@@ -33,9 +33,14 @@ function providerLabel(id) {
 // Se não estiver logado, manda de volta para o login
 onAuthStateChanged(auth, (user) => {
   if (!user) {
+    localStorage.removeItem("userId"); // Limpa o ID se deslogar
     window.location.href = "cad.html";
     return;
   }
+
+  // >>> AQUI ESTÁ A CHAVE DO MISTÉRIO <<<
+  // Salva o UID do Firebase no localStorage do navegador do usuário
+  localStorage.setItem("userId", user.uid);
 
   const providerId = user.providerData[0]?.providerId || "password";
   const displayName = user.displayName || "";
@@ -71,8 +76,9 @@ saveBtn.addEventListener("click", async () => {
   }
 });
 
-// Sair: desconecta do Firebase e volta para o login
+// Sair: desconecta do Firebase, limpa o localStorage e volta para o login
 logoutBtn.addEventListener("click", async () => {
+  localStorage.removeItem("userId");
   await signOut(auth);
   window.location.href = "cad.html";
 });

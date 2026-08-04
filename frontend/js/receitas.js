@@ -1,3 +1,19 @@
+import { auth } from "./config.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+let usuarioAtual = null;
+
+// Escuta o login do Firebase antes de liberar as chamadas para o backend
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    usuarioAtual = user;
+    localStorage.setItem("userId", user.uid);
+    carregarReceitas(); // Carrega apenas depois de confirmar o usuário
+  } else {
+    window.location.href = "cad.html"; // Redireciona se não estiver logado
+  }
+});
+
 async function salvarReceita() {
   const descricaoInput = document.getElementById("descricao");
   const valorInput = document.getElementById("valor");
@@ -5,19 +21,24 @@ async function salvarReceita() {
   const descricao = descricaoInput.value.trim();
   const valor = parseFloat(valorInput.value);
 
-  // Validação básica antes de enviar
+  if (!usuarioAtual) {
+    alert("Usuário ainda não autenticado. Aguarde um instante.");
+    return;
+  }
+
   if (!descricao || isNaN(valor)) {
     alert("Por favor, preencha todos os campos corretamente.");
     return;
   }
 
   try {
-    const res = await fetch("http://localhost:3000/receitas", {
+    const res = await fetch("/receitas", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
+        userId: usuarioAtual.uid, // <-- Garante o UID real do Firebase (ex: "Kj98aXzL0mN...")
         descricao,
         valor
       })
@@ -27,24 +48,23 @@ async function salvarReceita() {
       throw new Error(`Erro no servidor: ${res.status}`);
     }
 
-    const data = await res.json();
-
-    // Limpa os campos e recarrega a lista
     descricaoInput.value = "";
     valorInput.value = "";
     carregarReceitas();
 
   } catch (erro) {
     console.error("Falha ao salvar receita:", erro);
-    alert("Não foi possível salvar a receita. Verifique se o servidor está rodando.");
+    alert("Não foi possível salvar a receita.");
   }
 }
 
 async function carregarReceitas() {
   const tabela = document.getElementById("tabelaReceitas");
+  
+  if (!usuarioAtual) return;
 
   try {
-    const res = await fetch("http://localhost:3000/receitas");
+    const res = await fetch(`/receitas/${usuarioAtual.uid}`);
 
     if (!res.ok) {
       throw new Error(`Erro na requisição: ${res.status}`);
@@ -52,7 +72,11 @@ async function carregarReceitas() {
 
     const receitas = await res.json();
 
-    // Constrói toda a string primeiro para atualizar a DOM uma única vez
+    if (receitas.length === 0) {
+      tabela.innerHTML = `<tr><td colspan="2">Nenhuma receita cadastrada.</td></tr>`;
+      return;
+    }
+
     let linhasHtml = "";
     receitas.forEach(receita => {
       linhasHtml += `
@@ -71,5 +95,5 @@ async function carregarReceitas() {
   }
 }
 
-// Inicializa a listagem ao carregar a página
-carregarReceitas();
+// Torna a função global para o atributo onclick="" do HTML encontrar
+window.salvarReceita = salvarReceita;
