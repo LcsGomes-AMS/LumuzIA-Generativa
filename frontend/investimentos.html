@@ -12,19 +12,113 @@
 </head>
 <body>
 
-    <div class="container">
-        <aside class="sidebar">
-            <h2>LumuzIA</h2> 
-            <a href="dashboard.html">📊 Dashboard</a>
-            <a href="gastos.html">💸 Gastos</a>
-            <a href="receitas.html">💵 Receitas</a>
-            <a href="metas.html">🎯 Metas</a>
-            <a href="investimentos.html">📈 Investimentos</a>
-            <a href="chat.html">🤖 Chat</a>
-            <a href="perfil.html">👤 Perfil</a>
-        </aside>
-        <main>
-           <h1>Site em andamento!!</h1> 
-        </main>
-    </div>
+<div class="container">
+
+    <aside class="sidebar">
+        <h2>LumuzIA</h2>
+        <a href="dashboard.html">📊 Dashboard</a>
+        <a href="gastos.html">💸 Gastos</a>
+        <a href="receitas.html">💵 Receitas</a>
+        <a href="metas.html">🎯 Metas</a>
+        <a href="investimentos.html" class="active">📈 Investimentos</a>
+        <a href="chat.html">🤖 Chat</a>
+        <a href="perfil.html">👤 Perfil</a>
+    </aside>
+
+    <main>
+
+        <h1>Investimentos</h1>
+        <p class="sub">Acompanhe seu patrimônio e simule novos aportes.</p>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Total Investido</h3>
+                <p id="totalInvestido">R$ 0,00</p>
+            </div>
+            <div class="card">
+                <h3>Valor Atual</h3>
+                <p id="valorAtual">R$ 0,00</p>
+            </div>
+            <div class="card">
+                <h3>Rendimento</h3>
+                <p id="rendimento">R$ 0,00</p>
+                <small id="statusRendimento" class="badge-status">0.00%</small>
+            </div>
+        </div>
+
+        <div class="chart-box" style="margin-bottom: 30px;">
+            <h2>Evolução do Patrimônio</h2>
+            <div class="chart-container-canvas">
+                <canvas id="graficoInvestimentos"></canvas>
+            </div>
+        </div>
+
+        <h2>Simular Investimento</h2>
+
+        <div class="form">
+
+            <input
+                id="simNome"
+                placeholder="Nome (ex: Tesouro Selic)">
+
+            <input
+                id="simInicial"
+                type="number"
+                placeholder="Valor inicial">
+
+            <input
+                id="simMensal"
+                type="number"
+                placeholder="Aporte mensal">
+
+            <select id="simPerfil">
+                <option value="conservador">Conservador (9% a.a.)</option>
+                <option value="moderado" selected>Moderado (12% a.a.)</option>
+                <option value="arrojado">Arrojado (16% a.a.)</option>
+            </select>
+
+            <input
+                id="simTaxa"
+                type="number"
+                step="0.1"
+                placeholder="Taxa (% a.a.) — opcional, usa o perfil se vazio">
+
+            <input
+                id="simPrazo"
+                type="number"
+                placeholder="Prazo (meses)">
+
+            <button onclick="simularInvestimento()">
+                Simular
+            </button>
+
+        </div>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Investimento</th>
+                    <th>Investido</th>
+                    <th>Valor Final</th>
+                    <th>Rendimento</th>
+                    <th>Prazo</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+
+            <tbody id="tabelaSimulacoes">
+                <tr><td colspan="6">Nenhuma simulação ainda. Preencha o formulário acima.</td></tr>
+            </tbody>
+
+        </table>
+
+    </main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="module" src="./js/investimentos.js"></script>
+
 </body>
+</html>

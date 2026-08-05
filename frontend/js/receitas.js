@@ -3,14 +3,13 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/f
 
 let usuarioAtual = null;
 
-// Escuta o login do Firebase antes de liberar as chamadas para o backend
 onAuthStateChanged(auth, (user) => {
   if (user) {
     usuarioAtual = user;
     localStorage.setItem("userId", user.uid);
-    carregarReceitas(); // Carrega apenas depois de confirmar o usuário
+    carregarReceitas();
   } else {
-    window.location.href = "cad.html"; // Redireciona se não estiver logado
+    window.location.href = "cad.html";
   }
 });
 
@@ -34,19 +33,15 @@ async function salvarReceita() {
   try {
     const res = await fetch("/receitas", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        userId: usuarioAtual.uid, // <-- Garante o UID real do Firebase (ex: "Kj98aXzL0mN...")
+        userId: usuarioAtual.uid,
         descricao,
         valor
       })
     });
 
-    if (!res.ok) {
-      throw new Error(`Erro no servidor: ${res.status}`);
-    }
+    if (!res.ok) throw new Error(`Erro no servidor: ${res.status}`);
 
     descricaoInput.value = "";
     valorInput.value = "";
@@ -65,15 +60,12 @@ async function carregarReceitas() {
 
   try {
     const res = await fetch(`/receitas/${usuarioAtual.uid}`);
-
-    if (!res.ok) {
-      throw new Error(`Erro na requisição: ${res.status}`);
-    }
+    if (!res.ok) throw new Error(`Erro na requisição: ${res.status}`);
 
     const receitas = await res.json();
 
     if (receitas.length === 0) {
-      tabela.innerHTML = `<tr><td colspan="2">Nenhuma receita cadastrada.</td></tr>`;
+      tabela.innerHTML = `<tr><td colspan="3">Nenhuma receita cadastrada.</td></tr>`;
       return;
     }
 
@@ -83,6 +75,10 @@ async function carregarReceitas() {
         <tr>
           <td>${receita.descricao}</td>
           <td>R$ ${Number(receita.valor).toFixed(2)}</td>
+          <td>
+            <button onclick="editarReceita(${receita.id}, '${receita.descricao}', ${receita.valor})">✏️ Editar</button>
+            <button onclick="deletarReceita(${receita.id})">🗑️ Excluir</button>
+          </td>
         </tr>
       `;
     });
@@ -91,9 +87,52 @@ async function carregarReceitas() {
 
   } catch (erro) {
     console.error("Falha ao carregar receitas:", erro);
-    tabela.innerHTML = `<tr><td colspan="2">Erro ao carregar dados do servidor.</td></tr>`;
+    tabela.innerHTML = `<tr><td colspan="3">Erro ao carregar dados do servidor.</td></tr>`;
   }
 }
 
-// Torna a função global para o atributo onclick="" do HTML encontrar
+async function deletarReceita(id) {
+  if (!confirm("Tem certeza que deseja excluir esta receita?")) return;
+
+  try {
+    const res = await fetch(`/receitas/${id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: usuarioAtual.uid })
+    });
+
+    const data = await res.json();
+    if (data.success) carregarReceitas();
+  } catch (erro) {
+    console.error("Erro ao deletar receita:", erro);
+  }
+}
+
+async function editarReceita(id, descricaoAntiga, valorAntigo) {
+  const novaDescricao = prompt("Nova descrição:", descricaoAntiga);
+  if (novaDescricao === null) return;
+
+  const novoValor = prompt("Novo valor:", valorAntigo);
+  if (novoValor === null || isNaN(parseFloat(novoValor))) return;
+
+  try {
+    const res = await fetch(`/receitas/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: usuarioAtual.uid,
+        descricao: novaDescricao.trim(),
+        valor: parseFloat(novoValor)
+      })
+    });
+
+    const data = await res.json();
+    if (data.success) carregarReceitas();
+  } catch (erro) {
+    console.error("Erro ao editar receita:", erro);
+  }
+}
+
 window.salvarReceita = salvarReceita;
+window.deletarReceita = deletarReceita;
+window.editarReceita = editarReceita;

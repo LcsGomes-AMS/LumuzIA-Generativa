@@ -300,3 +300,83 @@ Use estritamente esses dados se o usuário perguntar sobre a situação financei
 app.listen(3000, () => {
     console.log("Servidor rodando em http://localhost:3000");
 });
+// =====================
+// EXCLUSÃO E EDIÇÃO - RECEITAS
+// =====================
+app.delete("/receitas/:id", (req, res) => {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    db.run("DELETE FROM receitas WHERE id = ? AND user_id = ?", [id, userId], function(err) {
+        if (err) return res.status(500).json({ success: false, error: err.message });
+        res.json({ success: true, changes: this.changes });
+    });
+});
+
+app.put("/receitas/:id", (req, res) => {
+    const { id } = req.params;
+    const { userId, descricao, valor } = req.body;
+
+    db.run(
+        "UPDATE receitas SET descricao = ?, valor = ? WHERE id = ? AND user_id = ?",
+        [descricao, valor, id, userId],
+        function(err) {
+            if (err) return res.status(500).json({ success: false, error: err.message });
+            res.json({ success: true, changes: this.changes });
+        }
+    );
+});
+
+// =====================
+// EXCLUSÃO E EDIÇÃO - GASTOS
+// =====================
+app.delete("/gastos/:id", (req, res) => {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    db.run("DELETE FROM gastos WHERE id = ? AND user_id = ?", [id, userId], function(err) {
+        if (err) return res.status(500).json({ success: false, error: err.message });
+        res.json({ success: true, changes: this.changes });
+    });
+});
+
+app.put("/gastos/:id", (req, res) => {
+    const { id } = req.params;
+    const { userId, descricao, valor, categoria } = req.body;
+
+    db.run(
+        "UPDATE gastos SET descricao = ?, valor = ?, categoria = ? WHERE id = ? AND user_id = ?",
+        [descricao, valor, categoria, id, userId],
+        function(err) {
+            if (err) return res.status(500).json({ success: false, error: err.message });
+            res.json({ success: true, changes: this.changes });
+        }
+    );
+});
+
+// =====================
+// EXCLUSÃO E EDIÇÃO - METAS
+// =====================
+app.delete("/metas/:id", (req, res) => {
+    const { id } = req.params;
+    const { userId } = req.body;
+
+    db.run("DELETE FROM metas WHERE id = ? AND user_id = ?", [id, userId], function(err) {
+        if (err) return res.status(500).json({ success: false, error: err.message });
+        res.json({ success: true, changes: this.changes });
+    });
+});
+
+app.put("/metas/:id", (req, res) => {
+    const { id } = req.params;
+    const { userId, nome, valorObjetivo, valorAtual, prazo } = req.body;
+
+    db.run(
+        "UPDATE metas SET nome = ?, valor_objetivo = ?, valor_atual = ?, prazo = ? WHERE id = ? AND user_id = ?",
+        [nome, valorObjetivo, valorAtual, prazo, id, userId],
+        function(err) {
+            if (err) return res.status(500).json({ success: false, error: err.message });
+            res.json({ success: true, changes: this.changes });
+        }
+    );
+});
