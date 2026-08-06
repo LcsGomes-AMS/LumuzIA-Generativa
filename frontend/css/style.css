@@ -520,3 +520,16 @@ th {
 
 .divider::before { margin-right: 12px; }
 .divider::after { margin-left: 12px; }
+
+/*esqueceu senha */
+.forgot-link {
+  display: block;
+  text-align: right;
+  font-size: 13px;
+  margin-top: 8px;
+  color: var(--muted, #888);
+  text-decoration: none;
+}
+.forgot-link:hover {
+  text-decoration: underline;
+}

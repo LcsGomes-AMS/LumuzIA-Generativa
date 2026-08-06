@@ -5,7 +5,8 @@ import {
   GoogleAuthProvider,
   signInWithPopup,
   updateProfile,
-  onAuthStateChanged
+  onAuthStateChanged,
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
@@ -19,6 +20,11 @@ const submitBtn = document.getElementById("submitBtn");
 const form = document.getElementById("authForm");
 const googleBtn = document.getElementById("googleBtn");
 const msg = document.getElementById("msg");
+
+const forgotForm = document.getElementById("forgotForm");
+const forgotLink = document.getElementById("forgotLink");
+const backToLoginLink = document.getElementById("backToLoginLink");
+const divider = document.getElementById("divider");
 
 onAuthStateChanged(auth, (user) => {
   if (user) window.location.href = "dashboard.html";
@@ -123,5 +129,45 @@ googleBtn.addEventListener("click", async () => {
     showMsg(friendlyError(err.code));
   } finally {
     setLoading(false);
+  }
+});
+
+// ---- Esqueceu a senha ----
+
+forgotLink.addEventListener("click", (e) => {
+  e.preventDefault();
+  form.style.display = "none";
+  divider.style.display = "none";
+  googleBtn.style.display = "none";
+  forgotForm.style.display = "block";
+  hideMsg();
+});
+
+backToLoginLink.addEventListener("click", (e) => {
+  e.preventDefault();
+  forgotForm.style.display = "none";
+  form.style.display = "block";
+  divider.style.display = "block";
+  googleBtn.style.display = "flex";
+  hideMsg();
+});
+
+forgotForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  hideMsg();
+  const email = document.getElementById("forgotEmail").value.trim();
+  const btn = document.getElementById("forgotSubmitBtn");
+
+  btn.disabled = true;
+  btn.textContent = "Enviando...";
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+    showMsg("Enviamos um link de redefinição para o seu e-mail. Verifique também a caixa de spam.", "success");
+  } catch (error) {
+    showMsg(friendlyError(error.code));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Enviar link de redefinição";
   }
 });
