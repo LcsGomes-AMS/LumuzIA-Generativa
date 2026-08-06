@@ -5,9 +5,14 @@
     "start": "node backend/server.js"
   },
   "dependencies": {
+    "axios": "^1.19.0",
+    "cheerio": "^1.2.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "express-session": "^1.18.1",
     "sqlite3": "^5.1.7"
+  },
+  "allowScripts": {
+    "sqlite3@5.1.7": true
   }
 }

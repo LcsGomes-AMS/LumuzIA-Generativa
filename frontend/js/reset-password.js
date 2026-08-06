@@ -1,6 +1,11 @@
-import { getAuth, verifyPasswordResetCode, confirmPasswordReset } from "firebase/auth";
+import {
+  verifyPasswordResetCode,
+  confirmPasswordReset
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-const auth = getAuth();
+import { auth } from "./config.js";
+
+
 
 const resetForm = document.getElementById("resetForm");
 const msg = document.getElementById("msg");

@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
+const axios = require("axios");
+const cheerio = require("cheerio");
 const db = require("./database");
 
 const app = express();
@@ -22,6 +24,34 @@ app.get("/", (req, res) => {
         )
     );
 });
+
+// =====================
+// HELPER SCRAPING (Status Invest - Sem API)
+// =====================
+async function obterPrecoScraping(ticker) {
+    try {
+        const tickerUpper = ticker.toUpperCase();
+        const url = `https://statusinvest.com.br/acoes/${tickerUpper}`;
+
+        const { data } = await axios.get(url, {
+            headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+        });
+
+        const $ = cheerio.load(data);
+        const precoTexto = $('div[title="Valor atual do ativo"] strong.value').text();
+
+        if (precoTexto) {
+            const priceClean = precoTexto.replace(/\./g, "").replace(",", ".").trim();
+            const price = parseFloat(priceClean);
+            if (!isNaN(price)) return price;
+        }
+    } catch (error) {
+        console.error(`Erro ao fazer scraping de ${ticker}:`, error.message);
+    }
+    return null;
+}
 
 // =====================
 // PERFIL
@@ -241,7 +271,7 @@ app.put("/metas/:id", (req, res) => {
 });
 
 // =====================
-// INVESTIMENTOS (Ações & FIIs)
+// INVESTIMENTOS
 // =====================
 app.post("/investimentos", (req, res) => {
     const { userId, ticker, tipo, quantidade, precoMedio } = req.body;
@@ -286,8 +316,83 @@ app.delete("/investimentos/:id", (req, res) => {
     });
 });
 
+// Cotação individual de ativo via Scraping
+app.get("/api/cotacao/:ticker", async (req, res) => {
+    const { ticker } = req.params;
+    const price = await obterPrecoScraping(ticker);
+
+    if (price) {
+        return res.json({ price });
+    } else {
+        return res.status(404).json({ error: "Preço não encontrado" });
+    }
+});
+
+// Relatório completo da carteira com cotações
+app.get("/api/investimentos/cotacoes/:userId", async (req, res) => {
+    const { userId } = req.params;
+
+    db.all("SELECT * FROM investimentos WHERE user_id = ?", [userId], async (err, ativos) => {
+        if (err || !ativos || ativos.length === 0) {
+            return res.json({
+                totalInvestido: 0,
+                valorAtual: 0,
+                rendimento: 0,
+                crescimentoPercentual: 0,
+                proximosProventos: 0,
+                detalhes: []
+            });
+        }
+
+        let totalInvestido = 0;
+        let valorAtualTotal = 0;
+        let detalhes = [];
+
+        for (const ativo of ativos) {
+            const investidoAtivo = ativo.quantidade * ativo.preco_medio;
+            totalInvestido += investidoAtivo;
+            let precoAtual = ativo.preco_medio; // Fallback
+
+            try {
+                if (ativo.tipo === "Ação" || ativo.tipo === "FII") {
+                    const priceScraped = await obterPrecoScraping(ativo.ticker);
+                    if (priceScraped) precoAtual = priceScraped;
+                }
+            } catch (error) {
+                console.error(`Erro ao buscar cotação de ${ativo.ticker}:`, error.message);
+            }
+
+            const valorAtualAtivo = ativo.quantidade * precoAtual;
+            valorAtualTotal += valorAtualAtivo;
+
+            detalhes.push({
+                ticker: ativo.ticker,
+                tipo: ativo.tipo,
+                quantidade: ativo.quantidade,
+                precoMedio: ativo.preco_medio,
+                precoAtual: precoAtual,
+                valorTotalAtual: valorAtualAtivo,
+                lucroOuPrejuizo: valorAtualAtivo - investidoAtivo
+            });
+        }
+
+        const rendimentoTotal = valorAtualTotal - totalInvestido;
+        const crescimentoPercentual = totalInvestido > 0 ? (rendimentoTotal / totalInvestido) * 100 : 0;
+        const estimativaProventos = valorAtualTotal * 0.007;
+
+        res.json({
+            totalInvestido,
+            valorAtual: valorAtualTotal,
+            rendimento: rendimentoTotal,
+            crescimentoPercentual: crescimentoPercentual.toFixed(2),
+            proximosProventos: estimativaProventos.toFixed(2),
+            detalhes
+        });
+    });
+});
+
 // =====================
-// DASHBOARD
+// DASHBOARD & ESTATÍSTICAS
 // =====================
 app.get("/dashboard/:userId", (req, res) => {
     const { userId } = req.params;
@@ -316,9 +421,6 @@ app.get("/dashboard/:userId", (req, res) => {
     );
 });
 
-// =====================
-// ESTATÍSTICAS
-// =====================
 app.get("/estatisticas/:userId", (req, res) => {
     const { userId } = req.params;
 
@@ -341,7 +443,7 @@ app.get("/estatisticas/:userId", (req, res) => {
 });
 
 // =====================
-// CHAT IA (Com Contexto Financeiro & Investimentos)
+// CHAT IA (Ollama + Contexto)
 // =====================
 app.post("/chat", (req, res) => {
     const { userId, message } = req.body;
@@ -350,7 +452,6 @@ app.post("/chat", (req, res) => {
         return res.status(400).json({ error: "userId ou mensagem vazia" });
     }
 
-    // 1. Busca saldo total do usuário
     db.get(
         `SELECT 
             (SELECT IFNULL(SUM(valor), 0) FROM receitas WHERE user_id = ?) AS total_receitas,
@@ -366,14 +467,12 @@ app.post("/chat", (req, res) => {
             const gastos = financeRow ? financeRow.total_gastos : 0;
             const saldo = receitas - gastos;
 
-            // 2. Busca gastos por categoria
             db.all(`SELECT categoria, SUM(valor) AS total FROM gastos WHERE user_id = ? GROUP BY categoria`, [userId], async (err, categoriasRows) => {
                 let resumoCategorias = "";
                 if (!err && categoriasRows && categoriasRows.length > 0) {
                     resumoCategorias = categoriasRows.map(c => `- ${c.categoria}: R$ ${c.total.toFixed(2)}`).join("\n");
                 }
 
-                // 3. Busca carteira de investimentos
                 db.all(`SELECT ticker, tipo, quantidade, preco_medio FROM investimentos WHERE user_id = ?`, [userId], async (err, ativosRows) => {
                     let resumoInvestimentos = "";
                     let valorTotalInvestido = 0;
@@ -386,7 +485,6 @@ app.post("/chat", (req, res) => {
                         }).join("\n");
                     }
 
-                    // 4. Monta o prompt do sistema
                     const systemPrompt = `Você é a LumuzIA, uma assistente virtual de IA especializada em finanças pessoais e investimentos.
 Seu tom de voz deve ser amigável, acolhedor e focado em educação financeira.
 
@@ -405,22 +503,16 @@ ${resumoInvestimentos || "Nenhum ativo investido na carteira no momento."}
 Use estritamente esses dados se o usuário perguntar sobre o saldo, investimentos ou situação financeira dele. Dê conselhos práticos e personalizados.`;
 
                     try {
-                        // 5. Envia para o Ollama
-                        const response = await fetch("http://localhost:11434/api/generate", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                model: "llama3",
-                                prompt: `${systemPrompt}\n\nUsuário: ${message}\nLumuzIA:`,
-                                stream: false
-                            })
+                        const response = await axios.post("http://localhost:11434/api/generate", {
+                            model: "llama3",
+                            prompt: `${systemPrompt}\n\nUsuário: ${message}\nLumuzIA:`,
+                            stream: false
                         });
 
-                        const data = await response.json();
-                        res.json({ reply: data.response });
+                        res.json({ reply: response.data.response });
 
                     } catch (error) {
-                        console.error(error);
+                        console.error(error.message);
                         res.status(500).json({ error: "Erro ao comunicar com Ollama. Verifique se ele está rodando." });
                     }
                 });
@@ -429,111 +521,9 @@ Use estritamente esses dados se o usuário perguntar sobre o saldo, investimento
     );
 });
 
-
 // =====================
 // SERVIDOR
 // =====================
 app.listen(3000, () => {
     console.log("Servidor rodando em http://localhost:3000");
-});
-// Adicione esta rota ao seu server.js
-
-app.get("/api/investimentos/cotacoes/:userId", async (req, res) => {
-    const { userId } = req.params;
-
-    db.all("SELECT * FROM investimentos WHERE user_id = ?", [userId], async (err, ativos) => {
-        if (err || !ativos || ativos.length === 0) {
-            return res.json({
-                totalInvestido: 0,
-                valorAtual: 0,
-                rendimento: 0,
-                crescimentoPercentual: 0,
-                proximosProventos: 0,
-                detalhes: []
-            });
-        }
-
-        let totalInvestido = 0;
-        let valorAtualTotal = 0;
-        let detalhes = [];
-
-        for (const ativo of ativos) {
-            const investidoAtivo = ativo.quantidade * ativo.preco_medio;
-            totalInvestido += investidoAtivo;
-            let precoAtual = ativo.preco_medio; // Fallback
-
-            try {
-                if (ativo.tipo === "Ação" || ativo.tipo === "FII") {
-                    // Consulta Brapi API para B3
-                    const response = await fetch(`https://brapi.dev/api/quote/${ativo.ticker}`);
-                    const data = await response.json();
-                    if (data.results && data.results[0]) {
-                        precoAtual = data.results[0].regularMarketPrice || ativo.preco_medio;
-                    }
-                } else if (ativo.tipo === "Cripto") {
-                    // Consulta CoinGecko API para Cripto (Ex: bitcoin, ethereum)
-                    const tickerLower = ativo.ticker.toLowerCase();
-                    const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${tickerLower}&vs_currencies=brl`);
-                    const data = await response.json();
-                    if (data[tickerLower]) {
-                        precoAtual = data[tickerLower].brl;
-                    }
-                }
-            } catch (error) {
-                console.error(`Erro ao buscar cotação de ${ativo.ticker}:`, error.message);
-            }
-
-            const valorAtualAtivo = ativo.quantidade * precoAtual;
-            valorAtualTotal += valorAtualAtivo;
-
-            detalhes.push({
-                ticker: ativo.ticker,
-                tipo: ativo.tipo,
-                quantidade: ativo.quantidade,
-                precoMedio: ativo.preco_medio,
-                precoAtual: precoAtual,
-                valorTotalAtual: valorAtualAtivo,
-                lucroOuPrejuizo: valorAtualAtivo - investidoAtivo
-            });
-        }
-
-        const rendimentoTotal = valorAtualTotal - totalInvestido;
-        const crescimentoPercentual = totalInvestido > 0 ? (rendimentoTotal / totalInvestido) * 100 : 0;
-
-        // Estimativa simples de proventos a receber (pode ser refinada com webhooks de APIs de dividendos)
-        const estimativaProventos = valorAtualTotal * 0.007; // ~0.7% ao mês estimado sobre FIIs/Ações
-
-        res.json({
-            totalInvestido,
-            valorAtual: valorAtualTotal,
-            rendimento: rendimentoTotal,
-            crescimentoPercentual: crescimentoPercentual.toFixed(2),
-            proximosProventos: estimativaProventos.toFixed(2),
-            detalhes
-        });
-    });
-});
-// Adicione no seu server.js
-app.get("/api/cotacao/:ticker", async (req, res) => {
-    try {
-        const { ticker } = req.params;
-        const symbol = ticker.toUpperCase() + ".SA";
-        
-        const response = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`);
-        if (!response.ok) {
-            return res.status( response.status ).json({ error: "Erro ao buscar ativo" });
-        }
-        
-        const data = await response.json();
-        const price = data?.chart?.result?.[0]?.meta?.regularMarketPrice;
-
-        if (price) {
-            return res.json({ price });
-        } else {
-            return res.status(404).json({ error: "Preço não encontrado" });
-        }
-    } catch (error) {
-        console.error("Erro na rota de cotação:", error.message);
-        res.status(500).json({ error: "Erro interno no servidor" });
-    }
 });
