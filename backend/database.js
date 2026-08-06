@@ -7,7 +7,7 @@ const db = new sqlite3.Database(
 
 db.serialize(() => {
 
-    // Usuários (Chave primária agora é TEXT/UUID do Firebase)
+    // Usuários (Chave primária: TEXT/UUID do Firebase)
     db.run(`
         CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY,
@@ -65,6 +65,20 @@ db.serialize(() => {
             valor_objetivo REAL,
             valor_atual REAL DEFAULT 0,
             prazo INTEGER,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+    `);
+
+    // Investimentos (Ações B3 e FIIs vinculados ao UID do Firebase)
+    db.run(`
+        CREATE TABLE IF NOT EXISTS investimentos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            ticker TEXT NOT NULL,
+            tipo TEXT NOT NULL,
+            quantidade INTEGER NOT NULL,
+            preco_medio REAL NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )

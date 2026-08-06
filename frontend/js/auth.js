@@ -134,36 +134,29 @@ googleBtn.addEventListener("click", async () => {
 
 // ---- Esqueceu a senha ----
 
-forgotLink.addEventListener("click", (e) => {
-  e.preventDefault();
-  form.style.display = "none";
-  divider.style.display = "none";
-  googleBtn.style.display = "none";
-  forgotForm.style.display = "block";
-  hideMsg();
-});
-
-backToLoginLink.addEventListener("click", (e) => {
-  e.preventDefault();
-  forgotForm.style.display = "none";
-  form.style.display = "block";
-  divider.style.display = "block";
-  googleBtn.style.display = "flex";
-  hideMsg();
-});
-
 forgotForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   hideMsg();
+
   const email = document.getElementById("forgotEmail").value.trim();
   const btn = document.getElementById("forgotSubmitBtn");
 
   btn.disabled = true;
   btn.textContent = "Enviando...";
 
+  const actionCodeSettings = {
+    url: "https://lumuzia-generativa.onrender.com/reset-password.html",
+    handleCodeInApp: false,
+  };
+
   try {
-    await sendPasswordResetEmail(auth, email);
-    showMsg("Enviamos um link de redefinição para o seu e-mail. Verifique também a caixa de spam.", "success");
+    await sendPasswordResetEmail(auth, email, actionCodeSettings);
+
+    showMsg(
+      "Enviamos um link de redefinição para o seu e-mail. Verifique também a caixa de spam.",
+      "success"
+    );
+
   } catch (error) {
     showMsg(friendlyError(error.code));
   } finally {
