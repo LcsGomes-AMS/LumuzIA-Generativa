@@ -100,28 +100,24 @@ async function carregarGraficoRendimento() {
     if (!usuarioAtual) return;
 
     try {
-        let investido = 10000;
-        let atual = 11200;
-        let historico = [10000, 10100, 10300, 10250, 10700, 11200];
-        let labelsMeses = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"];
+        // Busca os dados consolidados das APIs via Backend
+        const res = await fetch(`/api/investimentos/cotacoes/${usuarioAtual.uid}`);
+        
+        let investido = 0;
+        let atual = 0;
+        let percentual = 0;
+        let proventos = 0;
 
-        // Tenta buscar da API backend (se a rota já existir)
-        try {
-            const res = await fetch(`/investimentos/${usuarioAtual.uid}`);
-            if (res.ok) {
-                const data = await res.json();
-                investido = data.totalInvestido || investido;
-                atual = data.valorAtual || atual;
-                if (data.historico) historico = data.historico;
-                if (data.labels) labelsMeses = data.labels;
-            }
-        } catch (e) {
-            console.warn("Rota /investimentos não configurada no backend, usando valores base.");
+        if (res.ok) {
+            const data = await res.json();
+            investido = data.totalInvestido || 0;
+            atual = data.valorAtual || 0;
+            percentual = parseFloat(data.crescimentoPercentual) || 0;
+            proventos = parseFloat(data.proximosProventos) || 0;
         }
 
-        // 1. Cálculo do Rendimento em % e R$
+        // 1. Cálculo do Rendimento em R$
         const valorRendimento = atual - investido;
-        const percentual = investido > 0 ? ((valorRendimento) / investido) * 100 : 0;
 
         // 2. Lógica de Avaliação: Bom, Regular ou Ruim
         let statusTexto = "";
@@ -139,12 +135,14 @@ async function carregarGraficoRendimento() {
         }
 
         // 3. Atualizar elementos no DOM
+        const elPatrimonio = document.getElementById("patrimonioInvestido");
         const elRendimento = document.getElementById("rendimentos");
         const elStatus = document.getElementById("statusRendimento");
+        const elProventos = document.getElementById("proximosProventos");
 
-        if (elRendimento) {
-            elRendimento.innerText = `R$ ${valorRendimento.toFixed(2)}`;
-        }
+        if (elPatrimonio) elPatrimonio.innerText = `R$ ${atual.toFixed(2)}`;
+        if (elRendimento) elRendimento.innerText = `R$ ${valorRendimento.toFixed(2)}`;
+        if (elProventos) elProventos.innerText = `R$ ${proventos.toFixed(2)}`;
 
         if (elStatus) {
             elStatus.innerText = `${percentual >= 0 ? '+' : ''}${percentual.toFixed(2)}% (${statusTexto})`;
@@ -152,53 +150,53 @@ async function carregarGraficoRendimento() {
             elStatus.style.fontWeight = "bold";
         }
 
-        // 4. Desenhar Gráfico de Linha via Chart.js
+        // 4. Desenhar Gráfico com Histórico Real/Estimado
+        const historico = [investido, investido * 1.01, investido * 1.02, atual];
+        const labelsMeses = ["Aporte Inicial", "Mês 1", "Mês 2", "Atual"];
+
         const canvas = document.getElementById("graficoRendimento");
         const chartExistente = Chart.getChart(canvas);
         if (chartExistente) chartExistente.destroy();
 
         new Chart(canvas, {
-    type: "line",
-    data: {
-        labels: labelsMeses,
-        datasets: [{
-            label: "Patrimônio (R$)",
-            data: historico,
-            borderColor: corStatus,
-            backgroundColor: corStatus + "1F", // Gradiente suave transparente
-            fill: true,
-            tension: 0.35,
-            borderWidth: 3,
-            pointRadius: 4,
-            pointHoverRadius: 6,
-            pointBackgroundColor: corStatus
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false, // Permite que o gráfico preencha a div sem distorcer
-        plugins: {
-            legend: { display: false }
-        },
-        scales: {
-            x: {
-                grid: { display: false }, // Remove as linhas verticais do fundo
-                ticks: {
-                    color: '#8FA1A3', // Cor legível para os meses (Jan, Fev...)
-                    font: { family: 'Inter', size: 12 }
-                }
+            type: "line",
+            data: {
+                labels: labelsMeses,
+                datasets: [{
+                    label: "Patrimônio (R$)",
+                    data: historico,
+                    borderColor: corStatus,
+                    backgroundColor: corStatus + "1F",
+                    fill: true,
+                    tension: 0.35,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: corStatus
+                }]
             },
-            y: {
-                grid: { color: 'rgba(255, 255, 255, 0.05)' }, // Linhas horizontais sutis
-                ticks: {
-                    color: '#8FA1A3', // Cor legível para os valores (R$ 10000...)
-                    font: { family: 'Inter', size: 11 },
-                    callback: (value) => `R$ ${value}`
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#8FA1A3', font: { family: 'Inter', size: 12 } }
+                    },
+                    y: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: {
+                            color: '#8FA1A3',
+                            font: { family: 'Inter', size: 11 },
+                            callback: (value) => `R$ ${value}`
+                        }
+                    }
                 }
             }
-        }
-    }
-});
+        });
 
     } catch (erro) {
         console.error("Erro ao carregar gráfico de rendimento:", erro);

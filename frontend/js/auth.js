@@ -144,6 +144,7 @@ forgotForm.addEventListener("submit", async (e) => {
   btn.disabled = true;
   btn.textContent = "Enviando...";
 
+  // Configuração do link de redefinição
   const actionCodeSettings = {
     url: "https://lumuzia-generativa.onrender.com/reset-password.html",
     handleCodeInApp: false,
@@ -158,6 +159,7 @@ forgotForm.addEventListener("submit", async (e) => {
     );
 
   } catch (error) {
+    console.error(error);
     showMsg(friendlyError(error.code));
   } finally {
     btn.disabled = false;
