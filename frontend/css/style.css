@@ -533,3 +533,236 @@ th {
 .forgot-link:hover {
   text-decoration: underline;
 }
+
+/*metas*/
+
+/* ==========================================================================
+   8. RESPONSIVIDADE
+   ========================================================================== */
+
+/* ---------------------------------------------------------
+   TABLETS
+--------------------------------------------------------- */
+@media (max-width: 1100px) {
+
+  .sidebar, aside {
+    width: 220px;
+  }
+
+  main {
+    padding: 26px;
+  }
+
+  .profile-card, .lz-card {
+    max-width: 100%;
+  }
+
+}
+
+/* ---------------------------------------------------------
+   TELAS MÉDIAS
+--------------------------------------------------------- */
+@media (max-width: 900px) {
+
+  main {
+    padding: 22px;
+  }
+
+  main h1 {
+    font-size: 22px;
+  }
+
+  .cards, .cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  }
+
+  table {
+    min-width: 640px;
+  }
+
+}
+
+/* ---------------------------------------------------------
+   CELULAR
+--------------------------------------------------------- */
+@media (max-width: 640px) {
+
+  .container {
+    flex-direction: column;
+    min-height: auto;
+  }
+
+  /* Sidebar vira barra horizontal no topo */
+  .sidebar, aside {
+    width: 100%;
+    min-height: auto;
+    height: auto;
+    flex-direction: row;
+    align-items: center;
+    padding: 12px;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    -webkit-overflow-scrolling: touch;
+    gap: 4px;
+  }
+
+  .sidebar h2, aside h2 {
+    display: none;
+  }
+
+  .sidebar a, aside a {
+    flex-shrink: 0;
+    white-space: nowrap;
+    margin-bottom: 0;
+    margin-right: 4px;
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .sidebar a:hover, aside a:hover,
+  .sidebar a.active, aside a.active {
+    border-left: none;
+    border-bottom: 3px solid var(--accent-2);
+  }
+
+  /* Conteúdo principal */
+  main {
+    padding: 18px 16px;
+    overflow-x: hidden;
+  }
+
+  main h1 {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+
+  main h2 {
+    font-size: 17px;
+  }
+
+  /* Cards em coluna única */
+  .cards, .cards-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .card {
+    padding: 20px;
+  }
+
+  .card p, .card h2 {
+    font-size: 19px;
+  }
+
+  /* Formulários */
+  .form, form {
+    gap: 12px;
+    margin: 12px 0;
+  }
+
+  input, select {
+    font-size: 16px; /* evita zoom automático no iOS */
+    padding: 11px 12px;
+  }
+
+  /* Tabelas com rolagem horizontal */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  th, td {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  /* Botões */
+  .btn, .lz-btn, button {
+    padding: 11px 14px;
+    font-size: 13px;
+  }
+
+  /* Perfil */
+  .profile-card, .lz-card {
+    padding: 20px;
+  }
+
+  .profile-header, .lz-top {
+    gap: 12px;
+    margin-bottom: 18px;
+    padding-bottom: 16px;
+  }
+
+  .profile-avatar, .lz-avatar {
+    width: 50px;
+    height: 50px;
+    font-size: 18px;
+  }
+
+  .profile-actions, .lz-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Gráficos */
+  .chart-box {
+    padding: 16px;
+  }
+
+  .chart-container-canvas {
+    height: 200px !important;
+    max-height: 200px !important;
+  }
+
+  /* Login / autenticação */
+  .wrap {
+    padding: 16px;
+  }
+
+  .brand-name {
+    font-size: 19px;
+  }
+
+  .tab {
+    font-size: 12px;
+    padding: 8px 0;
+  }
+
+}
+
+/* ---------------------------------------------------------
+   CELULARES PEQUENOS
+--------------------------------------------------------- */
+@media (max-width: 380px) {
+
+  main {
+    padding: 14px 12px;
+  }
+
+  main h1 {
+    font-size: 18px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .card p, .card h2 {
+    font-size: 17px;
+  }
+
+  .sidebar a, aside a {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+
+  .profile-card, .lz-card {
+    padding: 16px;
+  }
+
+}

@@ -1,83 +1,171 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
 
-<title>Metas - LumuzIA</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<link rel="stylesheet" href="./css/style.css">
-
+    <title>Metas Financeiras · LumuzIA</title>
+    <link rel="icon" type="./img/png" href="img/LumuzIA.png">
+    <link
+        rel="stylesheet"
+        href="./css/style.css"
+    >
+    <link rel="stylesheet" href="./css/metas.css">
 </head>
-<body>
 
-<div class="container">
+<body>
 
     <aside class="sidebar">
 
-        <h2>LumuzIA</h2>
+        <div
+            class="sidebar-brand"
+            style="
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                margin-bottom:10px;
+            "
+        >
+
+            <img
+                src="img/LumuzIA.png"
+                alt="LumuzIA"
+                style="
+                    width:80px;
+                    height:80px;
+                    border-radius:50%;
+                    object-fit:cover;
+                "
+            >
+
+        </div>
+
 
         <a href="dashboard.html">📊 Dashboard</a>
+
         <a href="gastos.html">💸 Gastos</a>
+
         <a href="receitas.html">💵 Receitas</a>
+
         <a href="metas.html">🎯 Metas</a>
+
         <a href="investimentos.html">📈 Investimentos</a>
+
         <a href="chat.html">🤖 Chat</a>
+
         <a href="perfil.html">👤 Perfil</a>
 
     </aside>
+
 
     <main>
 
         <h1>Metas Financeiras</h1>
 
+
+        <!-- =================================================
+             FORMULÁRIO
+        ================================================== -->
+
         <div class="form">
 
             <input
                 id="nome"
-                placeholder="Nome da Meta">
+                type="text"
+                placeholder="Nome da Meta"
+            >
+
 
             <input
                 id="valorObjetivo"
                 type="number"
-                placeholder="Valor Objetivo">
+                min="0"
+                step="0.01"
+                placeholder="Valor Objetivo"
+            >
+
 
             <input
                 id="prazo"
                 type="number"
-                placeholder="Prazo (meses)">
+                min="1"
+                placeholder="Prazo (meses)"
+            >
 
-            <button onclick="salvarMeta()">
-                Salvar Meta
+
+            <button
+                type="button"
+                onclick="salvarMeta()"
+            >
+                🎯 Salvar Meta
             </button>
 
         </div>
 
-        <table>
 
-            <thead>
-                <tr>
-                    <th>Meta</th>
-                    <th>Objetivo</th>
-                    <th>Guardado</th>
-                    <th>Prazo</th>
-                    <th>Progresso</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
+        <!-- =================================================
+             TABELA
+        ================================================== -->
 
-            <tbody id="tabelaMetas">
+        <div class="table-wrap">
 
-            </tbody>
+            <table>
 
-        </table>
+                <thead>
+
+                    <tr>
+
+                        <th>Meta</th>
+
+                        <th>Objetivo</th>
+
+                        <th>Guardado</th>
+
+                        <th>Prazo</th>
+
+                        <th>Progresso</th>
+
+                        <th>Ações</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="tabelaMetas">
+
+                    <tr>
+
+                        <td colspan="6">
+                            Carregando metas...
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
 
     </main>
 
-</div>
 
-<script type="module" src="./js/metas.js"></script>
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script
+        type="module"
+        src="./js/metas.js"
+    ></script>
 
 </body>
-</html> 
+
+</html>
