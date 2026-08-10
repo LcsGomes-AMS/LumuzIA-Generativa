@@ -1,0 +1,4 @@
+serviceAccountKey.json
+.env
+node_modules
+lumuzia.db

@@ -9,6 +9,13 @@
 
 <link rel="stylesheet" href="./css/style.css">
 
+<style>
+    .meta-previsao { font-size: 12px; color: #8FA1A3; }
+    .meta-previsao.ok { color: #10B981; }
+    .meta-previsao.alerta { color: #FBBF24; }
+    .aviso-media { background: rgba(111,231,221,0.08); padding: 12px 16px; border-radius: 8px; margin-top: 15px; color: #6FE7DD; }
+</style>
+
 </head>
 <body>
 
@@ -21,7 +28,7 @@
         <a href="dashboard.html">📊 Dashboard</a>
         <a href="gastos.html">💸 Gastos</a>
         <a href="receitas.html">💵 Receitas</a>
-        <a href="metas.html">🎯 Metas</a>
+        <a href="metas.html" class="active">🎯 Metas</a>
         <a href="investimentos.html">📈 Investimentos</a>
         <a href="chat.html">🤖 Chat</a>
         <a href="perfil.html">👤 Perfil</a>
@@ -31,6 +38,8 @@
     <main>
 
         <h1>Metas Financeiras</h1>
+
+        <div id="avisoMedia" class="aviso-media" style="display:none;"></div>
 
         <div class="form">
 
@@ -63,6 +72,7 @@
                     <th>Guardado</th>
                     <th>Prazo</th>
                     <th>Progresso</th>
+                    <th>Previsão</th>
                     <th>Ações</th>
                 </tr>
             </thead>
@@ -80,4 +90,4 @@
 <script type="module" src="./js/metas.js"></script>
 
 </body>
-</html> 
+</html>

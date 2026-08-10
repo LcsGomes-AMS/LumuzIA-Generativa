@@ -533,3 +533,57 @@ th {
 .forgot-link:hover {
   text-decoration: underline;
 }
+.calendario-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 6px;
+        margin-top: 15px;
+    }
+    .cal-dia-semana {
+        text-align: center;
+        font-size: 12px;
+        color: #8FA1A3;
+        padding: 4px 0;
+        font-weight: bold;
+    }
+    .cal-dia {
+        position: relative;
+        text-align: center;
+        padding: 10px 0;
+        border-radius: 6px;
+        background: rgba(255,255,255,0.03);
+        color: #fff;
+        cursor: pointer;
+        font-size: 14px;
+    }
+    .cal-dia:hover { background: rgba(111,231,221,0.15); }
+    .cal-outside { color: #445; opacity: 0.35; cursor: default; }
+    .cal-outside:hover { background: rgba(255,255,255,0.03); }
+    .cal-hoje { border: 1px solid #6FE7DD; }
+    .cal-selecionado { background: #6FE7DD; color: #161E21; font-weight: bold; }
+    .cal-tem-evento .cal-dot {
+        display: block;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: #10B981;
+        margin: 3px auto 0;
+    }
+    .cal-selecionado .cal-dot { background: #161E21; }
+    .cal-nav-btn {
+        background: rgba(111,231,221,0.1);
+        border: 1px solid #6FE7DD;
+        color: #6FE7DD;
+        padding: 6px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    .cal-nav-btn:hover { background: rgba(111,231,221,0.2); }
+    .calendario-header select {
+        padding: 6px 10px;
+        border-radius: 6px;
+        border: 1px solid #334155;
+        background: #0f172a;
+        color: #fff;
+    }

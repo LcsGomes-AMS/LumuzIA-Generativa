@@ -1,179 +1,271 @@
 import { auth } from "./config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { apiFetch } from "./apiClient.js";
 
-let usuarioAtual = null;
-
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        usuarioAtual = user;
-        carregarInvestimentos();
-    } else {
-        window.location.href = "cad.html";
-    }
-});
-
-// Manipular envio do formulário
-document.getElementById("formInvestimento").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    if (!usuarioAtual) return;
-
-    const ticker = document.getElementById("ticker").value.trim().toUpperCase();
-    const tipo = document.getElementById("tipo").value;
-    const quantidade = parseFloat(document.getElementById("quantidade").value);
-    const precoMedio = parseFloat(document.getElementById("precoMedio").value);
-
-    try {
-        const res = await fetch("/investimentos", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                userId: usuarioAtual.uid,
-                ticker,
-                tipo,
-                quantidade,
-                precoMedio
-            })
-        });
-
-        if (res.ok) {
-            document.getElementById("formInvestimento").reset();
-            carregarInvestimentos();
-        } else {
-            alert("Erro ao salvar investimento.");
-        }
-    } catch (error) {
-        console.error("Erro na requisição:", error);
-    }
-});
-
-// Função auxiliar para buscar o Preço Real na API externa
-// Função auxiliar para buscar o Preço Real na API externa
-async function buscarPrecoReal(ticker, tipo, precoFallback) {
-    try {
-        if (tipo === "Ação" || tipo === "FII") {
-            // Busca cotação no Backend Node.js
-            const res = await fetch(`/api/cotacao/${ticker}`);
-            if (!res.ok) return precoFallback;
-            const data = await res.json();
-            
-            if (data && data.price) {
-                return data.price;
-            }
-        } else if (tipo === "Cripto") {
-            // Mapeamento de tickers de Cripto para CoinGecko
-            let idCripto = ticker.toLowerCase();
-            if (idCripto === "btc") idCripto = "bitcoin";
-            if (idCripto === "eth") idCripto = "ethereum";
-            if (idCripto === "sol") idCripto = "solana";
-
-            const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${idCripto}&vs_currencies=brl`);
-            if (!res.ok) return precoFallback;
-            const data = await res.json();
-            if (data[idCripto] && data[idCripto].brl) {
-                return data[idCripto].brl;
-            }
-        }
-    } catch (error) {
-        console.warn(`Não foi possível carregar preço em tempo real de ${ticker}:`, error);
-    }
-    return precoFallback;
+function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str ?? "";
+    return div.innerHTML;
 }
 
-// Carregar e Renderizar a Tabela com Cotações em Tempo Real
+// GRÁFICO 1: Evolução do rendimento total ao longo do tempo
+async function carregarGraficoEvolucaoTotal(uid) {
+    const res = await apiFetch(`/api/investimentos/historico/${uid}`);
+    const historico = await res.json();
+    const canvas = document.getElementById("graficoEvolucaoTotal");
+    if (!canvas || historico.length === 0) return;
+
+    if (window._chartEvolucaoTotal) window._chartEvolucaoTotal.destroy();
+
+    const labels = historico.map(h => {
+        const [ano, mes, dia] = h.data.split("-");
+        return `${dia}/${mes}`;
+    });
+
+    window._chartEvolucaoTotal = new Chart(canvas, {
+        type: "line",
+        data: {
+            labels,
+            datasets: [{
+                label: "Rendimento acumulado (R$)",
+                data: historico.map(h => h.rendimento),
+                borderColor: "#10B981",
+                backgroundColor: "rgba(16,185,129,0.1)",
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: "#fff" } } },
+            scales: {
+                x: { ticks: { color: "#8FA1A3" } },
+                y: { ticks: { color: "#8FA1A3" } }
+            }
+        }
+    });
+}
+
+// GRÁFICO 2: Rendimento de cada ativo separadamente (barras)
+function carregarGraficoPorAtivo(detalhes) {
+    const canvas = document.getElementById("graficoRendimentoPorAtivo");
+    if (!canvas || !detalhes || detalhes.length === 0) return;
+
+    if (window._chartPorAtivo) window._chartPorAtivo.destroy();
+
+    const cores = detalhes.map(d => d.lucroOuPrejuizo >= 0 ? "#10B981" : "#EF4444");
+
+    window._chartPorAtivo = new Chart(canvas, {
+        type: "bar",
+        data: {
+            labels: detalhes.map(d => d.ticker),
+            datasets: [{
+                label: "Rendimento (R$)",
+                data: detalhes.map(d => d.lucroOuPrejuizo),
+                backgroundColor: cores
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: "#8FA1A3" } },
+                y: { ticks: { color: "#8FA1A3" } }
+            }
+        }
+    });
+}
+
+// 1. CARREGAR E RENDERIZAR OS INVESTIMENTOS NA TELA
 async function carregarInvestimentos() {
-    if (!usuarioAtual) return;
+    const uid = auth.currentUser.uid;
+    const tabela = document.getElementById("tabelaInvestimentos");
+
+    if (!tabela) return;
+
+    tabela.innerHTML = `
+        <tr>
+            <td colspan="9" style="text-align: center; padding: 20px; color: #8FA1A3;">
+                Buscando cotações atualizadas na B3 e mercado Cripto...
+            </td>
+        </tr>
+    `;
 
     try {
-        const res = await fetch(`/investimentos/${usuarioAtual.uid}`);
-        if (!res.ok) throw new Error("Erro ao carregar dados do servidor.");
+        const response = await apiFetch(`/api/investimentos/cotacoes/${uid}`);
+        if (!response.ok) throw new Error("Erro ao consultar backend.");
 
-        const investimentos = await res.json();
-        const tabela = document.getElementById("tabelaInvestimentos");
-        tabela.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 20px; color: #8FA1A3;">Buscando cotações reais na B3 e Cripto...</td></tr>`;
+        const data = await response.json();
+        const detalhes = Array.isArray(data.detalhes) ? data.detalhes : [];
 
-        let patrimonioTotal = 0;
-        let custoTotal = 0;
-        let htmlLinhas = "";
+        // ------------------------------------
+        // A. ATUALIZA OS CARDS DO TOPO
+        // ------------------------------------
+        const elTotal = document.getElementById("totalInvestido");
+        const elLucro = document.getElementById("lucroTotal");
+        const elPercent = document.getElementById("percentualTotal");
+        const elProventos = document.getElementById("proventosEstimados");
 
-        // Processa as cotações em paralelo para maior rapidez
-        const promessas = investimentos.map(async (item) => {
-            const precoAtualReal = await buscarPrecoReal(item.ticker, item.tipo, item.preco_medio);
-            const totalComprado = item.quantidade * item.preco_medio;
-            const totalAtual = item.quantidade * precoAtualReal;
-            const lucroPrejuizo = totalAtual - totalComprado;
+        if (elTotal) {
+            elTotal.innerText = `R$ ${(data.valorAtual || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+        if (elLucro) {
+            elLucro.innerText = `R$ ${(data.rendimento || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+        if (elProventos) {
+            elProventos.innerText = `R$ ${parseFloat(data.proximosProventos || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
 
-            return {
-                ...item,
-                precoAtualReal,
-                totalComprado,
-                totalAtual,
-                lucroPrejuizo
-            };
-        });
+        if (elPercent) {
+            const perc = parseFloat(data.crescimentoPercentual) || 0;
+            elPercent.innerText = `${perc >= 0 ? '+' : ''}${perc.toFixed(2)}%`;
+            elPercent.style.color = perc >= 0 ? "#10B981" : "#EF4444";
+        }
 
-        const resultados = await Promise.all(promessas);
-        tabela.innerHTML = "";
-
-        resultados.forEach((item) => {
-            patrimonioTotal += item.totalAtual;
-            custoTotal += item.totalComprado;
-
-            const corLucro = item.lucroPrejuizo >= 0 ? "#10B981" : "#EF4444";
-
-            htmlLinhas += `
-                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
-                    <td style="padding: 12px; font-weight: bold; color: #6FE7DD;">${item.ticker}</td>
-                    <td style="padding: 12px;">${item.tipo}</td>
-                    <td style="padding: 12px;">${item.quantidade}</td>
-                    <td style="padding: 12px;">R$ ${item.preco_medio.toFixed(2)}</td>
-                    <td style="padding: 12px; font-weight: bold; color: #fff;">R$ ${item.precoAtualReal.toFixed(2)}</td>
-                    <td style="padding: 12px; font-weight: bold;">R$ ${item.totalAtual.toFixed(2)}</td>
-                    <td style="padding: 12px; color: ${corLucro}; font-weight: bold;">
-                        ${item.lucroPrejuizo >= 0 ? '+' : ''}R$ ${item.lucroPrejuizo.toFixed(2)}
+        // ------------------------------------
+        // B. PREENCHE A TABELA DINÂMICA
+        // ------------------------------------
+        if (detalhes.length === 0) {
+            tabela.innerHTML = `
+                <tr>
+                    <td colspan="9" style="text-align: center; padding: 20px; color: #8FA1A3;">
+                        Nenhum ativo cadastrado até o momento.
                     </td>
+                </tr>
+            `;
+            return;
+        }
+
+        let htmlRows = "";
+
+        detalhes.forEach((item) => {
+            const qtd = Number(item.quantidade) || 0;
+            const pm = Number(item.precoMedio) || 0;
+            const pa = Number(item.precoAtual) || 0;
+            const total = Number(item.valorTotalAtual) || 0;
+            const lucro = Number(item.lucroOuPrejuizo) || 0;
+
+            const corLucro = lucro >= 0 ? "#10B981" : "#EF4444";
+
+            let dataFormatada = "--";
+            if (item.dataCompra) {
+                const partes = item.dataCompra.split("-");
+                if (partes.length === 3) {
+                    dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+                }
+            }
+
+            htmlRows += `
+                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                    <td style="padding: 12px; font-weight: bold; color: #6FE7DD;">${escapeHtml(item.ticker)}</td>
+                    <td style="padding: 12px; color: #fff;">${escapeHtml(item.tipo)}</td>
+                    <td style="padding: 12px; color: #fff;">${qtd}</td>
+                    <td style="padding: 12px; color: #fff;">R$ ${pm.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td style="padding: 12px; font-weight: bold; color: #FFF;">R$ ${pa.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td style="padding: 12px; font-weight: bold; color: #FFF;">R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td style="padding: 12px; color: ${corLucro}; font-weight: bold;">
+                        ${lucro >= 0 ? '+' : ''}R$ ${lucro.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </td>
+                    <td style="padding: 12px; color: #8FA1A3;">${dataFormatada}</td>
                     <td style="padding: 12px;">
-                        <button onclick="deletarInvestimento(${item.id})" style="background: transparent; border: 1px solid #EF4444; color: #EF4444; padding: 4px 8px; border-radius: 4px; cursor: pointer;">Excluir</button>
+                        <button onclick="deletarInvestimento(${item.id})" style="background: transparent; border: 1px solid #EF4444; color: #EF4444; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
+                            Excluir
+                        </button>
                     </td>
                 </tr>
             `;
         });
 
-        tabela.innerHTML = htmlLinhas || `<tr><td colspan="8" style="text-align: center; padding: 20px;">Nenhum ativo cadastrado.</td></tr>`;
+        tabela.innerHTML = htmlRows;
 
-        // Atualizar os Cards de Resumo da Carteira
-        const lucroGeral = patrimonioTotal - custoTotal;
-        const percentualGeral = custoTotal > 0 ? (lucroGeral / custoTotal) * 100 : 0;
-        const proventosEstimados = patrimonioTotal * 0.007; // ~0.7% ao mês estimado
+        // Desenha o gráfico de rendimento por ativo assim que os dados chegam
+        carregarGraficoPorAtivo(detalhes);
 
-        document.getElementById("totalInvestido").innerText = `R$ ${patrimonioTotal.toFixed(2)}`;
-        document.getElementById("lucroTotal").innerText = `R$ ${lucroGeral.toFixed(2)}`;
-        document.getElementById("proventosEstimados").innerText = `R$ ${proventosEstimados.toFixed(2)}`;
-
-        const elStatus = document.getElementById("percentualTotal");
-        elStatus.innerText = `${percentualGeral >= 0 ? '+' : ''}${percentualGeral.toFixed(2)}%`;
-        elStatus.style.color = lucroGeral >= 0 ? "#10B981" : "#EF4444";
-
-    } catch (error) {
-        console.error("Erro ao carregar lista de investimentos:", error);
+    } catch (err) {
+        console.error("Erro ao carregar dados na tela:", err);
+        tabela.innerHTML = `
+            <tr>
+                <td colspan="9" style="text-align: center; color: #EF4444; padding: 20px;">
+                    Erro ao carregar os dados de investimentos.
+                </td>
+            </tr>
+        `;
     }
 }
 
-// Função de exclusão de ativo
-window.deletarInvestimento = async (id) => {
-    if (!confirm("Tem certeza que deseja excluir este ativo?")) return;
+// 2. ADICIONAR NOVO ATIVO VIA FORMULÁRIO
+const form = document.getElementById("formInvestimento");
+if (form) {
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const ticker = document.getElementById("ticker").value;
+        const tipo = document.getElementById("tipo").value;
+        const quantidade = parseFloat(document.getElementById("quantidade").value);
+        const precoMedio = parseFloat(document.getElementById("precoMedio").value);
+
+        // dataCompra é opcional — só inclui se o campo existir na página
+        const inputData = document.getElementById("dataCompra");
+        const dataCompra = inputData ? inputData.value : undefined;
+
+        try {
+            const response = await apiFetch("/investimentos", {
+                method: "POST",
+                body: JSON.stringify({ ticker, tipo, quantidade, precoMedio, dataCompra })
+            });
+
+            const resData = await response.json();
+
+            if (resData.success) {
+                form.reset();
+                if (inputData) inputData.valueAsDate = new Date();
+                carregarInvestimentos();
+                carregarGraficoEvolucaoTotal(auth.currentUser.uid);
+            } else {
+                alert("Erro ao salvar ativo: " + (resData.error || "Tente novamente."));
+            }
+        } catch (error) {
+            console.error("Erro na requisição:", error);
+            alert("Falha na comunicação com o servidor.");
+        }
+    });
+}
+
+// 3. DELETAR ATIVO
+window.deletarInvestimento = async function(id) {
+    if (!confirm("Tem certeza que deseja remover este ativo da carteira?")) return;
 
     try {
-        const res = await fetch(`/investimentos/${id}`, {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId: usuarioAtual.uid })
+        const response = await apiFetch(`/investimentos/${id}`, {
+            method: "DELETE"
         });
 
-        if (res.ok) {
+        const resData = await response.json();
+
+        if (resData.success) {
             carregarInvestimentos();
+        } else {
+            alert("Erro ao excluir: " + (resData.error || "Ativo não encontrado."));
         }
     } catch (error) {
-        console.error("Erro ao deletar investimento:", error);
+        console.error("Erro ao deletar:", error);
+        alert("Não foi possível excluir o ativo.");
     }
 };
+
+// 4. INICIALIZAÇÃO DA PÁGINA
+document.addEventListener("DOMContentLoaded", () => {
+    const inputData = document.getElementById("dataCompra");
+    if (inputData && !inputData.value) {
+        inputData.valueAsDate = new Date();
+    }
+});
+
+onAuthStateChanged(auth, (user) => {
+    if (!user) {
+        window.location.href = "cad.html";
+        return;
+    }
+    carregarInvestimentos();
+    carregarGraficoEvolucaoTotal(user.uid);
+});

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Investimentos - LumuzIA</title>
     <link rel="icon" type="image/png" href="img/LumuzIA.png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
@@ -45,7 +46,7 @@
         <section class="form-container" style="margin-top: 30px; background-color: rgba(111, 231, 221, 0.05); padding: 20px; border-radius: 8px;">
             <h2>Novo Ativo</h2>
             <form id="formInvestimento" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 15px;">
-                <input type="text" id="ticker" placeholder="Ticker (ex: PETR4, MXRF11, BTC)" required style="padding: 10px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: #fff;">
+                <input type="text" id="ticker" placeholder="Ticker (ex: PETR4, MXRF11, bitcoin)" required style="padding: 10px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: #fff;">
                 
                 <select id="tipo" required style="padding: 10px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: #fff;">
                     <option value="Ação">Ação</option>
@@ -53,15 +54,27 @@
                     <option value="Cripto">Criptomoeda</option>
                 </select>
 
-                <input type="number" step="0.0001" id="quantidade" placeholder="Quantidade" required style="padding: 10px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: #fff;">
+                <input type="number" step="0.00000001" id="quantidade" placeholder="Quantidade" required style="padding: 10px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: #fff;">
                 <input type="number" step="0.01" id="precoMedio" placeholder="Preço Médio (R$)" required style="padding: 10px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: #fff;">
+                
+                <!-- Novo Campo: Data da Compra -->
+                <input type="date" id="dataCompra" required style="padding: 10px; border-radius: 5px; border: 1px solid #334155; background: #0f172a; color: #fff;">
 
                 <button type="submit" style="background-color: #6FE7DD; color: #161E21; font-weight: bold; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">Adicionar</button>
             </form>
         </section>
-
+<div class="charts-grid" style="margin-top: 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+    <div class="chart-box" style="background-color: rgba(111, 231, 221, 0.07); padding: 20px; border-radius: 8px;">
+        <h2>Evolução do Rendimento Total</h2>
+        <div class="chart-container-canvas"><canvas id="graficoEvolucaoTotal"></canvas></div>
+    </div>
+    <div class="chart-box" style="background-color: rgba(111, 231, 221, 0.07); padding: 20px; border-radius: 8px;">
+        <h2>Rendimento por Ativo</h2>
+        <div class="chart-container-canvas"><canvas id="graficoRendimentoPorAtivo"></canvas></div>
+    </div>
+</div>
         <!-- Tabela Dinâmica de Ativos -->
-        <section style="margin-top: 30px;">
+        <section style="margin-top: 30px;">>
             <h2>Seus Ativos</h2>
             <div style="overflow-x: auto; margin-top: 15px;">
                 <table style="width: 100%; border-collapse: collapse; text-align: left;">
@@ -74,11 +87,12 @@
                             <th style="padding: 12px;">Preço Atual</th>
                             <th style="padding: 12px;">Total Atual</th>
                             <th style="padding: 12px;">Lucro / Prejuízo</th>
+                            <th style="padding: 12px;">Data Aporte</th>
                             <th style="padding: 12px;">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="tabelaInvestimentos">
-                        <!-- Linhas serão inseridas dinamicamente pelo JavaScript -->
+                        <!-- Linhas geradas pelo JS -->
                     </tbody>
                 </table>
             </div>

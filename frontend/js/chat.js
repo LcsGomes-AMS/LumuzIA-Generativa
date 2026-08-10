@@ -1,7 +1,12 @@
 import { auth } from "./config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { apiFetch } from "./apiClient.js";
 
-let usuarioAtual = null;
+function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     const chatForm = document.getElementById("chatForm");
@@ -9,12 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const chatContainer = document.getElementById("chatContainer");
 
     onAuthStateChanged(auth, (user) => {
-        if (user) {
-            usuarioAtual = user;
-            localStorage.setItem("userId", user.uid);
-        } else {
-            window.location.href = "cad.html";
-        }
+        if (!user) window.location.href = "cad.html";
     });
 
     chatForm.addEventListener("submit", async (e) => {
@@ -23,34 +23,19 @@ document.addEventListener("DOMContentLoaded", () => {
         const messageText = userInput.value.trim();
         if (!messageText) return;
 
-        if (!usuarioAtual) {
-            alert("Aguarde a autenticação do usuário.");
-            return;
-        }
-
-        // 1. Exibe a mensagem do usuário
         appendMessage("Você", messageText, "user-message");
         userInput.value = "";
 
-        // 2. Exibe indicador de carregamento
         const typingIndicator = appendMessage("LumuzIA", "Pensando...", "ai-message typing");
 
         try {
-            // 3. Envia o UID do Firebase junto com a mensagem
-            const response = await fetch("/chat", {
+            const response = await apiFetch("/chat", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ 
-                    userId: usuarioAtual.uid, 
-                    message: messageText 
-                })
+                body: JSON.stringify({ message: messageText })
             });
 
             const data = await response.json();
 
-            // 4. Exibe a resposta
             typingIndicator.remove();
             if (data.reply) {
                 appendMessage("LumuzIA", data.reply, "ai-message");
@@ -60,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         } catch (error) {
             typingIndicator.remove();
-            appendMessage("LumuzIA", "Não consegui conectar ao servidor local.", "ai-message");
+            appendMessage("LumuzIA", "Não consegui conectar ao servidor.", "ai-message");
             console.error("Erro na comunicação:", error);
         }
     });
@@ -68,11 +53,11 @@ document.addEventListener("DOMContentLoaded", () => {
     function appendMessage(sender, text, className) {
         const messageDiv = document.createElement("div");
         messageDiv.className = `message ${className}`;
-        messageDiv.innerHTML = `<strong>${sender}:</strong> <p style="margin-top: 4px; white-space: pre-line;">${text}</p>`;
-        
+        messageDiv.innerHTML = `<strong>${escapeHtml(sender)}:</strong> <p style="margin-top: 4px; white-space: pre-line;">${escapeHtml(text)}</p>`;
+
         chatContainer.appendChild(messageDiv);
         chatContainer.scrollTop = chatContainer.scrollHeight;
-        
+
         return messageDiv;
     }
 });

@@ -1,151 +1,175 @@
 import { auth } from "./config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { apiFetch } from "./apiClient.js";
 
-let usuarioAtual = null;
+function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str ?? "";
+    return div.innerHTML;
+}
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        usuarioAtual = user;
-        localStorage.setItem("userId", user.uid);
-        carregarMetas();
-    } else {
-        window.location.href = "cad.html";
-    }
-});
+let mediaMensalDisponivel = 0;
 
 async function salvarMeta() {
-    const nome = document.getElementById("nome").value.trim();
-    const valorObjetivo = parseFloat(document.getElementById("valorObjetivo").value);
-    const prazo = parseInt(document.getElementById("prazo").value);
+    const nome = document.getElementById("nome").value;
+    const valorObjetivo = document.getElementById("valorObjetivo").value;
+    const prazo = document.getElementById("prazo").value;
 
-    if (!usuarioAtual) {
-        alert("Usuário não autenticado. Aguarde um instante.");
-        return;
+    const res = await apiFetch("/metas", {
+        method: "POST",
+        body: JSON.stringify({ nome, valorObjetivo, prazo })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+        carregarMetas();
+        document.getElementById("nome").value = "";
+        document.getElementById("valorObjetivo").value = "";
+        document.getElementById("prazo").value = "";
+    }
+}
+
+// Soma N meses a partir de hoje e retorna formatado dd/mm/aaaa
+function calcularDataFutura(mesesAFrente) {
+    const hoje = new Date();
+    const d = new Date(hoje.getFullYear(), hoje.getMonth() + mesesAFrente, hoje.getDate());
+    return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+}
+
+function calcularPrevisao(meta) {
+    const faltante = Number(meta.valor_objetivo) - Number(meta.valor_atual || 0);
+
+    if (faltante <= 0) {
+        return { texto: "🎉 Meta alcançada!", classe: "ok" };
+    }
+    if (mediaMensalDisponivel <= 0) {
+        return { texto: "Sem dados suficientes para estimar", classe: "alerta" };
     }
 
-    if (!nome || isNaN(valorObjetivo) || isNaN(prazo)) {
-        alert("Preencha todos os campos corretamente.");
-        return;
-    }
+    const mesesEstimados = Math.ceil(faltante / mediaMensalDisponivel);
+    const dataEstimada = calcularDataFutura(mesesEstimados);
+    return {
+        texto: `~${mesesEstimados} ${mesesEstimados === 1 ? "mês" : "meses"} (até ${dataEstimada})`,
+        classe: "ok"
+    };
+}
+
+async function carregarMediaMensal() {
+    const uid = auth.currentUser.uid;
+    const avisoEl = document.getElementById("avisoMedia");
 
     try {
-        const res = await fetch("/metas", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                userId: usuarioAtual.uid,
-                nome,
-                valorObjetivo,
-                prazo
-            })
-        });
-
+        const res = await apiFetch(`/metas/estimativa/${uid}`);
         const data = await res.json();
+        mediaMensalDisponivel = Number(data.mediaMensal) || 0;
 
-        if (data.success) {
-            carregarMetas();
-            document.getElementById("nome").value = "";
-            document.getElementById("valorObjetivo").value = "";
-            document.getElementById("prazo").value = "";
+        if (avisoEl) {
+            avisoEl.style.display = "block";
+            if (mediaMensalDisponivel > 0) {
+                avisoEl.innerText = `📈 Com base no seu histórico (últimos ${data.baseMeses} mês(es) com movimentação), você guarda em média R$ ${mediaMensalDisponivel.toFixed(2)} por mês.`;
+            } else {
+                avisoEl.innerText = `⚠️ No seu histórico atual, os gastos igualam ou superam as receitas — ainda não é possível estimar quando as metas serão alcançadas.`;
+            }
         }
-    } catch (erro) {
-        console.error("Erro ao salvar meta:", erro);
-        alert("Não foi possível salvar a meta.");
+    } catch (err) {
+        console.error("Erro ao carregar média mensal:", err);
     }
 }
 
 async function carregarMetas() {
+    const uid = auth.currentUser.uid;
+    const res = await apiFetch(`/metas/${uid}`);
+    const metas = await res.json();
+
     const tabela = document.getElementById("tabelaMetas");
-    if (!usuarioAtual) return;
+    tabela.innerHTML = "";
 
-    try {
-        const res = await fetch(`/metas/${usuarioAtual.uid}`);
-        if (!res.ok) throw new Error(`Erro na requisição: ${res.status}`);
-
-        const metas = await res.json();
-
-        tabela.innerHTML = "";
-
-        if (metas.length === 0) {
-            tabela.innerHTML = `<tr><td colspan="6">Nenhuma meta cadastrada.</td></tr>`;
-            return;
-        }
-
-        metas.forEach(meta => {
-            const progresso = meta.valor_objetivo > 0 
-                ? ((meta.valor_atual / meta.valor_objetivo) * 100).toFixed(1) 
-                : "0.0";
-
-            tabela.innerHTML += `
-                <tr>
-                    <td>${meta.nome}</td>
-                    <td>R$ ${Number(meta.valor_objetivo).toFixed(2)}</td>
-                    <td>R$ ${Number(meta.valor_atual).toFixed(2)}</td>
-                    <td>${meta.prazo} meses</td>
-                    <td>${progresso}%</td>
-                    <td>
-                        <button onclick="editarMeta(${meta.id}, '${meta.nome}', ${meta.valor_objetivo}, ${meta.valor_atual}, ${meta.prazo})">✏️ Editar</button>
-                        <button onclick="deletarMeta(${meta.id})">🗑️ Excluir</button>
-                    </td>
-                </tr>
-            `;
-        });
-    } catch (erro) {
-        console.error("Erro ao carregar metas:", erro);
-        tabela.innerHTML = `<tr><td colspan="6">Erro ao carregar dados do servidor.</td></tr>`;
+    if (!metas || metas.length === 0) {
+        tabela.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#8FA1A3;">Nenhuma meta cadastrada.</td></tr>`;
+        return;
     }
+
+    metas.forEach(meta => {
+        const progresso = meta.valor_objetivo > 0
+            ? ((meta.valor_atual / meta.valor_objetivo) * 100).toFixed(1)
+            : "0.0";
+
+        const previsao = calcularPrevisao(meta);
+
+        tabela.innerHTML += `
+            <tr>
+                <td>${escapeHtml(meta.nome)}</td>
+                <td>R$ ${Number(meta.valor_objetivo).toFixed(2)}</td>
+                <td>R$ ${Number(meta.valor_atual || 0).toFixed(2)}</td>
+                <td>${meta.prazo} meses</td>
+                <td>${progresso}%</td>
+                <td class="meta-previsao ${previsao.classe}">${previsao.texto}</td>
+                <td>
+                    <button onclick="depositarMeta(${meta.id}, '${escapeHtml(meta.nome).replace(/'/g, "&#39;")}', ${meta.valor_objetivo}, ${meta.valor_atual || 0}, ${meta.prazo})" style="background:transparent;border:1px solid #10B981;color:#10B981;padding:4px 8px;border-radius:4px;cursor:pointer;">Guardar</button>
+                    <button onclick="excluirMeta(${meta.id})" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer; margin-left:6px;">Excluir</button>
+                </td>
+            </tr>
+        `;
+    });
 }
 
-async function deletarMeta(id) {
-    if (!confirm("Tem certeza que deseja excluir esta meta?")) return;
+window.depositarMeta = async function (id, nome, valorObjetivo, valorAtual, prazo) {
+    const valorStr = prompt(`Quanto você quer guardar para "${nome}"?`);
+    if (valorStr === null) return;
 
-    try {
-        const res = await fetch(`/metas/${id}`, {
-            method: "DELETE",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId: usuarioAtual.uid })
-        });
-
-        const data = await res.json();
-        if (data.success) carregarMetas();
-    } catch (erro) {
-        console.error("Erro ao deletar meta:", erro);
+    const valor = parseFloat(valorStr.replace(",", "."));
+    if (isNaN(valor) || valor <= 0) {
+        alert("Valor inválido.");
+        return;
     }
-}
 
-async function editarMeta(id, nomeAntigo, valorObjAntigo, valorAtualAntigo, prazoAntigo) {
-    const novoNome = prompt("Nome da meta:", nomeAntigo);
-    if (novoNome === null) return;
-
-    const novoValorObj = prompt("Valor Objetivo:", valorObjAntigo);
-    if (novoValorObj === null || isNaN(parseFloat(novoValorObj))) return;
-
-    const novoValorAtual = prompt("Valor Atual economizado:", valorAtualAntigo);
-    if (novoValorAtual === null || isNaN(parseFloat(novoValorAtual))) return;
-
-    const novoPrazo = prompt("Prazo (meses):", prazoAntigo);
-    if (novoPrazo === null || isNaN(parseInt(novoPrazo))) return;
+    const novoValorAtual = Number(valorAtual) + valor;
 
     try {
-        const res = await fetch(`/metas/${id}`, {
+        const res = await apiFetch(`/metas/${id}`, {
             method: "PUT",
-            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                userId: usuarioAtual.uid,
-                nome: novoNome.trim(),
-                valorObjetivo: parseFloat(novoValorObj),
-                valorAtual: parseFloat(novoValorAtual),
-                prazo: parseInt(novoPrazo)
+                nome,
+                valorObjetivo,
+                valorAtual: novoValorAtual,
+                prazo
             })
         });
-
         const data = await res.json();
-        if (data.success) carregarMetas();
-    } catch (erro) {
-        console.error("Erro ao editar meta:", erro);
+        if (data.success) {
+            carregarMetas();
+        } else {
+            alert("Erro ao atualizar meta: " + (data.error || ""));
+        }
+    } catch (err) {
+        console.error("Erro ao depositar:", err);
+        alert("Falha na comunicação com o servidor.");
     }
-}
+};
+
+window.excluirMeta = async function (id) {
+    if (!confirm("Tem certeza que deseja excluir esta meta?")) return;
+    try {
+        const res = await apiFetch(`/metas/${id}`, { method: "DELETE" });
+        const data = await res.json();
+        if (data.success) {
+            carregarMetas();
+        } else {
+            alert("Erro ao excluir: " + (data.error || ""));
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Não foi possível excluir.");
+    }
+};
 
 window.salvarMeta = salvarMeta;
-window.deletarMeta = deletarMeta;
-window.editarMeta = editarMeta;
+
+onAuthStateChanged(auth, (user) => {
+    if (!user) {
+        window.location.href = "cad.html";
+        return;
+    }
+    carregarMediaMensal().then(carregarMetas);
+});
