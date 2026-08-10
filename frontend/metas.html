@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
 
-<title>Metas - LumuzIA</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-<link rel="stylesheet" href="./css/style.css">
-
+<<<<<<< HEAD
 <style>
     .meta-previsao { font-size: 12px; color: #8FA1A3; }
     .meta-previsao.ok { color: #10B981; }
@@ -16,55 +18,116 @@
     .aviso-media { background: rgba(111,231,221,0.08); padding: 12px 16px; border-radius: 8px; margin-top: 15px; color: #6FE7DD; }
 </style>
 
+=======
+    <title>Metas Financeiras · LumuzIA</title>
+    <link rel="icon" type="./img/png" href="img/LumuzIA.png">
+    <link
+        rel="stylesheet"
+        href="./css/style.css"
+    >
+    <link rel="stylesheet" href="./css/metas.css">
+>>>>>>> ded2913a84fe31f590a25e0fe72cca34f4731d18
 </head>
-<body>
 
-<div class="container">
+<body>
 
     <aside class="sidebar">
 
-        <h2>LumuzIA</h2>
+        <div
+            class="sidebar-brand"
+            style="
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                margin-bottom:10px;
+            "
+        >
+
+            <img
+                src="img/LumuzIA.png"
+                alt="LumuzIA"
+                style="
+                    width:80px;
+                    height:80px;
+                    border-radius:50%;
+                    object-fit:cover;
+                "
+            >
+
+        </div>
+
 
         <a href="dashboard.html">📊 Dashboard</a>
+
         <a href="gastos.html">💸 Gastos</a>
+
         <a href="receitas.html">💵 Receitas</a>
+<<<<<<< HEAD
         <a href="metas.html" class="active">🎯 Metas</a>
+=======
+
+        <a href="metas.html">🎯 Metas</a>
+
+>>>>>>> ded2913a84fe31f590a25e0fe72cca34f4731d18
         <a href="investimentos.html">📈 Investimentos</a>
+
         <a href="chat.html">🤖 Chat</a>
+
         <a href="perfil.html">👤 Perfil</a>
 
     </aside>
+
 
     <main>
 
         <h1>Metas Financeiras</h1>
 
+<<<<<<< HEAD
         <div id="avisoMedia" class="aviso-media" style="display:none;"></div>
+=======
+
+        <!-- =================================================
+             FORMULÁRIO
+        ================================================== -->
+>>>>>>> ded2913a84fe31f590a25e0fe72cca34f4731d18
 
         <div class="form">
 
             <input
                 id="nome"
-                placeholder="Nome da Meta">
+                type="text"
+                placeholder="Nome da Meta"
+            >
+
 
             <input
                 id="valorObjetivo"
                 type="number"
-                placeholder="Valor Objetivo">
+                min="0"
+                step="0.01"
+                placeholder="Valor Objetivo"
+            >
+
 
             <input
                 id="prazo"
                 type="number"
-                placeholder="Prazo (meses)">
+                min="1"
+                placeholder="Prazo (meses)"
+            >
 
-            <button onclick="salvarMeta()">
-                Salvar Meta
+
+            <button
+                type="button"
+                onclick="salvarMeta()"
+            >
+                🎯 Salvar Meta
             </button>
 
         </div>
 
-        <table>
 
+<<<<<<< HEAD
             <thead>
                 <tr>
                     <th>Meta</th>
@@ -76,18 +139,68 @@
                     <th>Ações</th>
                 </tr>
             </thead>
+=======
+        <!-- =================================================
+             TABELA
+        ================================================== -->
+>>>>>>> ded2913a84fe31f590a25e0fe72cca34f4731d18
 
-            <tbody id="tabelaMetas">
+        <div class="table-wrap">
 
-            </tbody>
+            <table>
 
-        </table>
+                <thead>
+
+                    <tr>
+
+                        <th>Meta</th>
+
+                        <th>Objetivo</th>
+
+                        <th>Guardado</th>
+
+                        <th>Prazo</th>
+
+                        <th>Progresso</th>
+
+                        <th>Ações</th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="tabelaMetas">
+
+                    <tr>
+
+                        <td colspan="6">
+                            Carregando metas...
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
 
     </main>
 
-</div>
 
-<script type="module" src="./js/metas.js"></script>
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script
+        type="module"
+        src="./js/metas.js"
+    ></script>
 
 </body>
+<<<<<<< HEAD
+=======
+
+>>>>>>> ded2913a84fe31f590a25e0fe72cca34f4731d18
 </html>

@@ -10,6 +10,10 @@ function escapeHtml(str) {
 
 let mediaMensalDisponivel = 0;
 
+/* =========================================================
+   SALVAR META
+========================================================= */
+
 async function salvarMeta() {
     const nome = document.getElementById("nome").value;
     const valorObjetivo = document.getElementById("valorObjetivo").value;
@@ -76,6 +80,10 @@ async function carregarMediaMensal() {
         console.error("Erro ao carregar média mensal:", err);
     }
 }
+
+/* =========================================================
+   CARREGAR METAS
+========================================================= */
 
 async function carregarMetas() {
     const uid = auth.currentUser.uid;
@@ -163,6 +171,57 @@ window.excluirMeta = async function (id) {
         alert("Não foi possível excluir.");
     }
 };
+
+/* =========================================================
+   DELETAR META
+========================================================= */
+
+async function deletarMeta(id) {
+    const confirmar = confirm("Tem certeza que deseja excluir esta meta?");
+
+    if (!confirmar) return;
+
+    try {
+        const res = await fetch(`/metas/${id}`, {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: usuarioAtual.uid })
+        });
+
+        if (!res.ok) {
+            throw new Error(`Erro HTTP: ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        if (data.success) {
+            alert("Meta excluída com sucesso! 🗑️");
+            carregarMetas();
+        } else {
+            alert(data.message || "Não foi possível excluir a meta.");
+        }
+    } catch (erro) {
+        console.error("Erro ao deletar meta:", erro);
+        alert("Erro ao excluir meta.");
+    }
+}
+
+/* =========================================================
+   SEGURANÇA
+========================================================= */
+
+function escapeHTML(texto) {
+    return String(texto)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+/* =========================================================
+   DISPONIBILIZAR FUNÇÕES PARA O HTML
+========================================================= */
 
 window.salvarMeta = salvarMeta;
 
