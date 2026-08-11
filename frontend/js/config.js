@@ -1,15 +1,15 @@
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAyMghZo93kMIouIJkq-4PG8ZU4FrhQdGk",
-  authDomain: "feteps2027.firebaseapp.com",
-  projectId: "feteps2027",
-  storageBucket: "feteps2027.firebasestorage.app",
-  messagingSenderId: "283844171197",
-  appId: "1:283844171197:web:c2ab45f3ba15c26c20aed4",
+  apiKey: "AIzaSyBa11Ri21pkQiBZ6NGpIA3bUnxr2D_gm1E",
+  authDomain: "lumuziaedfinanceira-3cd38.firebaseapp.com",
+  projectId: "lumuziaedfinanceira-3cd38",
+  storageBucket: "lumuziaedfinanceira-3cd38.firebasestorage.app",
+  messagingSenderId: "533770695157",
+  appId: "1:533770695157:web:1e227d89292efc2fc430bc",
+  measurementId: "G-90MLECQM0V"
 };
 
 export const app = initializeApp(firebaseConfig);
