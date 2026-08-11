@@ -227,6 +227,7 @@ async function carregarAReceber() {
     }
 }
 
+window.salvarReceita = salvarReceita;
 window.salvarAReceber = salvarAReceber;
 
 window.excluirAReceber = async function (id) {
