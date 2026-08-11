@@ -912,10 +912,15 @@ Use estritamente esses dados se o usuário perguntar sobre o saldo, investimento
         const ollamaUrl = process.env.OLLAMA_URL || "http://localhost:11434";
 
         const response = await axios.post(`${ollamaUrl}/api/generate`, {
-            model: "llama3",
-            prompt: `${systemPrompt}\n\nUsuário: ${message}\nLumuzIA:`,
-            stream: false
-        }, { timeout: 30000 });
+    model: "llama3",
+    prompt: `${systemPrompt}\n\nUsuário: ${message}\nLumuzIA:`,
+    stream: false
+}, {
+    timeout: 30000,
+    headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+});
 
         res.json({ reply: response.data.response });
 
