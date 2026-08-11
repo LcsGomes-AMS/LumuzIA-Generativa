@@ -217,6 +217,7 @@ app.get("/", (req, res) => {
 // A partir daqui, TODAS as rotas abaixo exigem token válido (header Authorization: Bearer <token>).
 // req.uid é o UID real, extraído do token — nunca confie em req.params.userId / req.body.userId
 // para decidir DE QUEM são os dados; use sempre req.uid para isso.
+app.get("/favicon.ico", (req, res) => res.status(204).end());
 app.use(verificarAutenticacao);
 
 // =====================

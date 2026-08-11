@@ -1,11 +1,16 @@
-const admin = require("firebase-admin");
+const { initializeApp, cert, getApps } = require("firebase-admin/app");
+const { getAuth } = require("firebase-admin/auth");
 const path = require("path");
 
 const serviceAccount = require(path.join(__dirname, "serviceAccountKey.json"));
 
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-});
+if (!getApps().length) {
+    initializeApp({
+        credential: cert(serviceAccount)
+    });
+}
+
+const authAdmin = getAuth();
 
 // Middleware: valida o Firebase ID token enviado no header Authorization.
 // Se válido, define req.uid com o UID real do usuário autenticado.
@@ -18,7 +23,7 @@ async function verificarAutenticacao(req, res, next) {
     }
 
     try {
-        const decoded = await admin.auth().verifyIdToken(token);
+        const decoded = await authAdmin.verifyIdToken(token);
         req.uid = decoded.uid;
         next();
     } catch (err) {
@@ -27,4 +32,4 @@ async function verificarAutenticacao(req, res, next) {
     }
 }
 
-module.exports = { verificarAutenticacao, admin };
+module.exports = { verificarAutenticacao };
