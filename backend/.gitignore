@@ -1,4 +1,3 @@
-serviceAccountKey.json
+node_modules/
 .env
-node_modules
-lumuzia.db
+serviceAccountKey.json
