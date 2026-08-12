@@ -9,7 +9,7 @@ function escapeHtml(str) {
 }
 
 // =====================
-// GASTOS (já existente)
+// GASTOS
 // =====================
 async function salvarGasto() {
     const descricao = document.getElementById("descricao").value;
@@ -44,12 +44,30 @@ async function carregarGastos() {
                 <td>${escapeHtml(gasto.descricao)}</td>
                 <td>R$ ${gasto.valor}</td>
                 <td>${escapeHtml(gasto.categoria)}</td>
+                <td><button onclick="excluirGasto(${gasto.id})" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer;">Excluir</button></td>
             </tr>
         `;
     });
 }
 
+window.excluirGasto = async function (id) {
+    if (!confirm("Excluir este gasto?")) return;
+    try {
+        const res = await apiFetch(`/gastos/${id}`, { method: "DELETE" });
+        const data = await res.json();
+        if (data.success) {
+            carregarGastos();
+        } else {
+            alert("Erro ao excluir: " + (data.error || ""));
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Não foi possível excluir.");
+    }
+};
+
 window.salvarGasto = salvarGasto;
+
 // =====================
 // GASTO PARCELADO (reaproveita o sistema de agendamentos)
 // =====================
@@ -78,7 +96,6 @@ async function salvarParcelamento() {
         dataPrimeira = new Date().toISOString().split("T")[0];
     }
 
-    // Divide o valor igualmente; a última parcela absorve a diferença de arredondamento
     const valorParcela = Math.floor((valorTotal / numParcelas) * 100) / 100;
     const somaParcelas = valorParcela * (numParcelas - 1);
     const valorUltimaParcela = Math.round((valorTotal - somaParcelas) * 100) / 100;
@@ -112,7 +129,7 @@ async function salvarParcelamento() {
 
         alert(`Compra parcelada em ${numParcelas}x criada com sucesso!`);
         carregarParcelas();
-        carregarAgendamentos(); // já existente no arquivo, atualiza o calendário também
+        carregarAgendamentos();
     } catch (err) {
         console.error("Erro ao parcelar:", err);
         alert("Falha na comunicação com o servidor.");
@@ -130,7 +147,6 @@ async function carregarParcelas() {
         const res = await apiFetch(`/agendamentos/${uid}`);
         const dados = await res.json();
 
-        // Identifica parcelas pelo padrão "(n/total)" na descrição
         const itens = Array.isArray(dados)
             ? dados.filter(a => a.tipo === "gasto" && /\(\d+\/\d+\)$/.test(a.descricao))
             : [];
@@ -147,9 +163,14 @@ async function carregarParcelas() {
                 const badge = item.status === "lancado"
                     ? `<span style="color:#10B981;">pago</span>`
                     : `<span style="color:#FBBF24;">pendente</span>`;
+
+                const botaoStatus = item.status === "pendente"
+                    ? `<button onclick="marcarPago(${item.id})" style="background:transparent;border:1px solid #10B981;color:#10B981;padding:4px 8px;border-radius:4px;cursor:pointer;">Marcar pago</button>`
+                    : `<button onclick="desmarcarPago(${item.id})" style="background:transparent;border:1px solid #F59E0B;color:#F59E0B;padding:4px 8px;border-radius:4px;cursor:pointer;">Desmarcar</button>`;
+
                 const botaoExcluir = item.status === "pendente"
                     ? `<button onclick="excluirParcela(${item.id})" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer;">Excluir</button>`
-                    : "—";
+                    : "";
 
                 return `
                     <tr>
@@ -157,7 +178,7 @@ async function carregarParcelas() {
                         <td>${item.descricao}</td>
                         <td>R$ ${Number(item.valor).toFixed(2)}</td>
                         <td>${badge}</td>
-                        <td>${botaoExcluir}</td>
+                        <td>${botaoStatus} ${botaoExcluir}</td>
                     </tr>
                 `;
             }).join("");
@@ -182,6 +203,39 @@ window.excluirParcela = async function (id) {
     }
 };
 
+window.marcarPago = async function (id) {
+    try {
+        const res = await apiFetch(`/agendamentos/${id}/pago`, { method: "PATCH" });
+        const data = await res.json();
+        if (data.success) {
+            carregarParcelas();
+            carregarAgendamentos();
+        } else {
+            alert("Erro ao marcar como pago: " + (data.error || ""));
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Não foi possível atualizar o status.");
+    }
+};
+
+window.desmarcarPago = async function (id) {
+    if (!confirm("Voltar esta parcela para pendente? (o lançamento já criado em Gastos não é removido automaticamente)")) return;
+    try {
+        const res = await apiFetch(`/agendamentos/${id}/pendente`, { method: "PATCH" });
+        const data = await res.json();
+        if (data.success) {
+            carregarParcelas();
+            carregarAgendamentos();
+        } else {
+            alert("Erro ao desmarcar: " + (data.error || ""));
+        }
+    } catch (err) {
+        console.error(err);
+        alert("Não foi possível atualizar o status.");
+    }
+};
+
 // =====================
 // CALENDÁRIO DE AGENDAMENTOS
 // =====================
@@ -189,8 +243,8 @@ const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Ag
 const DIAS_SEMANA = ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 
 let calAnoAtual = new Date().getFullYear();
-let calMesAtual = new Date().getMonth(); // 0-11
-let calDataSelecionada = null; // "YYYY-MM-DD"
+let calMesAtual = new Date().getMonth();
+let calDataSelecionada = null;
 let agendamentosPorData = new Map();
 let todosAgendamentos = [];
 
@@ -332,7 +386,6 @@ function renderizarTabelaFuturos() {
 async function carregarAgendamentos() {
     const uid = auth.currentUser.uid;
     try {
-        // O GET já processa (lança) tudo que venceu antes de devolver a lista
         const res = await apiFetch(`/agendamentos/${uid}`);
         const dados = await res.json();
 
@@ -350,7 +403,6 @@ async function carregarAgendamentos() {
         renderizarTabelaFuturos();
         if (calDataSelecionada) renderizarListaDoDia(calDataSelecionada);
 
-        // Se algo foi lançado agora, atualiza a tabela de gastos na tela
         carregarGastos();
     } catch (err) {
         console.error("Erro ao carregar agendamentos:", err);

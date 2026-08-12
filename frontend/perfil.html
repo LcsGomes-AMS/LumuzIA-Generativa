@@ -32,7 +32,12 @@
 
             <div id="lzProfile" class="lz-card" style="display:none;">
                 <div class="lz-top">
-                    <div class="lz-avatar" id="lzAvatar">?</div>
+                    <div class="lz-avatar-wrap">
+                        <div class="lz-avatar" id="lzAvatar">?</div>
+                        <button type="button" class="lz-avatar-edit" id="lzAvatarEditBtn" title="Alterar foto">📷</button>
+                        <button type="button" class="lz-avatar-remove" id="lzAvatarRemoveBtn" title="Remover foto" style="display:none;">✕</button>
+                        <input type="file" id="lzAvatarInput" accept="image/*" hidden>
+                    </div>
                     <div>
                         <p class="lz-name" id="lzName">Usuário</p>
                         <div class="lz-status"><span class="lz-dot"></span> conectado</div>

@@ -552,6 +552,65 @@ app.get("/agendamentos/processar/:userId", async (req, res) => {
     }
 });
 
+// Marca um agendamento (parcela) como PAGO manualmente, mesmo antes da data prevista.
+// Lança o valor na tabela correta (gastos/receitas/metas), igual ao processamento automático.
+app.patch("/agendamentos/:id/pago", async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+        return res.status(400).json({ success: false, error: "Parâmetros inválidos." });
+    }
+    try {
+        const ag = await dbGet("SELECT * FROM agendamentos WHERE id = ? AND user_id = ?", [id, req.uid]);
+        if (!ag) return res.status(404).json({ success: false, error: "Agendamento não encontrado." });
+        if (ag.status === "lancado") {
+            return res.json({ success: true, jaEstavaLancado: true });
+        }
+
+        if (ag.tipo === "gasto") {
+            await dbRun(
+                `INSERT INTO gastos (user_id, descricao, valor, categoria) VALUES (?, ?, ?, ?)`,
+                [req.uid, ag.descricao, ag.valor, ag.categoria || "Geral"]
+            );
+        } else if (ag.tipo === "receita") {
+            await dbRun(
+                `INSERT INTO receitas (user_id, descricao, valor) VALUES (?, ?, ?)`,
+                [req.uid, ag.descricao, ag.valor]
+            );
+        } else if (ag.tipo === "meta") {
+            await dbRun(
+                `INSERT INTO metas (user_id, nome, valor_objetivo, prazo) VALUES (?, ?, ?, ?)`,
+                [req.uid, ag.descricao, ag.valor, ag.prazo || 12]
+            );
+        }
+
+        await dbRun("UPDATE agendamentos SET status = 'lancado' WHERE id = ?", [id]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Erro ao marcar agendamento como pago:", err.message);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Volta um agendamento já lançado para PENDENTE.
+// Obs: isso NÃO remove o lançamento (gasto/receita/meta) que já foi criado —
+// se precisar desfazer de vez, exclua o lançamento correspondente na tela de Gastos.
+app.patch("/agendamentos/:id/pendente", async (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+        return res.status(400).json({ success: false, error: "Parâmetros inválidos." });
+    }
+    try {
+        const result = await dbRun(
+            "UPDATE agendamentos SET status = 'pendente' WHERE id = ? AND user_id = ?",
+            [id, req.uid]
+        );
+        if (result.changes === 0) return res.status(404).json({ success: false, error: "Agendamento não encontrado." });
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ success: false, error: "Erro ao atualizar status." });
+    }
+});
+
 app.delete("/agendamentos/:id", async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
