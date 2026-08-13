@@ -4,6 +4,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import { apiFetch } from "./apiClient.js";
+import { verificarParcelasPendentes } from "./notifications.js";
 
 
 function escapeHtml(str) {
@@ -32,6 +33,8 @@ document.addEventListener("DOMContentLoaded", () => {
             window.location.href = "cad.html";
             return;
         }
+
+        verificarParcelasPendentes();
 
     });
 

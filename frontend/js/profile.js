@@ -1,6 +1,7 @@
 import { auth, db } from "./config.js";
 import { onAuthStateChanged, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { verificarParcelasPendentes } from "./notifications.js";
 
 const loadingState = document.getElementById("loadingState");
 const profileContent = document.getElementById("profileContent");
@@ -37,6 +38,8 @@ onAuthStateChanged(auth, async (user) => {
     window.location.href = "index.html";
     return;
   }
+
+  verificarParcelasPendentes();
 
   const providerId = user.providerData[0]?.providerId || "password";
 

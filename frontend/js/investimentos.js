@@ -1,6 +1,7 @@
 import { auth } from "./config.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { apiFetch } from "./apiClient.js";
+import { verificarParcelasPendentes } from "./notifications.js";
 
 function escapeHtml(str) {
     const div = document.createElement("div");
@@ -113,7 +114,8 @@ async function carregarInvestimentos() {
             elLucro.innerText = `R$ ${(data.rendimento || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         }
         if (elProventos) {
-            elProventos.innerText = `R$ ${parseFloat(data.proximosProventos || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            elProventos.innerText = `R$ ${parseFloat(data.proximosProventos || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (estimado)`;
+            elProventos.title = "Valor estimado com base nos últimos proventos anunciados. Pode variar até a data de pagamento.";
         }
 
         if (elPercent) {
@@ -268,4 +270,5 @@ onAuthStateChanged(auth, (user) => {
     }
     carregarInvestimentos();
     carregarGraficoEvolucaoTotal(user.uid);
+    verificarParcelasPendentes();
 });

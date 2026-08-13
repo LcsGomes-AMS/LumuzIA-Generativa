@@ -5,6 +5,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 import { apiFetch } from "./apiClient.js";
+import { verificarParcelasPendentes } from "./notifications.js";
 
 
 async function carregarDashboard(uid) {
@@ -96,7 +97,10 @@ async function carregarInvestimentosResumo(uid) {
                 {
                     minimumFractionDigits: 2
                 }
-            )}`;
+            )} (estimado)`;
+
+        elProventos.title =
+            "Valor estimado com base nos últimos proventos anunciados. Pode variar até a data de pagamento.";
 
     }
 
@@ -334,6 +338,8 @@ onAuthStateChanged(auth, async (user) => {
             carregarGrafico(user.uid)
 
         ]);
+
+        verificarParcelasPendentes();
 
     } catch (error) {
 
