@@ -60,6 +60,25 @@ function calcularPrevisao(meta) {
     };
 }
 
+// Quanto a pessoa PRECISA guardar por mês para bater a meta dentro do prazo
+// que ela mesma definiu ao criar a meta (independe do histórico de economia).
+function calcularMetaMensalNecessaria(meta) {
+    const faltante = Number(meta.valor_objetivo) - Number(meta.valor_atual || 0);
+
+    if (faltante <= 0) {
+        return { texto: "Concluída 🎉", classe: "ok" };
+    }
+    if (!meta.prazo || Number(meta.prazo) <= 0) {
+        return { texto: "-", classe: "" };
+    }
+
+    const valorMensal = faltante / Number(meta.prazo);
+    return {
+        texto: `R$ ${valorMensal.toFixed(2)}/mês`,
+        classe: "meta-mensal"
+    };
+}
+
 async function carregarMediaMensal() {
     const uid = auth.currentUser.uid;
     const avisoEl = document.getElementById("avisoMedia");
@@ -95,7 +114,7 @@ async function carregarMetas() {
     tabela.innerHTML = "";
 
     if (!metas || metas.length === 0) {
-        tabela.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#8FA1A3;">Nenhuma meta cadastrada.</td></tr>`;
+        tabela.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#8FA1A3;">Nenhuma meta cadastrada.</td></tr>`;
         return;
     }
 
@@ -105,6 +124,8 @@ async function carregarMetas() {
             : "0.0";
 
         const previsao = calcularPrevisao(meta);
+        const metaMensal = calcularMetaMensalNecessaria(meta);
+        const nomeEscapado = escapeHtml(meta.nome).replace(/'/g, "&#39;");
 
         tabela.innerHTML += `
             <tr>
@@ -114,8 +135,10 @@ async function carregarMetas() {
                 <td>${meta.prazo} meses</td>
                 <td>${progresso}%</td>
                 <td class="meta-previsao ${previsao.classe}">${previsao.texto}</td>
+                <td class="${metaMensal.classe}">${metaMensal.texto}</td>
                 <td>
-                    <button onclick="depositarMeta(${meta.id}, '${escapeHtml(meta.nome).replace(/'/g, "&#39;")}', ${meta.valor_objetivo}, ${meta.valor_atual || 0}, ${meta.prazo})" style="background:transparent;border:1px solid #10B981;color:#10B981;padding:4px 8px;border-radius:4px;cursor:pointer;">Guardar</button>
+                    <button onclick="abrirModalMeta(${meta.id}, '${nomeEscapado}', ${meta.valor_objetivo}, ${meta.valor_atual || 0}, ${meta.prazo}, 'guardar')" style="background:transparent;border:1px solid #10B981;color:#10B981;padding:4px 8px;border-radius:4px;cursor:pointer;">Guardar</button>
+                    <button onclick="abrirModalMeta(${meta.id}, '${nomeEscapado}', ${meta.valor_objetivo}, ${meta.valor_atual || 0}, ${meta.prazo}, 'retirar')" style="background:transparent;border:1px solid #FBBF24;color:#FBBF24;padding:4px 8px;border-radius:4px;cursor:pointer; margin-left:6px;">Retirar</button>
                     <button onclick="excluirMeta(${meta.id})" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer; margin-left:6px;">Excluir</button>
                 </td>
             </tr>
@@ -123,17 +146,74 @@ async function carregarMetas() {
     });
 }
 
-window.depositarMeta = async function (id, nome, valorObjetivo, valorAtual, prazo) {
-    const valorStr = prompt(`Quanto você quer guardar para "${nome}"?`);
-    if (valorStr === null) return;
+/* =========================================================
+   MODAL GUARDAR / RETIRAR VALOR
+========================================================= */
 
-    const valor = parseFloat(valorStr.replace(",", "."));
+let metaEmEdicao = null; // { id, nome, valorObjetivo, valorAtual, prazo, modo }
+
+window.abrirModalMeta = function (id, nome, valorObjetivo, valorAtual, prazo, modo) {
+    metaEmEdicao = { id, nome, valorObjetivo, valorAtual, prazo, modo };
+
+    const titulo = document.getElementById("modalMetaTitulo");
+    const label = document.getElementById("modalMetaLabel");
+    const input = document.getElementById("modalMetaValor");
+    const erro = document.getElementById("modalMetaErro");
+    const btnConfirmar = document.getElementById("modalMetaConfirmar");
+
+    erro.style.display = "none";
+    erro.innerText = "";
+    input.value = "";
+
+    if (modo === "retirar") {
+        titulo.innerText = `Retirar valor de "${nome}"`;
+        label.innerText = `Guardado atualmente: R$ ${Number(valorAtual).toFixed(2)}`;
+        btnConfirmar.innerText = "Retirar";
+        btnConfirmar.style.borderColor = "#FBBF24";
+        btnConfirmar.style.color = "#FBBF24";
+    } else {
+        titulo.innerText = `Guardar valor em "${nome}"`;
+        label.innerText = `Objetivo: R$ ${Number(valorObjetivo).toFixed(2)} — Guardado: R$ ${Number(valorAtual).toFixed(2)}`;
+        btnConfirmar.innerText = "Guardar";
+        btnConfirmar.style.borderColor = "#10B981";
+        btnConfirmar.style.color = "#10B981";
+    }
+
+    document.getElementById("modalMetaOverlay").style.display = "flex";
+    input.focus();
+};
+
+window.fecharModalMeta = function () {
+    document.getElementById("modalMetaOverlay").style.display = "none";
+    metaEmEdicao = null;
+};
+
+window.confirmarModalMeta = async function () {
+    if (!metaEmEdicao) return;
+
+    const input = document.getElementById("modalMetaValor");
+    const erro = document.getElementById("modalMetaErro");
+    const valor = parseFloat(String(input.value).replace(",", "."));
+
     if (isNaN(valor) || valor <= 0) {
-        alert("Valor inválido.");
+        erro.innerText = "Informe um valor válido maior que zero.";
+        erro.style.display = "block";
         return;
     }
 
-    const novoValorAtual = Number(valorAtual) + valor;
+    const { id, nome, valorObjetivo, valorAtual, prazo, modo } = metaEmEdicao;
+    let novoValorAtual;
+
+    if (modo === "retirar") {
+        if (valor > Number(valorAtual)) {
+            erro.innerText = "Você não pode retirar mais do que está guardado nessa meta.";
+            erro.style.display = "block";
+            return;
+        }
+        novoValorAtual = Number(valorAtual) - valor;
+    } else {
+        novoValorAtual = Number(valorAtual) + valor;
+    }
 
     try {
         const res = await apiFetch(`/metas/${id}`, {
@@ -146,14 +226,21 @@ window.depositarMeta = async function (id, nome, valorObjetivo, valorAtual, praz
             })
         });
         const data = await res.json();
+
         if (data.success) {
+            window.fecharModalMeta();
             carregarMetas();
+            // Avisa outras telas (ex: dashboard) que o valor guardado em metas mudou,
+            // para que possam descontar/recarregar o saldo disponível.
+            window.dispatchEvent(new CustomEvent("metasAtualizadas"));
         } else {
-            alert("Erro ao atualizar meta: " + (data.error || ""));
+            erro.innerText = "Erro ao atualizar meta: " + (data.error || "");
+            erro.style.display = "block";
         }
     } catch (err) {
-        console.error("Erro ao depositar:", err);
-        alert("Falha na comunicação com o servidor.");
+        console.error("Erro ao salvar valor da meta:", err);
+        erro.innerText = "Falha na comunicação com o servidor.";
+        erro.style.display = "block";
     }
 };
 
@@ -164,6 +251,7 @@ window.excluirMeta = async function (id) {
         const data = await res.json();
         if (data.success) {
             carregarMetas();
+            window.dispatchEvent(new CustomEvent("metasAtualizadas"));
         } else {
             alert("Erro ao excluir: " + (data.error || ""));
         }
