@@ -40,6 +40,7 @@ async function garantirUsuarioExiste(userId) {
     if (!userId) return;
     await dbRun(`INSERT OR IGNORE INTO users (id) VALUES (?)`, [userId]);
 }
+
 // Lança automaticamente na tabela certa (gastos/receitas/metas) todo
 // agendamento cuja data já chegou/passou e ainda está pendente.
 async function processarAgendamentosPendentes(userId) {
@@ -215,8 +216,6 @@ app.get("/", (req, res) => {
 });
 
 // A partir daqui, TODAS as rotas abaixo exigem token válido (header Authorization: Bearer <token>).
-// req.uid é o UID real, extraído do token — nunca confie em req.params.userId / req.body.userId
-// para decidir DE QUEM são os dados; use sempre req.uid para isso.
 app.get("/favicon.ico", (req, res) => res.status(204).end());
 app.use(verificarAutenticacao);
 
@@ -457,9 +456,7 @@ app.put("/metas/:id", async (req, res) => {
         res.status(500).json({ success: false, error: "Erro ao atualizar meta." });
     }
 });
-// Estima quanto a pessoa consegue guardar por mês, com base no histórico
-// (receitas - gastos, dividido pela quantidade de meses com movimentação registrada).
-// É uma aproximação: usa a data de cadastro (created_at) de cada lançamento.
+
 app.get("/metas/estimativa/:userId", async (req, res) => {
     if (req.params.userId !== req.uid) {
         return res.status(403).json({ success: false, error: "Acesso negado." });
@@ -491,8 +488,9 @@ app.get("/metas/estimativa/:userId", async (req, res) => {
         res.status(500).json({ mediaMensal: 0, baseMeses: 0 });
     }
 });
+
 // =====================
-// AGENDAMENTOS (Calendário de gastos/receitas/metas futuras)
+// AGENDAMENTOS
 // =====================
 app.post("/agendamentos", async (req, res) => {
     const userId = req.uid;
@@ -524,7 +522,6 @@ app.get("/agendamentos/:userId", async (req, res) => {
         return res.status(403).json({ success: false, error: "Acesso negado." });
     }
     try {
-        // Antes de listar, lança automaticamente tudo que já venceu
         await processarAgendamentosPendentes(req.uid);
 
         const rows = await dbAll(
@@ -538,7 +535,6 @@ app.get("/agendamentos/:userId", async (req, res) => {
     }
 });
 
-// Endpoint leve só pra processar (usado no dashboard, sem precisar da lista inteira)
 app.get("/agendamentos/processar/:userId", async (req, res) => {
     if (req.params.userId !== req.uid) {
         return res.status(403).json({ success: false, error: "Acesso negado." });
@@ -552,8 +548,6 @@ app.get("/agendamentos/processar/:userId", async (req, res) => {
     }
 });
 
-// Marca um agendamento (parcela) como PAGO manualmente, mesmo antes da data prevista.
-// Lança o valor na tabela correta (gastos/receitas/metas), igual ao processamento automático.
 app.patch("/agendamentos/:id/pago", async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
@@ -591,9 +585,6 @@ app.patch("/agendamentos/:id/pago", async (req, res) => {
     }
 });
 
-// Volta um agendamento já lançado para PENDENTE.
-// Obs: isso NÃO remove o lançamento (gasto/receita/meta) que já foi criado —
-// se precisar desfazer de vez, exclua o lançamento correspondente na tela de Gastos.
 app.patch("/agendamentos/:id/pendente", async (req, res) => {
     const id = parseInt(req.params.id, 10);
     if (isNaN(id)) {
@@ -644,20 +635,17 @@ app.post("/investimentos", async (req, res) => {
     try {
         await garantirUsuarioExiste(userId);
 
-        // Registra o aporte individual (histórico bruto, nunca é sobrescrito)
         await dbRun(
             `INSERT INTO aportes (user_id, ticker, tipo, quantidade, preco_unitario, data) VALUES (?, ?, ?, ?, ?, ?)`,
             [userId, tickerFinal, tipo, qtdNova, precoNovo, dataFinal]
         );
 
-        // Já existe esse ticker na posição consolidada do usuário?
         const existente = await dbGet(
             "SELECT * FROM investimentos WHERE user_id = ? AND ticker = ? LIMIT 1",
             [userId, tickerFinal]
         );
 
         if (existente) {
-            // Soma a quantidade e recalcula o preço médio ponderado
             const qtdAtual = parseFloat(existente.quantidade) || 0;
             const pmAtual = parseFloat(existente.preco_medio) || 0;
 
@@ -665,7 +653,6 @@ app.post("/investimentos", async (req, res) => {
             const custoTotal = (qtdAtual * pmAtual) + (qtdNova * precoNovo);
             const novoPrecoMedio = qtdTotal > 0 ? custoTotal / qtdTotal : precoNovo;
 
-            // data_compra NÃO é sobrescrita: mantém a data do primeiro aporte
             await dbRun(
                 `UPDATE investimentos SET quantidade = ?, preco_medio = ?, tipo = ? WHERE id = ?`,
                 [qtdTotal, novoPrecoMedio, tipo || existente.tipo, existente.id]
@@ -680,7 +667,6 @@ app.post("/investimentos", async (req, res) => {
             });
         }
 
-        // Ativo novo -> insere normalmente
         const result = await dbRun(
             `INSERT INTO investimentos (user_id, ticker, tipo, quantidade, preco_medio, data_compra)
              VALUES (?, ?, ?, ?, ?, ?)`,
@@ -725,7 +711,6 @@ app.delete("/investimentos/:id", async (req, res) => {
     }
 });
 
-// Cotação individual
 app.get("/api/cotacao/:ticker", async (req, res) => {
     const { ticker } = req.params;
     const tipo = req.query.tipo || "Ação";
@@ -738,7 +723,6 @@ app.get("/api/cotacao/:ticker", async (req, res) => {
     }
 });
 
-// Carteira detalhada com cotações (também salva o snapshot diário)
 app.get("/api/investimentos/cotacoes/:userId", async (req, res) => {
     if (req.params.userId !== req.uid) {
         return res.status(403).json({ success: false, error: "Acesso negado." });
@@ -794,7 +778,6 @@ app.get("/api/investimentos/cotacoes/:userId", async (req, res) => {
         const rendimentoTotal = valorAtualTotal - totalInvestido;
         const crescimentoPercentual = totalInvestido > 0 ? (rendimentoTotal / totalInvestido) * 100 : 0;
 
-        // Salva o snapshot de hoje (idempotente: roda de novo hoje, só atualiza)
         const hoje = new Date().toISOString().split("T")[0];
         await dbRun(
             `INSERT INTO historico_patrimonio (user_id, data, valor_investido, valor_atual, rendimento)
@@ -832,7 +815,6 @@ app.get("/api/investimentos/cotacoes/:userId", async (req, res) => {
     }
 });
 
-// Evolução do patrimônio total (gráfico do Dashboard e da tela de Investimentos)
 app.get("/api/investimentos/historico/:userId", async (req, res) => {
     if (req.params.userId !== req.uid) {
         return res.status(403).json({ success: false, error: "Acesso negado." });
@@ -849,7 +831,6 @@ app.get("/api/investimentos/historico/:userId", async (req, res) => {
     }
 });
 
-// Evolução do rendimento de um ativo específico
 app.get("/api/investimentos/historico-ativo/:userId/:ticker", async (req, res) => {
     if (req.params.userId !== req.uid) {
         return res.status(403).json({ success: false, error: "Acesso negado." });
@@ -968,18 +949,20 @@ ${resumoInvestimentos}
 
 Use estritamente esses dados se o usuário perguntar sobre o saldo, investimentos ou situação financeira dele. Dê conselhos práticos e personalizados.`;
 
-        const ollamaUrl = process.env.OLLAMA_URL || "http://localhost:11434";
+        // Pega a URL do Ollama e remove a barra final para evitar duplicidade '//'
+        const rawOllamaUrl = process.env.OLLAMA_URL || "http://localhost:11434";
+        const ollamaUrl = rawOllamaUrl.replace(/\/$/, "");
 
         const response = await axios.post(`${ollamaUrl}/api/generate`, {
-    model: "llama3",
-    prompt: `${systemPrompt}\n\nUsuário: ${message}\nLumuzIA:`,
-    stream: false
-}, {
-    timeout: 30000,
-    headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
-});
+            model: "llama3",
+            prompt: `${systemPrompt}\n\nUsuário: ${message}\nLumuzIA:`,
+            stream: false
+        }, {
+            timeout: 30000,
+            headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            }
+        });
 
         res.json({ reply: response.data.response });
 
