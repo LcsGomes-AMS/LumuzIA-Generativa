@@ -1,4 +1,4 @@
-//process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 require("dotenv").config();
 
 const express = require("express");
@@ -870,37 +870,43 @@ app.post("/api/ia/chat", async (req, res) => {
         const totalGastos = resumo?.gastos || 0;
         const saldoAtual = totalReceitas - totalGastos;
 
-        const rawOllamaUrl = process.env.OLLAMA_URL || "https://ra.projetoscti.com.br/2557068";
-        const ollamaUrl = rawOllamaUrl.replace(/\/$/, "");
-
-        const promptComContexto = `Você é a LumuzIA, assistente virtual de finanças pessoais do app LumuzIA.
+        const systemPrompt = `Você é a LumuzIA, assistente virtual de finanças pessoais do app LumuzIA.
 Responda sempre em português brasileiro de forma amigável, clara e direta.
 
 Dados financeiros atuais do usuário:
 - Receitas: R$ ${totalReceitas.toFixed(2)}
 - Gastos: R$ ${totalGastos.toFixed(2)}
-- Saldo Disponível: R$ ${saldoAtual.toFixed(2)}
+- Saldo Disponível: R$ ${saldoAtual.toFixed(2)}`;
 
-Pergunta do usuário: "${prompt}"`;
-
-        const response = await axios.post(`${ollamaUrl}/api/generate`, {
+        const baseUrl = (process.env.OLLAMA_URL || "https://ra.projetoscti.com.br/2557068").replace(/\/$/, "");
+        
+        // Chamada direcionada ao wrapper index.php do servidor
+        const response = await axios.post(`${baseUrl}/index.php`, {
+            action: "generate",
             model: modelo || "llama3.2:1b",
-            prompt: promptComContexto,
-            stream: false
+            system: systemPrompt,
+            prompt: prompt
         }, {
+            httpsAgent,
             timeout: 120000
         });
 
-        res.json({ success: true, resposta: response.data.response });
+        if (response.data && response.data.success) {
+            res.json({ success: true, resposta: response.data.resposta });
+        } else {
+            res.status(500).json({ 
+                success: false, 
+                error: response.data?.error || "Erro retornado pelo backend PHP da IA." 
+            });
+        }
     } catch (err) {
-        console.error("Erro ao conectar com Ollama:", err.message);
+        console.error("Erro ao conectar com a ponte PHP do Ollama:", err.message);
         res.status(500).json({ 
             success: false, 
             error: "Não foi possível se comunicar com o servidor da IA." 
         });
     }
 });
-
 // =====================
 // DASHBOARD & ESTATÍSTICAS
 // =====================
