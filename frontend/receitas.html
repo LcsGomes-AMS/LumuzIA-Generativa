@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Receitas - LumuzIA</title>
+        <link rel="icon" type="./img/png" href="img/LumuzIA.png">
+        <link rel="stylesheet" href="./css/style.css">
+        <style>
+            .receita-edit-input { padding: 6px 8px; border-radius: 4px; border: 1px solid #334155; background: #0f172a; color: #fff; width: 100%; }
+            .badge-pendente { background: rgba(251, 191, 36, 0.15); color: #FBBF24; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+            .badge-recebido { background: rgba(16, 185, 129, 0.15); color: #10B981; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <aside class="sidebar">
+                <div class="sidebar-brand" style="display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
+                <img src="img/LumuzIA.png" alt="LumuzIA" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">
+            </div> 
+                <a href="dashboard.html">📊 Dashboard</a>
+                <a href="gastos.html">💸 Gastos</a>
+                <a href="receitas.html" class="active">💵 Receitas</a>
+                <a href="metas.html">🎯 Metas</a>
+                <a href="investimentos.html">📈 Investimentos</a>
+                <a href="chat.html">🤖 Chat</a>
+                <a href="perfil.html">👤 Perfil</a>
+            </aside>
+            <main>
+                <h1>Receitas</h1>
+
+                <div class="form">
+                    <input id="descricao" placeholder="Descrição da receita">
+                    <input id="valor" type="number" placeholder="Valor">
+                    <button onclick="salvarReceita()">Salvar Receita</button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaReceitas">
+                    </tbody>
+                </table>
+
+                <!-- ===================== -->
+                <!-- A RECEBER (até 30 dias) -->
+                <!-- ===================== -->
+                <section class="form-container" style="margin-top:30px; background-color: rgba(111,231,221,0.05); padding:20px; border-radius:8px;">
+                    <h2>⏳ A Receber (próximos 30 dias)</h2>
+                    <p style="color:#8FA1A3;">Agende um valor que você espera receber em breve. Quando o dia chegar, ele entra automaticamente na sua lista de receitas.</p>
+
+                    <div class="form" style="margin-top:15px;">
+                        <input id="arDescricao" placeholder="Descrição (ex: Salário, Freela)">
+                        <input id="arValor" type="number" step="0.01" placeholder="Valor">
+                        <input id="arDias" type="number" min="1" max="30" placeholder="Em quantos dias? (máx 30)">
+                        <button type="button" onclick="salvarAReceber()">Agendar</button>
+                    </div>
+
+                    <table style="margin-top:15px;">
+                        <thead>
+                            <tr><th>Previsão</th><th>Descrição</th><th>Valor</th><th>Status</th><th>Ações</th></tr>
+                        </thead>
+                        <tbody id="tabelaAReceber"></tbody>
+                    </table>
+                </section>
+            </main>
+        </div>
+
+        <script type="module" src="./js/receitas.js"></script>
+    </body>
+</html>

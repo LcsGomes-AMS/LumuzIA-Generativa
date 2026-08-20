@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="./img/png" href="img/LumuzIA.png">
+<title>Gastos - LumuzIA</title>
+
+<link rel="stylesheet" href="./css/style.css">
+
+
+
+</head>
+<body>
+
+<div class="container">
+
+        <aside class="sidebar">
+            <div class="sidebar-brand" style="display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
+               <img src="img/LumuzIA.png" alt="LumuzIA" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">
+            </div> 
+            <a href="dashboard.html">📊 Dashboard</a>
+            <a href="gastos.html" class="active">💸 Gastos</a>
+            <a href="receitas.html">💵 Receitas</a>
+            <a href="metas.html">🎯 Metas</a>
+            <a href="investimentos.html">📈 Investimentos</a>
+            <a href="chat.html">🤖 Chat</a>
+            <a href="perfil.html">👤 Perfil</a>
+        </aside>
+
+    <main>
+
+        <h1>Controle de Gastos</h1>
+
+        <div class="form">
+
+            <input
+                id="descricao"
+                placeholder="Descrição">
+
+            <input
+                id="valor"
+                type="number"
+                placeholder="Valor">
+
+            <select id="categoria">
+
+                <option>Alimentação</option>
+                <option>Transporte</option>
+                <option>Moradia</option>
+                <option>Lazer</option>
+                <option>Saúde</option>
+                <option>Educação</option>
+                <option>Outros</option>
+
+            </select>
+
+            <button onclick="salvarGasto()">
+                Salvar
+            </button>
+
+        </div>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Descrição</th>
+                    <th>Valor</th>
+                    <th>Categoria</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+
+            <tbody id="tabelaGastos">
+
+            </tbody>
+
+        </table>
+        <!-- ===================== -->
+<!-- GASTO PARCELADO -->
+<!-- ===================== -->
+<section class="form-container" style="margin-top:30px; background-color: rgba(111,231,221,0.05); padding:20px; border-radius:8px;">
+    <h2>🧾 Compra Parcelada</h2>
+    <p style="color:#8FA1A3;">Informe o valor total e o número de parcelas. Cada parcela vira um gasto no mês correspondente, automaticamente.</p>
+
+    <div class="form" style="margin-top:15px;">
+        <input id="pcDescricao" placeholder="Descrição (ex: Notebook)">
+        <input id="pcValorTotal" type="number" step="0.01" placeholder="Valor total">
+        <input id="pcParcelas" type="number" min="2" max="48" placeholder="Nº de parcelas (2-48)">
+        <select id="pcCategoria">
+            <option>Alimentação</option>
+            <option>Transporte</option>
+            <option>Moradia</option>
+            <option>Lazer</option>
+            <option>Saúde</option>
+            <option>Educação</option>
+            <option>Outros</option>
+        </select>
+        <input id="pcDataPrimeira" type="date">
+        <button type="button" onclick="salvarParcelamento()">Parcelar</button>
+    </div>
+
+    <table style="margin-top:15px;">
+        <thead>
+            <tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Status</th><th>Ações</th></tr>
+        </thead>
+        <tbody id="tabelaParcelas"></tbody>
+    </table>
+</section>
+        <!-- ===================== -->
+        <!-- CALENDÁRIO DE AGENDAMENTOS -->
+        <!-- ===================== -->
+        <section class="form-container" style="margin-top:30px; background-color: rgba(111,231,221,0.05); padding:20px; border-radius:8px;">
+            <h2>📅 Calendário de Agendamentos</h2>
+            <p style="color:#8FA1A3;">Marque uma meta, gasto ou receita para uma data futura (qualquer ano). Quando o dia chegar, ela é lançada automaticamente.</p>
+
+            <div class="calendario-header" style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:15px; flex-wrap:wrap;">
+                <button id="calMesAnterior" type="button" class="cal-nav-btn">‹</button>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <select id="calSelectMes"></select>
+                    <select id="calSelectAno"></select>
+                </div>
+                <button id="calMesProximo" type="button" class="cal-nav-btn">›</button>
+                <button id="calHoje" type="button" class="cal-nav-btn">Hoje</button>
+            </div>
+
+            <div id="calendarioGrid" class="calendario-grid"></div>
+
+            <div id="calFormAgendamento" style="display:none; margin-top:20px; background: rgba(0,0,0,0.2); padding:15px; border-radius:8px;">
+                <h3 id="calDataSelecionadaTitulo">Agendar para --/--/----</h3>
+                <div class="form" style="margin-top:10px;">
+                    <select id="calTipo">
+                        <option value="gasto">Gasto</option>
+                        <option value="receita">Receita</option>
+                        <option value="meta">Meta</option>
+                    </select>
+                    <input id="calDescricao" placeholder="Descrição">
+                    <input id="calValor" type="number" step="0.01" placeholder="Valor">
+                    <select id="calCategoria">
+                        <option>Alimentação</option>
+                        <option>Transporte</option>
+                        <option>Moradia</option>
+                        <option>Lazer</option>
+                        <option>Saúde</option>
+                        <option>Educação</option>
+                        <option>Outros</option>
+                    </select>
+                    <input id="calPrazo" type="number" placeholder="Prazo (meses)" style="display:none;">
+                    <button type="button" onclick="salvarAgendamento()">Agendar</button>
+                </div>
+
+                <div id="listaAgendamentosDia"></div>
+            </div>
+
+            <div style="margin-top:30px;">
+                <h3>Próximos agendamentos</h3>
+                <table>
+                    <thead>
+                        <tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>Valor</th><th>Ações</th></tr>
+                    </thead>
+                    <tbody id="tabelaAgendamentosFuturos"></tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+</div>
+
+<script type="module" src="./js/gastos.js"></script>
+
+</body>
+</html>

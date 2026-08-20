@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="./img/png" href="img/LumuzIA.png">
+<title>Entrar · Lumuz IA</title>
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<div class="wrap" id="wrap">
+  <div>
+    <div class="brand">
+      <div class="brand-mark"><span></span><span></span><span></span><span></span></div>
+      <div class="brand-name">Lumuz IA</div>
+    </div>
+
+    <div class="card">
+      <h1 id="cardTitle">Bem-vindo de volta</h1>
+      <p class="sub" id="cardSub">Entre para continuar sua conversa.</p>
+
+      <div class="tabs">
+        <div class="tab active" data-tab="login">Entrar</div>
+        <div class="tab" data-tab="signup">Criar conta</div>
+      </div>
+
+      <div class="msg" id="msg"></div>
+
+      <!-- Formulário de login/cadastro -->
+      <form id="authForm">
+        <div class="field" id="nameField" style="display:none;">
+          <label for="name">Nome</label>
+          <input type="text" id="name" placeholder="Como podemos te chamar?">
+        </div>
+        <div class="field">
+          <label for="email">E-mail</label>
+          <input type="email" id="email" placeholder="voce@exemplo.com" required>
+        </div>
+        <div class="field">
+          <label for="password">Senha</label>
+          <input type="password" id="password" placeholder="••••••••" required minlength="6">
+          <a href="#" id="forgotLink" class="forgot-link">Esqueceu sua senha?</a>
+        </div>
+        <button type="submit" class="btn btn-primary" id="submitBtn">Entrar</button>
+      </form>
+
+      <!-- Formulário de recuperação de senha (escondido por padrão) -->
+      <form id="forgotForm" style="display:none;">
+        <p class="sub">Digite seu e-mail e enviaremos um link para redefinir sua senha.</p>
+        <div class="field">
+          <label for="forgotEmail">E-mail</label>
+          <input type="email" id="forgotEmail" placeholder="voce@exemplo.com" required>
+        </div>
+        <button type="submit" class="btn btn-primary" id="forgotSubmitBtn">Enviar link de redefinição</button>
+        <a href="#" id="backToLoginLink" class="forgot-link">Voltar para o login</a>
+      </form>
+
+      <div class="divider" id="divider">ou</div>
+
+      <button type="button" class="btn btn-google" id="googleBtn">
+        <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.7-6.1 8-11.3 8-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.1 8 3.1l5.7-5.7C34.4 6 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.1 8 3.1l5.7-5.7C34.4 6 29.5 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.4 0 10.2-1.8 14-5l-6.5-5.4C29.4 35 26.9 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.6 39.6 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.3-4.2 5.6.001 0 .001 0 0 0l6.5 5.4C41.9 35.5 44 30.2 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+        Continuar com Google
+      </button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="./js/config.js"></script>
+<script type="module" src="./js/auth.js"></script>
+</body>
+</html>

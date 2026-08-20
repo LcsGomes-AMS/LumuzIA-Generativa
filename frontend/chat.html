@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="./img/png" href="img/LumuzIA.png">
+    <title>Chat IA - LumuzIA</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <style>
+        .chat-box { display: flex; flex-direction: column; height: 65vh; background: #1e293b; border-radius: 12px; padding: 20px; margin-top: 20px; }
+        .chat-messages { flex: 1; overflow-y: auto; margin-bottom: 20px; padding-right: 10px; display: flex; flex-direction: column; gap: 15px; }
+        .message { padding: 12px 16px; border-radius: 8px; max-width: 75%; line-height: 1.5; font-size: 15px; }
+        .user-message { background: #3b82f6; align-self: flex-end; color: white; }
+        .ai-message { background: #334155; align-self: flex-start; color: white; }
+        .chat-input-area { display: flex; gap: 10px; }
+        .chat-input-area input { flex: 1; padding: 14px; border-radius: 8px; border: 1px solid #475569; background: #0f172a; color: white; font-size: 15px; }
+        .chat-input-area button { padding: 0 25px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; }
+        .chat-input-area button:hover { background: #059669; }
+        .typing { color: #94a3b8; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+        <aside class="sidebar">
+            <div class="sidebar-brand" style="display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
+                <img src="img/LumuzIA.png" alt="LumuzIA" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">
+            </div> 
+            <a href="dashboard.html">📊 Dashboard</a>
+            <a href="gastos.html">💸 Gastos</a>
+            <a href="receitas.html">💵 Receitas</a>
+            <a href="metas.html">🎯 Metas</a>
+            <a href="investimentos.html">📈 Investimentos</a>
+            <a href="chat.html">🤖 Chat</a>
+            <a href="perfil.html">👤 Perfil</a>
+        </aside>
+
+    <main>
+        <h1>Fale com a LumuzIA</h1>
+        <p style="color: #94a3b8;">Sua inteligência artificial integrada para análise e dicas financeiras.</p>
+
+        <div class="chat-box">
+            <div class="chat-messages" id="chatContainer">
+                <div class="message ai-message">
+                    <strong>LumuzIA:</strong> Olá! Analisei o seu banco de dados e estou pronta para te ajudar. Pode me perguntar sobre seus gastos, saldo ou pedir dicas para economizar!
+                </div>
+            </div>
+            <form class="chat-input-area" id="chatForm">
+                <input type="text" id="userInput" placeholder="Ex: Eu posso gastar R$ 100 com Lazer hoje?" autocomplete="off" required>
+                <button type="submit">Enviar</button>
+            </form>
+        </div>
+    </main>
+</div>
+
+<script type="module" src="./js/chat.js"></script>
+</body>
+</html>

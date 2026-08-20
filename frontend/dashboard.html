@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - LumuzIA</title>
+    <link rel="icon" type="./img/png" href="img/LumuzIA.png">
+    <link rel="stylesheet" href="./css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <aside class="sidebar">
+        <div class="sidebar-brand" style="display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
+                <img src="img/LumuzIA.png" alt="LumuzIA" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">
+            </div> 
+        <a href="dashboard.html">📊 Dashboard</a>
+        <a href="gastos.html">💸 Gastos</a>
+        <a href="receitas.html">💵 Receitas</a>
+        <a href="metas.html">🎯 Metas</a>
+        <a href="investimentos.html">📈 Investimentos</a>
+        <a href="chat.html">🤖 Chat</a>
+        <a href="perfil.html">👤 Perfil</a>
+    </aside>
+
+    <main>
+        <h1>Dashboard Financeiro</h1>
+
+        <!-- Substitua ou adicione no elemento <div class="cards"> do seu HTML -->
+<div class="cards">
+    <div class="card">
+        <h3>Saldo Atual</h3>
+        <p id="saldo">R$ 0,00</p>
+    </div>
+    <div class="card">
+        <h3>Receitas</h3>
+        <p id="receitas">R$ 0,00</p>
+    </div>
+    <div class="card">
+        <h3>Gastos</h3>
+        <p id="gastos">R$ 0,00</p>
+    </div>
+    <div class="card">
+        <h3>Patrimônio Investido</h3>
+        <p id="patrimonioInvestido">R$ 0,00</p>
+    </div>
+    <div class="card">
+        <h3>Rendimentos</h3>
+        <p id="rendimentos">R$ 0,00</p>
+        <small id="statusRendimento" class="badge-status">0.00%</small>
+    </div>
+    <div class="card">
+        <h3>Proventos a Receber (Est.)</h3>
+        <p id="proximosProventos" style="color: #6FE7DD;">R$ 0,00</p>
+    </div>
+</div>
+
+        <!-- Seção de Gráficos Lado a Lado -->
+<div class="charts-grid" style="margin-top: 30px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+    <!-- Gráfico de Gastos (com o wrapper adicionado) -->
+    <div class="chart-box" style="background-color: rgba(111, 231, 221, 0.07); padding: 20px; border-radius: 8px;">
+        <h2>Gastos por Categoria</h2>
+        <div class="chart-container-canvas">
+            <canvas id="graficoGastos"></canvas>
+        </div>
+    </div>
+
+    <!-- Gráfico de Rendimento -->
+    <div class="chart-box">
+        <h2>Evolução do Rendimento</h2>
+        <div class="chart-container-canvas">
+            <canvas id="graficoRendimento"></canvas>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="module" src="./js/dashboard.js"></script>
+
+</body>
+</html>
