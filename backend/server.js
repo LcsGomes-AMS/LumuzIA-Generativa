@@ -846,12 +846,12 @@ app.get("/api/investimentos/historico-ativo/:userId/:ticker", async (req, res) =
         res.status(500).json([]);
     }
 });
+
 // =====================
 // IA / OLLAMA
 // =====================
-const OLLAMA_URL = process.env.OLLAMA_URL || "http://45.7.53.122:11434";
-
 app.post("/api/ia/chat", async (req, res) => {
+    const userId = req.uid;
     const { prompt, modelo } = req.body;
 
     if (!prompt) {
@@ -859,15 +859,36 @@ app.post("/api/ia/chat", async (req, res) => {
     }
 
     try {
-        const rawOllamaUrl = process.env.OLLAMA_URL || "http://45.7.53.122:11434";
+        const resumo = await dbGet(
+            `SELECT 
+                (SELECT IFNULL(SUM(valor),0) FROM receitas WHERE user_id = ?) AS receitas,
+                (SELECT IFNULL(SUM(valor),0) FROM gastos WHERE user_id = ?) AS gastos`,
+            [userId, userId]
+        );
+
+        const totalReceitas = resumo?.receitas || 0;
+        const totalGastos = resumo?.gastos || 0;
+        const saldoAtual = totalReceitas - totalGastos;
+
+        const rawOllamaUrl = process.env.OLLAMA_URL || "https://ra.projetoscti.com.br/2557068";
         const ollamaUrl = rawOllamaUrl.replace(/\/$/, "");
 
+        const promptComContexto = `Você é a LumuzIA, assistente virtual de finanças pessoais do app LumuzIA.
+Responda sempre em português brasileiro de forma amigável, clara e direta.
+
+Dados financeiros atuais do usuário:
+- Receitas: R$ ${totalReceitas.toFixed(2)}
+- Gastos: R$ ${totalGastos.toFixed(2)}
+- Saldo Disponível: R$ ${saldoAtual.toFixed(2)}
+
+Pergunta do usuário: "${prompt}"`;
+
         const response = await axios.post(`${ollamaUrl}/api/generate`, {
-            model: modelo || "llama3.2:1b", // CORRIGIDO PARA O MODELO INSTALADO
-            prompt: prompt,
+            model: modelo || "llama3.2:1b",
+            prompt: promptComContexto,
             stream: false
         }, {
-            timeout: 120000 // 2 minutos
+            timeout: 120000
         });
 
         res.json({ success: true, resposta: response.data.response });
@@ -887,127 +908,33 @@ app.get("/dashboard/:userId", async (req, res) => {
     if (req.params.userId !== req.uid) {
         return res.status(403).json({ success: false, error: "Acesso negado." });
     }
-    try {
-        const row = await dbGet(
-            `SELECT
-                (SELECT IFNULL(SUM(valor),0) FROM receitas WHERE user_id = ?) AS receitas,
-                (SELECT IFNULL(SUM(valor),0) FROM gastos WHERE user_id = ?) AS gastos`,
-            [req.uid, req.uid]
-        );
 
-        const receitas = row ? row.receitas : 0;
-        const gastos = row ? row.gastos : 0;
+    const userId = req.uid;
+
+    try {
+        const user = await dbGet("SELECT * FROM users WHERE id = ?", [userId]);
+        const totalReceitasRow = await dbGet("SELECT IFNULL(SUM(valor), 0) AS total FROM receitas WHERE user_id = ?", [userId]);
+        const totalGastosRow = await dbGet("SELECT IFNULL(SUM(valor), 0) AS total FROM gastos WHERE user_id = ?", [userId]);
+
+        const totalReceitas = totalReceitasRow?.total || 0;
+        const totalGastos = totalGastosRow?.total || 0;
+        const saldo = totalReceitas - totalGastos;
 
         res.json({
-            receitas,
-            gastos,
-            saldo: receitas - gastos
+            user: user || { id: userId, nome: "", salario: 0, meta: "", valor_meta: 0 },
+            totalReceitas,
+            totalGastos,
+            saldo
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ receitas: 0, gastos: 0, saldo: 0 });
-    }
-});
-
-app.get("/estatisticas/:userId", async (req, res) => {
-    if (req.params.userId !== req.uid) {
-        return res.status(403).json({ success: false, error: "Acesso negado." });
-    }
-    try {
-        const rows = await dbAll(
-            `SELECT categoria, SUM(valor) AS total FROM gastos WHERE user_id = ? GROUP BY categoria`,
-            [req.uid]
-        );
-        res.json(rows);
-    } catch (err) {
-        console.error(err);
-        res.status(500).json([]);
+        console.error("Erro ao carregar dashboard:", err.message);
+        res.status(500).json({ error: "Erro interno no servidor." });
     }
 });
 
 // =====================
-// CHAT IA (Ollama + Contexto)
-// =====================
-app.post("/chat", async (req, res) => {
-    const userId = req.uid;
-    const { message } = req.body;
-
-    if (!message) {
-        return res.status(400).json({ error: "Mensagem vazia" });
-    }
-
-    try {
-        const [financeRow, categoriasRows, ativosRows] = await Promise.all([
-            dbGet(
-                `SELECT 
-                    (SELECT IFNULL(SUM(valor), 0) FROM receitas WHERE user_id = ?) AS total_receitas,
-                    (SELECT IFNULL(SUM(valor), 0) FROM gastos WHERE user_id = ?) AS total_gastos`,
-                [userId, userId]
-            ),
-            dbAll(`SELECT categoria, SUM(valor) AS total FROM gastos WHERE user_id = ? GROUP BY categoria`, [userId]),
-            dbAll(`SELECT ticker, tipo, quantidade, preco_medio FROM investimentos WHERE user_id = ?`, [userId])
-        ]);
-
-        const receitas = financeRow ? financeRow.total_receitas : 0;
-        const gastos = financeRow ? financeRow.total_gastos : 0;
-        const saldo = receitas - gastos;
-
-        const resumoCategorias = categoriasRows.length > 0
-            ? categoriasRows.map(c => `- ${c.categoria}: R$ ${c.total.toFixed(2)}`).join("\n")
-            : "Nenhum gasto cadastrado ainda.";
-
-        let valorTotalInvestido = 0;
-        const resumoInvestimentos = ativosRows.length > 0
-            ? ativosRows.map(a => {
-                const subtotal = a.quantidade * a.preco_medio;
-                valorTotalInvestido += subtotal;
-                return `- ${a.ticker} (${a.tipo}): ${a.quantidade} cota(s) a R$ ${a.preco_medio.toFixed(2)} (Total: R$ ${subtotal.toFixed(2)})`;
-            }).join("\n")
-            : "Nenhum ativo investido na carteira no momento.";
-
-        const systemPrompt = `Você é a LumuzIA, uma assistente virtual de IA especializada em finanças pessoais e investimentos.
-Seu tom de voz deve ser amigável, acolhedor e focado em educação financeira.
-
-Aqui estão os dados financeiros ATUAIS e REAIS do usuário:
-- Saldo em Conta: R$ ${saldo.toFixed(2)}
-- Total de Receitas: R$ ${receitas.toFixed(2)}
-- Total de Gastos: R$ ${gastos.toFixed(2)}
-- Total Aplicado em Investimentos: R$ ${valorTotalInvestido.toFixed(2)}
-
-Gastos por Categoria:
-${resumoCategorias}
-
-Carteira de Investimentos (B3, FIIs e Criptos):
-${resumoInvestimentos}
-
-Use estritamente esses dados se o usuário perguntar sobre o saldo, investimentos ou situação financeira dele. Dê conselhos práticos e personalizados.`;
-
-        // Pega a URL do Ollama e remove a barra final para evitar duplicidade '//'
-        const rawOllamaUrl = process.env.OLLAMA_URL || "http://45.7.53.122:11434";
-        const ollamaUrl = rawOllamaUrl.replace(/\/$/, "");
-
-        const response = await axios.post(`${ollamaUrl}/api/generate`, {
-            model: "llama3.2:1b", // CORRIGIDO PARA O MODELO INSTALADO
-            prompt: `${systemPrompt}\n\nUsuário: ${message}\nLumuzIA:`,
-            stream: false
-        }, {
-            timeout: 60000, // AUMENTADO PARA 60 SEGUNDOS
-            headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-            }
-        });
-
-        res.json({ reply: response.data.response });
-
-    } catch (error) {
-        console.error("Erro no chat:", error.message);
-        res.status(500).json({ error: "Erro ao comunicar com Ollama ou ao buscar os dados do usuário." });
-    }
-});
-
-// =====================
-// SERVIDOR
+// INICIALIZAÇÃO
 // =====================
 app.listen(PORT, () => {
-    console.log(`Servidor rodando em http://localhost:${PORT}`);
+    console.log(`Servidor rodando na porta ${PORT}`);
 });
