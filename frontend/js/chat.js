@@ -6,13 +6,11 @@ import {
 import { apiFetch } from "./apiClient.js";
 import { verificarParcelasPendentes } from "./notifications.js";
 
-
 function escapeHtml(str) {
     const div = document.createElement("div");
     div.textContent = str;
     return div.innerHTML;
 }
-
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -20,33 +18,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const userInput = document.getElementById("userInput");
     const chatContainer = document.getElementById("chatContainer");
 
-
     if (!chatForm || !userInput || !chatContainer) {
         console.error("Elementos do chat não encontrados.");
         return;
     }
 
-
     onAuthStateChanged(auth, (user) => {
-
         if (!user) {
             window.location.href = "cad.html";
             return;
         }
 
         verificarParcelasPendentes();
-
     });
 
-
     chatForm.addEventListener("submit", async (e) => {
-
         e.preventDefault();
 
         const messageText = userInput.value.trim();
-
         if (!messageText) return;
-
 
         appendMessage(
             "Você",
@@ -56,32 +46,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
         userInput.value = "";
 
-
         const typingIndicator = appendMessage(
             "LumuzIA",
             "Pensando...",
             "ai-message typing"
         );
 
-
         try {
-
-            const response = await apiFetch("/chat", {
+            // Rota atualizada para /api/ia/chat e chave do payload ajustada para 'prompt'
+            const response = await apiFetch("/api/ia/chat", {
                 method: "POST",
                 body: JSON.stringify({
-                    message: messageText
+                    prompt: messageText
                 })
             });
 
-
             const data = await response.json();
-
 
             typingIndicator.remove();
 
-
             if (response.status === 401) {
-
                 appendMessage(
                     "LumuzIA",
                     "Sua sessão expirou. Faça login novamente.",
@@ -95,28 +79,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-
-            if (data.reply) {
-
+            // O backend retorna data.resposta em vez de data.reply
+            if (data.success && data.resposta) {
                 appendMessage(
                     "LumuzIA",
-                    data.reply,
+                    data.resposta,
                     "ai-message"
                 );
-
             } else {
-
                 appendMessage(
                     "LumuzIA",
                     data.error || "Erro sem resposta definida.",
                     "ai-message"
                 );
-
             }
 
-
         } catch (error) {
-
             typingIndicator.remove();
 
             console.error(
@@ -129,14 +107,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 "Não consegui conectar ao servidor.",
                 "ai-message"
             );
-
         }
-
     });
 
-
     function appendMessage(sender, text, className) {
-
         const messageDiv = document.createElement("div");
 
         messageDiv.className = `message ${className}`;
