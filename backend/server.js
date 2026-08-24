@@ -880,29 +880,28 @@ Dados financeiros atuais do usuário:
         const baseUrl = (process.env.OLLAMA_URL || "https://ra.projetoscti.com.br/2557068").replace(/\/$/, "");
         
         // Chamada direcionada ao wrapper index.php do servidor
-        const response = await axios.post(`${baseUrl}/index.php`, {
-            action: "generate",
-            model: modelo || "llama3.2:1b",
-            system: systemPrompt,
-            prompt: prompt
-        }, {
-            httpsAgent,
-            timeout: 120000
-        });
+        const response = await axios.post(
+            `${baseUrl}/index.php`,
+            {
+                model: modelo || "llama3",
+                prompt: prompt,
+                system: systemPrompt,
+                stream: false
+            },
+            {
+                headers: { "Content-Type": "application/json" },
+                httpsAgent,
+                timeout: 30000
+            }
+        );
 
-        if (response.data && response.data.success) {
-            res.json({ success: true, resposta: response.data.resposta });
-        } else {
-            res.status(500).json({ 
-                success: false, 
-                error: response.data?.error || "Erro retornado pelo backend PHP da IA." 
-            });
-        }
+        const resposta = response.data?.response || response.data?.message || "Sem resposta da IA.";
+        return res.json({ success: true, resposta });
     } catch (err) {
-        console.error("Erro ao conectar com a ponte PHP do Ollama:", err.message);
-        res.status(500).json({ 
+        console.error("Erro na integração com Ollama/IA:", err.message);
+        return res.status(500).json({ 
             success: false, 
-            error: "Não foi possível se comunicar com o servidor da IA." 
+            error: "Falha ao processar a requisição com a IA." 
         });
     }
 });
@@ -941,5 +940,5 @@ app.get("/dashboard/:userId", async (req, res) => {
 // INICIALIZAÇÃO
 // =====================
 app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`Servidor rodando com sucesso na porta ${PORT}`);
 });
