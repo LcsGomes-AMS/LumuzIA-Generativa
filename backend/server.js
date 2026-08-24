@@ -895,7 +895,19 @@ Dados financeiros atuais do usuário:
             }
         );
 
-        const resposta = response.data?.response || response.data?.message || "Sem resposta da IA.";
+        // Exibe a resposta exata recebida do servidor PHP nos logs do Render
+        console.log("Resposta do PHP:", JSON.stringify(response.data, null, 2));
+
+        // Busca o texto em múltiplos padrões de retorno (Ollama, OpenAI ou customizado)
+        const resposta = 
+            response.data?.response || 
+            (typeof response.data?.message === "string" ? response.data.message : response.data?.message?.content) ||
+            response.data?.choices?.[0]?.message?.content || 
+            response.data?.resultado ||
+            response.data?.output ||
+            (typeof response.data === "string" ? response.data : null) ||
+            "Sem resposta da IA.";
+
         return res.json({ success: true, resposta });
     } catch (err) {
         console.error("Erro na integração com Ollama/IA:", err.message);
