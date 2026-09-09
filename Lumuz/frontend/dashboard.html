@@ -1,0 +1,115 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - LumuzIA</title>
+    <link rel="icon" type="image/png" href="img/LumuzIA.png">
+    <link rel="stylesheet" href="./css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <img src="img/LumuzIA.png" alt="LumuzIA">
+        </div>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="gastos.html">Gastos</a>
+        <a href="receitas.html">Receitas</a>
+        <a href="metas.html">Metas</a>
+        <a href="investimentos.html">Investimentos</a>
+        <a href="relatorio.html">Relatório</a>
+        <a href="chat.html">Chat</a>
+        <a href="perfil.html">Perfil</a>
+    </aside>
+
+    <main>
+        <h1>Dashboard Financeiro</h1>
+
+        <!-- Painel de Filtro de Periodo -->
+        <div class="dash-filtro">
+            <div class="dash-filtro-controles">
+
+                <select id="modoFiltro" class="dash-filtro-select">
+                    <option value="mes">Mês</option>
+                    <option value="periodo">Período</option>
+                    <option value="ano">Ano</option>
+                </select>
+
+                <!-- Mês específico -->
+                <div id="grupoMes" class="dash-filtro-grupo">
+                    <input type="month" id="inputMes" class="dash-filtro-input">
+                </div>
+
+                <!-- Período -->
+                <div id="grupoPeriodo" class="dash-filtro-grupo dash-filtro-periodo" style="display:none;">
+                    <input type="month" id="inputMesInicio" class="dash-filtro-input">
+                    <span class="dash-filtro-sep">até</span>
+                    <input type="month" id="inputMesFim" class="dash-filtro-input">
+                </div>
+
+                <!-- Ano -->
+                <div id="grupoAno" class="dash-filtro-grupo" style="display:none;">
+                    <input type="number" id="inputAno" min="2020" max="2099" class="dash-filtro-input dash-filtro-ano">
+                </div>
+
+                <button id="btnFiltrar" class="dash-filtro-btn">Filtrar</button>
+            </div>
+            <span id="labelPeriodo" class="dash-filtro-label"></span>
+        </div>
+
+        <!-- Cards -->
+        <div class="cards">
+            <div class="card card--saldo">
+                <h3>Saldo do Período</h3>
+                <p id="saldo">R$ 0,00</p>
+            </div>
+            <div class="card card--receita">
+                <h3>Receitas</h3>
+                <p id="receitas">R$ 0,00</p>
+            </div>
+            <div class="card card--gasto">
+                <h3>Gastos</h3>
+                <p id="gastos">R$ 0,00</p>
+            </div>
+            <div class="card card--invest">
+                <h3>Patrimônio Investido</h3>
+                <p id="patrimonioInvestido">R$ 0,00</p>
+            </div>
+            <div class="card card--rend">
+                <h3>Rendimentos</h3>
+                <p id="rendimentos">R$ 0,00</p>
+                <small id="statusRendimento" class="badge-status">0.00%</small>
+            </div>
+            <div class="card card--prov">
+                <h3>Proventos a Receber (Est.)</h3>
+                <p id="proximosProventos" class="prov-valor">R$ 0,00</p>
+            </div>
+        </div>
+
+        <!-- Graficos -->
+        <div class="charts-grid">
+            <div class="chart-box">
+                <h2>Gastos por Categoria</h2>
+                <div class="chart-container-canvas">
+                    <canvas id="graficoGastos"></canvas>
+                </div>
+            </div>
+            <div class="chart-box">
+                <h2>Evolução do Rendimento</h2>
+                <div class="chart-container-canvas">
+                    <canvas id="graficoRendimento"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script type="module" src="./js/dashboard.js"></script>
+
+<script src="./js/sidebar.js"></script>
+</body>
+</html>

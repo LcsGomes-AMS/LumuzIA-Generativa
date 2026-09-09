@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meu Perfil · Minha IA</title>
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<div class="wrap" id="wrap">
+  <div id="loadingState">
+    <div class="loading-screen">
+      <div class="brand-mark"><span></span><span></span><span></span><span></span></div>
+      verificando sessão...
+    </div>
+  </div>
+
+  <div id="profileContent" style="display:none;">
+    <div class="brand">
+      <div class="brand-mark"><span></span><span></span><span></span><span></span></div>
+      <div class="brand-name">Minha IA</div>
+    </div>
+
+    <div class="card profile-card">
+      <div class="profile-top">
+        <div class="avatar" id="avatarInitials">?</div>
+        <div>
+          <p class="profile-name" id="profileName">Usuário</p>
+          <div class="status-line"><span class="dot"></span> conectado</div>
+        </div>
+      </div>
+
+      <div class="msg" id="msg"></div>
+
+      <div class="field">
+        <label for="editName">Nome de exibição</label>
+        <input type="text" id="editName" placeholder="Seu nome">
+      </div>
+
+      <div class="meta-row">
+        <span class="k">E-mail</span>
+        <span class="v" id="profileEmail">-</span>
+      </div>
+      <div class="meta-row">
+        <span class="k">Método de login</span>
+        <span class="v" id="profileProvider">-</span>
+      </div>
+      <div class="meta-row">
+        <span class="k">Conta criada em</span>
+        <span class="v" id="profileCreated">-</span>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="saveBtn">Salvar alterações</button>
+        <button class="btn btn-secondary" id="logoutBtn">Sair</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="./js/config.js"></script>
+<script type="module" src="./js/profile.js"></script>
+</body>
+</html>
