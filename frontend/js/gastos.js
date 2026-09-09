@@ -31,25 +31,37 @@ async function salvarGasto() {
     }
 }
 
+let gastosAtuais = [];
+
+function dataRegistro(valor) { return valor ? String(valor).slice(0, 10) : ""; }
+function filtrarPorPeriodo(data, inicio, fim) { return (!inicio || data >= inicio) && (!fim || data <= fim); }
+
 async function carregarGastos() {
     const uid = auth.currentUser.uid;
     const res = await apiFetch(`/gastos/${uid}`);
-    const gastos = await res.json();
+    gastosAtuais = await res.json();
+    renderizarGastos(gastosAtuais);
+}
 
+function renderizarGastos(gastos) {
     const tabela = document.getElementById("tabelaGastos");
     tabela.innerHTML = "";
-
+    document.getElementById("contagemGastos").textContent = `${gastos.length} de ${gastosAtuais.length} gasto(s) exibido(s)`;
+    if (!gastos.length) { tabela.innerHTML = `<tr><td colspan="5" style="text-align:center;color:#8FA1A3;">Nenhum gasto encontrado com esses filtros.</td></tr>`; return; }
     gastos.forEach(gasto => {
-        tabela.innerHTML += `
-            <tr>
-                <td>${escapeHtml(gasto.descricao)}</td>
-                <td>R$ ${gasto.valor}</td>
-                <td>${escapeHtml(gasto.categoria)}</td>
-                <td><button onclick="excluirGasto(${gasto.id})" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer;">Excluir</button></td>
-            </tr>
-        `;
+        const data = dataRegistro(gasto.created_at);
+        const fmt = data ? new Date(data + "T00:00:00").toLocaleDateString("pt-BR") : "--";
+        tabela.innerHTML += `<tr><td>${escapeHtml(gasto.descricao)}</td><td>R$ ${Number(gasto.valor).toFixed(2)}</td><td>${escapeHtml(gasto.categoria)}</td><td>${fmt}</td><td><button onclick="excluirGasto(${gasto.id})" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer;">Excluir</button></td></tr>`;
     });
 }
+
+window.filtrarGastos = function() {
+    const desc=(document.getElementById("filtroGastoDescricao").value||"").toLowerCase().trim();
+    const cat=document.getElementById("filtroGastoCategoria").value; const min=parseFloat(document.getElementById("filtroGastoMin").value); const max=parseFloat(document.getElementById("filtroGastoMax").value);
+    const ini=document.getElementById("filtroGastoInicio").value; const fim=document.getElementById("filtroGastoFim").value;
+    renderizarGastos(gastosAtuais.filter(g=> (!desc || String(g.descricao||"").toLowerCase().includes(desc)) && (!cat || g.categoria===cat) && (isNaN(min)||Number(g.valor)>=min) && (isNaN(max)||Number(g.valor)<=max) && filtrarPorPeriodo(dataRegistro(g.created_at),ini,fim)));
+};
+window.limparFiltroGastos = function(){ ["filtroGastoDescricao","filtroGastoCategoria","filtroGastoMin","filtroGastoMax","filtroGastoInicio","filtroGastoFim"].forEach(id=>document.getElementById(id).value=""); renderizarGastos(gastosAtuais); };
 
 window.excluirGasto = async function (id) {
     if (!confirm("Excluir este gasto?")) return;

@@ -4,7 +4,6 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const axios = require("axios");
-const cheerio = require("cheerio");
 const db = require("./database");
 const { verificarAutenticacao } = require("./firebaseAdmin");
 
@@ -12,9 +11,40 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middlewares
-app.use(cors());
-app.use(express.json({ limit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// CORS restrito: só aceita requisições vindas dos domínios listados em
+// CORS_ORIGINS (separados por vírgula). Ex: CORS_ORIGINS=https://lumuzia.com,https://www.lumuzia.com
+// Se a variável não estiver definida, cai em modo permissivo (dev local) e avisa no log.
+const origensPermitidas = (process.env.CORS_ORIGINS || "")
+    .split(",")
+    .map((o) => o.trim())
+    .filter(Boolean);
+
+if (origensPermitidas.length === 0) {
+    console.warn(
+        "[CORS AVISO] CORS_ORIGINS não definida — liberando qualquer origem. " +
+        "Defina CORS_ORIGINS em produção (ex: https://seudominio.com)."
+    );
+}
+
+app.use(cors({
+    origin: (origin, callback) => {
+        // Requisições sem "origin" (ex: curl, apps mobile, mesmo domínio) são permitidas.
+        if (!origin) return callback(null, true);
+
+        // Modo dev: sem whitelist configurada, libera tudo.
+        if (origensPermitidas.length === 0) return callback(null, true);
+
+        if (origensPermitidas.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error("Origem não permitida pelo CORS."));
+    },
+    credentials: true
+}));
+
+app.use(express.json({ limit: "200kb" }));
+app.use(express.urlencoded({ extended: true, limit: "200kb" }));
 
 // Servir arquivos estáticos do frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
@@ -86,38 +116,86 @@ const CACHE_TTL = 10 * 60 * 1000;
 
 const https = require("https");
 
-// Agente HTTPS para ignorar erros de SSL em redes com proxy/bloqueio
+// Agente HTTPS padrão — valida certificados normalmente (rejectUnauthorized: true,
+// que é o default). NUNCA desative essa validação globalmente: isso abre brecha
+// para ataques man-in-the-middle em todas as chamadas externas (cotações e IA),
+// incluindo o endpoint de IA que recebe saldo/receitas/gastos do usuário.
+//
+// Se algum provedor específico tiver certificado inválido/self-signed, trate
+// esse caso isoladamente com um agente próprio só para ele — nunca globalmente.
 const httpsAgent = new https.Agent({
-    rejectUnauthorized: false
+    rejectUnauthorized: true
 });
 
-// Mapeamento completo de criptomoedas para a AwesomeAPI
-const MAPA_AWESOME = {
-    "BITCOIN": "BTC-BRL",
-    "BTC": "BTC-BRL",
-    "ETHEREUM": "ETH-BRL",
-    "ETH": "ETH-BRL",
-    "SOLANA": "SOL-BRL",
-    "SOL": "SOL-BRL",
-    "CARDANO": "ADA-BRL",
-    "ADA": "ADA-BRL",
-    "RIPPLE": "XRP-BRL",
-    "XRP": "XRP-BRL",
-    "DOGECOIN": "DOGE-BRL",
-    "DOGE": "DOGE-BRL",
-    "POLKADOT": "DOT-BRL",
-    "DOT": "DOT-BRL",
-    "TETHER": "USDT-BRL",
-    "USDT": "USDT-BRL"
+// Mapeamento de nomes/apelidos de cripto para o ID usado na CoinGecko
+const MAPA_CRIPTO = {
+    "BITCOIN": "bitcoin", "BTC": "bitcoin",
+    "ETHEREUM": "ethereum", "ETH": "ethereum",
+    "SOLANA": "solana", "SOL": "solana",
+    "CARDANO": "cardano", "ADA": "cardano",
+    "RIPPLE": "ripple", "XRP": "ripple",
+    "DOGECOIN": "dogecoin", "DOGE": "dogecoin",
+    "POLKADOT": "polkadot", "DOT": "polkadot",
+    "TETHER": "tether", "USDT": "tether"
 };
+
+const BRAPI_TOKEN = process.env.BRAPI_TOKEN || "";
+const COINGECKO_API_KEY = process.env.COINGECKO_API_KEY || "";
+
+// Busca em UMA ÚNICA chamada o preço de todas as criptomoedas da carteira,
+// e já deixa cada uma pronta no cache. Isso evita que a CoinGecko bloqueie
+// por excesso de chamadas simultâneas quando há mais de uma cripto — o que
+// acontecia antes (ex: Bitcoin falhando, Ethereum passando, de forma aleatória).
+async function prefetchPrecosCripto(ativos) {
+    const cryptoAtivos = ativos.filter((a) => {
+        const tipoUpper = (a.tipo || "").toUpperCase().trim();
+        const tickerUpper = (a.ticker || "").toUpperCase().trim();
+        return tipoUpper.includes("CRIPTO") || Boolean(MAPA_CRIPTO[tickerUpper]);
+    });
+
+    if (cryptoAtivos.length === 0) return;
+
+    const idsUnicos = [...new Set(
+        cryptoAtivos.map((a) => {
+            const tickerUpper = a.ticker.toUpperCase().trim();
+            return MAPA_CRIPTO[tickerUpper] || tickerUpper.toLowerCase();
+        })
+    )];
+
+    try {
+        const resposta = await axios.get(
+            "https://api.coingecko.com/api/v3/simple/price",
+            {
+                params: { ids: idsUnicos.join(","), vs_currencies: "brl" },
+                headers: COINGECKO_API_KEY ? { "x-cg-demo-api-key": COINGECKO_API_KEY } : {},
+                httpsAgent,
+                timeout: 8000
+            }
+        );
+
+        for (const ativo of cryptoAtivos) {
+            const tickerUpper = ativo.ticker.toUpperCase().trim();
+            const idCoinGecko = MAPA_CRIPTO[tickerUpper] || tickerUpper.toLowerCase();
+            const precoBrl = resposta?.data?.[idCoinGecko]?.brl;
+
+            if (precoBrl) {
+                priceCache.set(`${tickerUpper}_CRIPTO`, {
+                    price: parseFloat(precoBrl),
+                    timestamp: Date.now()
+                });
+            }
+        }
+    } catch (err) {
+        console.warn("[COTAÇÃO AVISO] Falha ao pré-buscar preços de cripto em lote:", err.message);
+    }
+}
 
 async function obterPrecoAtivo(ticker, tipo) {
     if (!ticker) return null;
 
-    let tickerUpper = ticker.toUpperCase().trim();
+    const tickerUpper = ticker.toUpperCase().trim();
     const tipoUpper = (tipo || "").toUpperCase().trim();
-
-    const ehCripto = tipoUpper.includes("CRIPTO") || Boolean(MAPA_AWESOME[tickerUpper]);
+    const ehCripto = tipoUpper.includes("CRIPTO") || Boolean(MAPA_CRIPTO[tickerUpper]);
     const cacheKey = `${tickerUpper}_${ehCripto ? "CRIPTO" : tipoUpper}`;
 
     // 1. Cache
@@ -131,66 +209,47 @@ async function obterPrecoAtivo(ticker, tipo) {
     try {
         let price = null;
 
-        // 2. BUSCA CRIPTOMOEDAS (AwesomeAPI -> Binance Fallback)
         if (ehCripto) {
-            const par = MAPA_AWESOME[tickerUpper] || `${tickerUpper}-BRL`;
+            // CoinGecko: usa a chave Demo gratuita quando configurada, pra evitar
+            // o limite de 5-15 chamadas/min do endpoint totalmente público.
+            const idCoinGecko = MAPA_CRIPTO[tickerUpper] || tickerUpper.toLowerCase();
 
-            const resAwesome = await axios.get(`https://economia.awesomeapi.com.br/last/${par}`, {
-                httpsAgent,
-                timeout: 5000
-            }).catch(() => null);
-
-            const chaveAwesome = par.replace("-", "");
-            if (resAwesome?.data?.[chaveAwesome]?.bid) {
-                price = parseFloat(resAwesome.data[chaveAwesome].bid);
-            }
-
-            if (!price) {
-                const resBinance = await axios.get(`https://api.binance.com/api/v3/ticker/price?symbol=${tickerUpper}BRL`, {
-                    httpsAgent,
-                    timeout: 4000
-                }).catch(() => null);
-
-                if (resBinance?.data?.price) {
-                    price = parseFloat(resBinance.data.price);
-                }
-            }
-        }
-        // 3. BUSCA AÇÕES E FIIS B3 (StatusInvest Web Scraping -> Brapi Fallback)
-        else {
-            try {
-                const pathType = tipoUpper.includes("FII") ? "fundos-imobiliarios" : "acoes";
-                const url = `https://statusinvest.com.br/${pathType}/${tickerUpper}`;
-
-                const { data } = await axios.get(url, {
-                    headers: {
-                        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-                    },
+            const resposta = await axios.get(
+                "https://api.coingecko.com/api/v3/simple/price",
+                {
+                    params: { ids: idCoinGecko, vs_currencies: "brl" },
+                    headers: COINGECKO_API_KEY ? { "x-cg-demo-api-key": COINGECKO_API_KEY } : {},
                     httpsAgent,
                     timeout: 5000
-                });
-
-                const $ = cheerio.load(data);
-                const precoTexto = $('div[title="Valor atual do ativo"] strong.value').text();
-
-                if (precoTexto) {
-                    const priceClean = precoTexto.replace(/\./g, "").replace(",", ".").trim();
-                    const parsed = parseFloat(priceClean);
-                    if (!isNaN(parsed) && parsed > 0) price = parsed;
                 }
-            } catch (errScrap) {
-                // Silencioso para tentar o fallback
+            ).catch(() => null);
+
+            const precoBrl = resposta?.data?.[idCoinGecko]?.brl;
+            if (precoBrl) {
+                price = parseFloat(precoBrl);
             }
-
-            if (!price) {
-                const brapiRes = await axios.get(`https://brapi.dev/api/quote/${tickerUpper}`, {
-                    httpsAgent,
-                    timeout: 4000
-                }).catch(() => null);
-
-                if (brapiRes?.data?.results?.[0]?.regularMarketPrice) {
-                    price = parseFloat(brapiRes.data.results[0].regularMarketPrice);
+        } else {
+            // brapi.dev (API v2): feito especificamente para ações e FIIs da B3.
+            // PETR4, VALE3, MGLU3 e ITUB4 funcionam sem token; qualquer
+            // outro ticker exige o token gratuito em BRAPI_TOKEN.
+            const url = "https://brapi.dev/api/v2/stocks/quote";
+            const resposta = await axios.get(url, {
+                params: {
+                    symbols: tickerUpper,
+                    ...(BRAPI_TOKEN ? { token: BRAPI_TOKEN } : {})
+                },
+                httpsAgent,
+                timeout: 5000
+            }).catch((err) => {
+                if (err?.response?.status === 401 && !BRAPI_TOKEN) {
+                    console.warn(`[COTAÇÃO AVISO] ${tickerUpper} exige token da brapi.dev. Configure BRAPI_TOKEN no ambiente.`);
                 }
+                return null;
+            });
+
+            const precoAtual = resposta?.data?.results?.[0]?.data?.regularMarketPrice;
+            if (precoAtual) {
+                price = parseFloat(precoAtual);
             }
         }
 
@@ -382,6 +441,48 @@ app.put("/gastos/:id", async (req, res) => {
         res.json({ success: true, changes: result.changes });
     } catch (err) {
         res.status(500).json({ success: false, error: "Erro ao atualizar gasto." });
+    }
+});
+
+// =====================
+// ESTATÍSTICAS (gastos agrupados por categoria — alimenta o gráfico de pizza do Dashboard)
+// =====================
+app.get("/estatisticas/:userId", async (req, res) => {
+    if (req.params.userId !== req.uid) {
+        return res.status(403).json({ success: false, error: "Acesso negado." });
+    }
+
+    const hoje = new Date();
+    const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
+    const { mes, ano, mesInicio, mesFim } = req.query;
+
+    let filtro = "";
+    let params = [req.uid];
+
+    if (ano) {
+        filtro = `AND strftime('%Y', created_at) = ?`;
+        params = [req.uid, String(ano)];
+    } else if (mesInicio && mesFim) {
+        filtro = `AND strftime('%Y-%m', created_at) >= ? AND strftime('%Y-%m', created_at) <= ?`;
+        params = [req.uid, mesInicio, mesFim];
+    } else {
+        filtro = `AND strftime('%Y-%m', created_at) = ?`;
+        params = [req.uid, mes || mesAtual];
+    }
+
+    try {
+        const rows = await dbAll(
+            `SELECT categoria, SUM(valor) AS total
+             FROM gastos
+             WHERE user_id = ? ${filtro}
+             GROUP BY categoria
+             ORDER BY total DESC`,
+            params
+        );
+        res.json(rows);
+    } catch (err) {
+        console.error("Erro ao buscar estatísticas de gastos:", err.message);
+        res.status(500).json([]);
     }
 });
 
@@ -729,7 +830,10 @@ app.get("/api/investimentos/cotacoes/:userId", async (req, res) => {
     const userId = req.uid;
 
     try {
-        priceCache.clear();
+        // Não zera o cache aqui: o TTL de 10 minutos (CACHE_TTL) já cuida de
+        // expirar preços antigos. Limpar tudo a cada reload forçava chamadas
+        // novas à brapi/CoinGecko com muita frequência, esbarrando nos limites
+        // de requisições dessas APIs gratuitas.
 
         const ativos = await dbAll("SELECT * FROM investimentos WHERE user_id = ?", [userId]);
 
@@ -743,6 +847,10 @@ app.get("/api/investimentos/cotacoes/:userId", async (req, res) => {
                 detalhes: []
             });
         }
+
+        // Busca todas as criptos da carteira numa única chamada, evitando
+        // que a CoinGecko bloqueie por chamadas simultâneas.
+        await prefetchPrecosCripto(ativos);
 
         let totalInvestido = 0;
         let valorAtualTotal = 0;
@@ -879,11 +987,12 @@ Dados financeiros atuais do usuário:
 
         const baseUrl = (process.env.OLLAMA_URL || "https://ra.projetoscti.com.br/2557068").replace(/\/$/, "");
         
-        // Chamada direcionada ao wrapper index.php do servidor
+        // Chamada enviando action = 'generate' exigida pelo PHP
         const response = await axios.post(
             `${baseUrl}/index.php`,
             {
-                model: modelo || "llama3",
+                action: "generate",
+                model: modelo || "qwen2.5:3b",
                 prompt: prompt,
                 system: systemPrompt,
                 stream: false
@@ -891,24 +1000,21 @@ Dados financeiros atuais do usuário:
             {
                 headers: { "Content-Type": "application/json" },
                 httpsAgent,
-                timeout: 30000
+                timeout: 120000 // Aumentado para 120s para acompanhar o tempo de resposta do PHP/Ollama
             }
         );
 
-        // Exibe a resposta exata recebida do servidor PHP nos logs do Render
-        console.log("Resposta do PHP:", JSON.stringify(response.data, null, 2));
+        // O PHP retorna a resposta dentro do campo 'resposta'
+        if (response.data?.success) {
+            return res.json({ success: true, resposta: response.data.resposta });
+        }
 
-        // Busca o texto em múltiplos padrões de retorno (Ollama, OpenAI ou customizado)
-        const resposta = 
-            response.data?.response || 
-            (typeof response.data?.message === "string" ? response.data.message : response.data?.message?.content) ||
-            response.data?.choices?.[0]?.message?.content || 
-            response.data?.resultado ||
-            response.data?.output ||
-            (typeof response.data === "string" ? response.data : null) ||
-            "Sem resposta da IA.";
+        // Se o PHP retornar erro (ex: Ollama offline)
+        return res.status(500).json({ 
+            success: false, 
+            error: response.data?.error || "Erro ao obter resposta da IA." 
+        });
 
-        return res.json({ success: true, resposta });
     } catch (err) {
         console.error("Erro na integração com Ollama/IA:", err.message);
         return res.status(500).json({ 
@@ -927,19 +1033,58 @@ app.get("/dashboard/:userId", async (req, res) => {
 
     const userId = req.uid;
 
+    // Parâmetros de período. Modos:
+    //   ?mes=2026-09             → mês específico
+    //   ?ano=2026                → ano inteiro
+    //   ?mesInicio=2026-07&mesFim=2026-09 → período (conjunto de meses)
+    // Sem parâmetros → mês atual do servidor
+    const hoje = new Date();
+    const mesAtual = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
+
+    const { mes, ano, mesInicio, mesFim } = req.query;
+
+    let filtroReceitas = "";
+    let filtroGastos  = "";
+    let params = [userId];
+
+    if (ano) {
+        // Ano inteiro
+        filtroReceitas = `AND strftime('%Y', created_at) = ?`;
+        filtroGastos   = `AND strftime('%Y', created_at) = ?`;
+        params = [userId, String(ano)];
+    } else if (mesInicio && mesFim) {
+        // Período (conjunto de meses)
+        filtroReceitas = `AND strftime('%Y-%m', created_at) >= ? AND strftime('%Y-%m', created_at) <= ?`;
+        filtroGastos   = `AND strftime('%Y-%m', created_at) >= ? AND strftime('%Y-%m', created_at) <= ?`;
+        params = [userId, mesInicio, mesFim];
+    } else {
+        // Mês específico ou mês atual
+        const mesFiltro = mes || mesAtual;
+        filtroReceitas = `AND strftime('%Y-%m', created_at) = ?`;
+        filtroGastos   = `AND strftime('%Y-%m', created_at) = ?`;
+        params = [userId, mesFiltro];
+    }
+
     try {
         const user = await dbGet("SELECT * FROM users WHERE id = ?", [userId]);
-        const totalReceitasRow = await dbGet("SELECT IFNULL(SUM(valor), 0) AS total FROM receitas WHERE user_id = ?", [userId]);
-        const totalGastosRow = await dbGet("SELECT IFNULL(SUM(valor), 0) AS total FROM gastos WHERE user_id = ?", [userId]);
+
+        const totalReceitasRow = await dbGet(
+            `SELECT IFNULL(SUM(valor), 0) AS total FROM receitas WHERE user_id = ? ${filtroReceitas}`,
+            params
+        );
+        const totalGastosRow = await dbGet(
+            `SELECT IFNULL(SUM(valor), 0) AS total FROM gastos WHERE user_id = ? ${filtroGastos}`,
+            params
+        );
 
         const totalReceitas = totalReceitasRow?.total || 0;
-        const totalGastos = totalGastosRow?.total || 0;
+        const totalGastos   = totalGastosRow?.total  || 0;
         const saldo = totalReceitas - totalGastos;
 
         res.json({
             user: user || { id: userId, nome: "", salario: 0, meta: "", valor_meta: 0 },
-            totalReceitas,
-            totalGastos,
+            receitas: totalReceitas,
+            gastos: totalGastos,
             saldo
         });
     } catch (err) {
@@ -947,7 +1092,6 @@ app.get("/dashboard/:userId", async (req, res) => {
         res.status(500).json({ error: "Erro interno no servidor." });
     }
 });
-
 // =====================
 // INICIALIZAÇÃO
 // =====================

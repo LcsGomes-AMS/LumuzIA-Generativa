@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
     <head>
         <meta charset="UTF-8">
@@ -18,13 +18,14 @@
                 <div class="sidebar-brand" style="display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
                 <img src="img/LumuzIA.png" alt="LumuzIA" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">
             </div> 
-                <a href="dashboard.html">📊 Dashboard</a>
-                <a href="gastos.html">💸 Gastos</a>
-                <a href="receitas.html" class="active">💵 Receitas</a>
-                <a href="metas.html">🎯 Metas</a>
-                <a href="investimentos.html">📈 Investimentos</a>
-                <a href="chat.html">🤖 Chat</a>
-                <a href="perfil.html">👤 Perfil</a>
+                <a href="dashboard.html">Dashboard</a>
+                <a href="gastos.html">Gastos</a>
+                <a href="receitas.html">Receitas</a>
+                <a href="metas.html">Metas</a>
+                <a href="investimentos.html">Investimentos</a>
+                <a href="relatorio.html">Relatório</a>
+                <a href="chat.html">Chat</a>
+                <a href="perfil.html">Perfil</a>
             </aside>
             <main>
                 <h1>Receitas</h1>
@@ -35,11 +36,26 @@
                     <button onclick="salvarReceita()">Salvar Receita</button>
                 </div>
 
+
+                <section class="filtro-tabela">
+                    <h2 style="margin-top:0;">Filtrar receitas</h2>
+                    <div class="filtro-tabela-grid">
+                        <input id="filtroReceitaDescricao" placeholder="Descrição">
+                        <input id="filtroReceitaMin" type="number" step="0.01" placeholder="Valor mínimo">
+                        <input id="filtroReceitaMax" type="number" step="0.01" placeholder="Valor máximo">
+                        <input id="filtroReceitaInicio" type="date" title="Data inicial">
+                        <input id="filtroReceitaFim" type="date" title="Data final">
+                    </div>
+                    <div class="filtro-acoes"><button class="btn-filtrar" type="button" onclick="filtrarReceitas()">Filtrar</button><button class="btn-limpar" type="button" onclick="limparFiltroReceitas()">Limpar filtros</button></div>
+                    <div id="contagemReceitas" class="filtro-contagem"></div>
+                </section>
+
                 <table>
                     <thead>
                         <tr>
                             <th>Descrição</th>
                             <th>Valor</th>
+                            <th>Data</th>
                             <th>Ações</th>
                         </tr>
                     </thead>
@@ -51,7 +67,7 @@
                 <!-- A RECEBER (até 30 dias) -->
                 <!-- ===================== -->
                 <section class="form-container" style="margin-top:30px; background-color: rgba(111,231,221,0.05); padding:20px; border-radius:8px;">
-                    <h2>⏳ A Receber (próximos 30 dias)</h2>
+                    <h2>A Receber (proximos 30 dias)</h2>
                     <p style="color:#8FA1A3;">Agende um valor que você espera receber em breve. Quando o dia chegar, ele entra automaticamente na sua lista de receitas.</p>
 
                     <div class="form" style="margin-top:15px;">
@@ -72,5 +88,6 @@
         </div>
 
         <script type="module" src="./js/receitas.js"></script>
-    </body>
+    <script src="./js/sidebar.js"></script>
+</body>
 </html>

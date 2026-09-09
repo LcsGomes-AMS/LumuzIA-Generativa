@@ -1,0 +1,145 @@
+/* ==========================================================================
+   Página de Relatório — estilos específicos (usa as variáveis de style.css)
+   ========================================================================== */
+
+.relatorio-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 20px 0 24px;
+}
+
+.relatorio-filtro {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.relatorio-filtro label {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.relatorio-filtro input[type="date"] {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-family: var(--font-body);
+}
+
+.btn-secundario {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.btn-secundario:hover {
+  border-color: var(--accent-2);
+  color: var(--accent-2);
+}
+
+.btn-pdf {
+  background: var(--accent);
+  color: #0F1416;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family: var(--font-display);
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.2s ease, transform 0.1s ease;
+}
+
+.btn-pdf:hover {
+  filter: brightness(1.08);
+}
+
+.btn-pdf:active {
+  transform: scale(0.98);
+}
+
+.btn-pdf:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.relatorio-status {
+  min-height: 18px;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.relatorio-status.erro {
+  color: var(--danger);
+}
+
+.relatorio-secao {
+  margin-top: 28px;
+}
+
+.relatorio-secao h2 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.relatorio-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.relatorio-tabela th,
+.relatorio-tabela td {
+  padding: 10px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.relatorio-tabela th {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.relatorio-tabela tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.relatorio-tabela .valor-receita {
+  color: var(--success);
+}
+
+.relatorio-tabela .valor-gasto {
+  color: var(--danger);
+}
+
+@media (max-width: 720px) {
+  .relatorio-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .btn-pdf {
+    width: 100%;
+  }
+}

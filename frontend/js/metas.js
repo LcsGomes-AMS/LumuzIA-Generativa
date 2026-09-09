@@ -105,16 +105,24 @@ async function carregarMediaMensal() {
    CARREGAR METAS
 ========================================================= */
 
+let metasAtuais = [];
+
 async function carregarMetas() {
     const uid = auth.currentUser.uid;
     const res = await apiFetch(`/metas/${uid}`);
-    const metas = await res.json();
+    metasAtuais = await res.json();
+    renderizarMetas(metasAtuais);
+}
+
+function renderizarMetas(metas) {
 
     const tabela = document.getElementById("tabelaMetas");
+    const contagem = document.getElementById("contagemMetas");
+    if (contagem) contagem.textContent = `${metas.length} de ${metasAtuais.length} meta(s) exibida(s)`;
     tabela.innerHTML = "";
 
     if (!metas || metas.length === 0) {
-        tabela.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#8FA1A3;">Nenhuma meta cadastrada.</td></tr>`;
+        tabela.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#8FA1A3;">Nenhuma meta cadastrada.</td></tr>`;
         return;
     }
 
@@ -136,6 +144,7 @@ async function carregarMetas() {
                 <td>${progresso}%</td>
                 <td class="meta-previsao ${previsao.classe}">${previsao.texto}</td>
                 <td class="${metaMensal.classe}">${metaMensal.texto}</td>
+                <td>${meta.created_at ? new Date(String(meta.created_at).slice(0,10)+"T00:00:00").toLocaleDateString("pt-BR") : "--"}</td>
                 <td>
                     <button onclick="abrirModalMeta(${meta.id}, '${nomeEscapado}', ${meta.valor_objetivo}, ${meta.valor_atual || 0}, ${meta.prazo}, 'guardar')" style="background:transparent;border:1px solid #10B981;color:#10B981;padding:4px 8px;border-radius:4px;cursor:pointer;">Guardar</button>
                     <button onclick="abrirModalMeta(${meta.id}, '${nomeEscapado}', ${meta.valor_objetivo}, ${meta.valor_atual || 0}, ${meta.prazo}, 'retirar')" style="background:transparent;border:1px solid #FBBF24;color:#FBBF24;padding:4px 8px;border-radius:4px;cursor:pointer; margin-left:6px;">Retirar</button>
@@ -145,6 +154,12 @@ async function carregarMetas() {
         `;
     });
 }
+
+window.filtrarMetas = function(){
+ const nome=(document.getElementById("filtroMetaNome").value||"").toLowerCase().trim(); const min=parseFloat(document.getElementById("filtroMetaMin").value), max=parseFloat(document.getElementById("filtroMetaMax").value); const pmin=parseFloat(document.getElementById("filtroMetaPrazoMin").value), pmax=parseFloat(document.getElementById("filtroMetaPrazoMax").value); const ini=document.getElementById("filtroMetaInicio").value, fim=document.getElementById("filtroMetaFim").value;
+ renderizarMetas(metasAtuais.filter(m=>(!nome||String(m.nome||"").toLowerCase().includes(nome))&&(isNaN(min)||Number(m.valor_objetivo)>=min)&&(isNaN(max)||Number(m.valor_objetivo)<=max)&&(isNaN(pmin)||Number(m.prazo)>=pmin)&&(isNaN(pmax)||Number(m.prazo)<=pmax)&&(!ini||String(m.created_at||"").slice(0,10)>=ini)&&(!fim||String(m.created_at||"").slice(0,10)<=fim)));
+};
+window.limparFiltroMetas=function(){["filtroMetaNome","filtroMetaMin","filtroMetaMax","filtroMetaPrazoMin","filtroMetaPrazoMax","filtroMetaInicio","filtroMetaFim"].forEach(id=>document.getElementById(id).value="");renderizarMetas(metasAtuais);};
 
 /* =========================================================
    MODAL GUARDAR / RETIRAR VALOR

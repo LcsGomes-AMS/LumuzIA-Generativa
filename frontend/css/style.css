@@ -133,6 +133,7 @@ main h1 {
   font-size: 26px;
   font-weight: 600;
   margin-bottom: 24px;
+  text-align: center;
 }
 
 main h2 {
@@ -658,178 +659,153 @@ table td:last-child {
 }
 
 /* ==========================================================================
-   10. RESPONSIVIDADE (MOBILE)
-   Estratégia:
-   - .container vira coluna (sidebar empilha em cima do conteúdo)
-   - .sidebar/aside vira uma barra de navegação horizontal com scroll
-   - Cards, tabelas, cards de perfil e formulários se ajustam à largura da tela
-   - Se o HTML tiver um botão hamburguer (#menu-toggle) e a sidebar tiver a
-     classe .open, ela vira um menu deslizante — mas o CSS abaixo funciona
-     igual mesmo sem esse JS extra, como barra horizontal fixa.
+   10. RESPONSIVIDADE MOBILE — HAMBURGUER DRAWER
    ========================================================================== */
 
-/* Tablets e telas médias */
-@media (max-width: 1024px) {
-  :root {
-    --sidebar-width: 210px;
-  }
-
-  main {
-    padding: 24px;
-  }
+/* ── Botão hamburguer (visível só no mobile) ── */
+.hamburger {
+    display: none;           /* oculto no desktop */
+    position: fixed;
+    top: 14px;
+    left: 14px;
+    z-index: 400;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
 }
 
-/* Celulares e telas pequenas */
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-    min-height: auto;
-  }
-
-  :root {
-    --sidebar-width: 0px;
-    --topbar-height: 64px;
-  }
-
-  /* Barra vira horizontal no topo, fixa de verdade (position: fixed),
-     então continua visível mesmo rolando a página até o fim. */
-  .sidebar, aside {
-    width: 100%;
-    height: var(--topbar-height);
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 200;
-  }
-
-  /* Logo continua visível, só fica menor e sem quebrar linha */
-  .sidebar h2, aside h2 {
-    display: flex !important;
-    flex-shrink: 0;
-    font-size: 13px;
-    margin-bottom: 0;
-    padding-left: 0;
-    white-space: nowrap;
-  }
-
-  .sidebar h2 img, aside h2 img,
-  .sidebar img, aside img,
-  .sidebar svg, aside svg,
-  .sidebar .logo, aside .logo,
-  .sidebar .brand, aside .brand {
-    display: block !important;
-    width: 15px;
-    height: 15px;
-    object-fit: cover;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .sidebar a, aside a {
-    flex-shrink: 0;
-    white-space: nowrap;
-    margin-bottom: 0;
-    padding: 10px 14px;
-    font-size: 13px;
-  }
-
-  .sidebar a.active, aside a.active {
-    border-left: none;
-    border-bottom: 2px solid var(--accent-2);
-  }
-
-  main {
-    padding: 18px;
-  }
-
-  main h1 {
-    font-size: 22px;
-  }
-
-  main h2 {
-    font-size: 18px;
-  }
-
-  .cards, .cards-grid {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-
-  .card {
-    padding: 20px;
-  }
-
-  /* Tabelas: permite rolagem horizontal em vez de quebrar o layout */
-  table {
+.hamburger span {
     display: block;
-    width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    white-space: nowrap;
-  }
+    width: 20px;
+    height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+}
 
-  th, td {
-    padding: 10px 12px;
-    font-size: 13px;
-  }
+/* Animação X quando aberto */
+.hamburger.is-active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hamburger.is-active span:nth-child(2) { opacity: 0; }
+.hamburger.is-active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
-  .profile-card, .lz-card {
-    padding: 20px;
-    max-width: 100%;
-  }
+/* ── Overlay de fundo ── */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 250;
+    backdrop-filter: blur(2px);
+}
+.sidebar-overlay.active { display: block; }
 
-  .profile-header, .lz-top {
-    gap: 12px;
-  }
+/* ── Tablets e telas médias ── */
+@media (max-width: 1024px) {
+    :root { --sidebar-width: 210px; }
+    main  { padding: 24px; }
+}
 
-  .profile-avatar, .lz-avatar {
-    width: 48px;
-    height: 48px;
-    font-size: 18px;
-  }
+/* ── Celulares e telas pequenas ── */
+@media (max-width: 768px) {
+    :root {
+        --sidebar-width: 0px;
+        --topbar-height: 0px;   /* sem topbar fixa, usamos o drawer */
+    }
 
-  .profile-actions, .lz-actions {
-    flex-direction: column;
-  }
+    .hamburger {
+        display: flex;          /* aparece no mobile */
+    }
 
-  .meta-row, .lz-row {
-    flex-wrap: wrap;
-  }
+    /* Sidebar vira drawer lateral: escondida à esquerda por padrão */
+    .sidebar, aside {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 260px !important;
+        height: 100vh !important;
+        flex-direction: column !important;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 24px 16px;
+        z-index: 300;
+        transform: translateX(-100%);
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+        border-right: 1px solid var(--border);
+        border-bottom: none;
+    }
 
-  .chart-box {
-    padding: 16px;
-  }
+    /* Quando o JS adiciona .open, a sidebar desliza para dentro */
+    .sidebar.open, aside.open {
+        transform: translateX(0);
+        box-shadow: 6px 0 24px rgba(0, 0, 0, 0.45);
+    }
 
-  .chart-container-canvas {
-    height: 200px !important;
-    max-height: 200px !important;
-  }
+    /* Imagem da logo: tamanho normal dentro do drawer */
+    .sidebar img, aside img,
+    .sidebar-brand img {
+        width: 44px !important;
+        height: 44px !important;
+    }
 
-  .wrap {
-    padding: 16px;
-  }
+    /* Links no drawer: estilo vertical normal */
+    .sidebar a, aside a {
+        white-space: normal;
+        margin-bottom: 6px;
+        padding: 12px 14px;
+        font-size: 14px;
+    }
 
-  .brand-name {
-    font-size: 20px;
-  }
+    .sidebar a.active, aside a.active {
+        border-left: 3px solid var(--accent-2);
+        border-bottom: none;
+    }
 
-  .calendario-grid {
-    gap: 4px;
-  }
+    /* Main: sem margin-left (sidebar fora do fluxo) */
+    main {
+        margin-left: 0 !important;
+        padding: 18px;
+        padding-top: 68px;     /* espaço para o botão hamburguer */
+    }
 
-  .cal-dia {
-    padding: 8px 0;
-    font-size: 13px;
-  }
+    main h1 { font-size: 22px; }
+    main h2 { font-size: 18px; }
+
+    .cards, .cards-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .card { padding: 20px; }
+
+    table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+    }
+
+    th, td { padding: 10px 12px; font-size: 13px; }
+
+    .profile-card, .lz-card { padding: 20px; max-width: 100%; }
+    .profile-header, .lz-top { gap: 12px; }
+    .profile-avatar, .lz-avatar { width: 48px; height: 48px; font-size: 18px; }
+    .profile-actions, .lz-actions { flex-direction: column; }
+    .meta-row, .lz-row { flex-wrap: wrap; }
+    .chart-box { padding: 16px; }
+    .chart-container-canvas { height: 200px !important; max-height: 200px !important; }
+    .wrap { padding: 16px; }
+    .brand-name { font-size: 20px; }
+    .calendario-grid { gap: 4px; }
+    .cal-dia { padding: 8px 0; font-size: 13px; }
 }
 
 /* Celulares pequenos */
@@ -930,4 +906,166 @@ table td:last-child {
 .lz-avatar-remove:hover {
   opacity: 0.85;
   transform: scale(1.08);
+}
+
+/* Filtros das tabelas financeiras */
+.filtro-tabela {
+    margin: 18px 0; padding: 16px; border: 1px solid rgba(111,231,221,.14);
+    border-radius: 10px; background: rgba(111,231,221,.045);
+}
+.filtro-tabela-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
+.filtro-tabela input, .filtro-tabela select { width:100%; box-sizing:border-box; padding:9px 10px; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#fff; }
+.filtro-acoes { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+.filtro-acoes button { padding:9px 14px; border-radius:6px; cursor:pointer; }
+.btn-filtrar { background:#6FE7DD; color:#161E21; border:0; font-weight:bold; }
+.btn-limpar { background:transparent; color:#8FA1A3; border:1px solid #475569; }
+.filtro-contagem { color:#8FA1A3; font-size:12px; margin-top:8px; }
+
+/* ==========================================================================
+   12. DASHBOARD — FILTRO DE PERÍODO
+   ========================================================================== */
+.dash-filtro {
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, rgba(111,231,221,0.06), rgba(242,166,90,0.04));
+    border: 1px solid rgba(111,231,221,0.18);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dash-filtro-controles {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+/* select e inputs do filtro — override do global que força width:100% */
+.dash-filtro-select {
+    width: auto !important;
+    min-width: 140px;
+    background: var(--surface-2) !important;
+    border: 1px solid var(--accent-2) !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    color: var(--text) !important;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.dash-filtro-grupo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dash-filtro-input {
+    width: auto !important;
+    background: var(--surface-2) !important;
+    border: 1px solid var(--border-light) !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    color: var(--text) !important;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.dash-filtro-input:focus {
+    border-color: var(--accent-2) !important;
+    outline: none;
+}
+
+.dash-filtro-ano {
+    width: 100px !important;
+}
+
+.dash-filtro-periodo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.dash-filtro-sep {
+    color: var(--text-muted);
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+/* Botão de filtro — override do button { width:100% } global */
+.dash-filtro-btn {
+    width: auto !important;
+    padding: 8px 20px !important;
+    background: var(--accent-2) !important;
+    color: #0d1f26 !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.15s;
+    white-space: nowrap;
+}
+
+.dash-filtro-btn:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+}
+
+.dash-filtro-label {
+    font-size: 13px;
+    color: var(--accent-2);
+    font-family: var(--font-mono);
+    opacity: 0.8;
+    letter-spacing: 0.02em;
+}
+
+/* ==========================================================================
+   13. DASHBOARD — VARIANTES DE COR DOS CARDS
+   ========================================================================== */
+.card--saldo  { border-top: 3px solid var(--accent-2); }
+.card--saldo p { color: var(--accent-2); }
+
+.card--receita { border-top: 3px solid var(--success); }
+.card--receita p { color: var(--success); }
+
+.card--gasto  { border-top: 3px solid var(--danger); }
+.card--gasto p { color: var(--danger); }
+
+.card--invest { border-top: 3px solid var(--accent); }
+.card--invest p { color: var(--accent); }
+
+.card--rend   { border-top: 3px solid var(--warning); }
+.card--rend p { color: var(--warning); }
+
+.card--prov   { border-top: 3px solid var(--accent-2); }
+.prov-valor   { color: var(--accent-2) !important; }
+
+/* ==========================================================================
+   14. DASHBOARD — GRID DE GRÁFICOS
+   ========================================================================== */
+.charts-grid {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* ==========================================================================
+   15. SIDEBAR — BRAND (logo centralizado)
+   ========================================================================== */
+.sidebar-brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+}
+
+.sidebar-brand img {
+    width: 50px !important;
+    height: 50px !important;
+    border-radius: 50% !important;
+    object-fit: cover;
 }

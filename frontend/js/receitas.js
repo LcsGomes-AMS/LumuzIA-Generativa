@@ -42,27 +42,26 @@ async function salvarReceita() {
     }
 }
 
+let receitasAtuais = [];
+function dataReceita(v){return v ? String(v).slice(0,10):"";}
 async function carregarReceitas() {
-    const tabela = document.getElementById("tabelaReceitas");
-    const uid = auth.currentUser.uid;
-
-    try {
-        const res = await apiFetch(`/receitas/${uid}`);
-        if (!res.ok) throw new Error(`Erro na requisição: ${res.status}`);
-
-        const receitas = await res.json();
-        renderizarTabelaReceitas(receitas);
-    } catch (erro) {
-        console.error("Falha ao carregar receitas:", erro);
-        tabela.innerHTML = `<tr><td colspan="3">Erro ao carregar dados do servidor.</td></tr>`;
-    }
+    const tabela=document.getElementById("tabelaReceitas"); const uid=auth.currentUser.uid;
+    try { const res=await apiFetch(`/receitas/${uid}`); if(!res.ok) throw new Error(`Erro ${res.status}`); receitasAtuais=await res.json(); renderizarTabelaReceitas(receitasAtuais); }
+    catch(erro){console.error(erro); tabela.innerHTML=`<tr><td colspan="4">Erro ao carregar dados do servidor.</td></tr>`;}
 }
+window.filtrarReceitas=function(){
+ const desc=(document.getElementById("filtroReceitaDescricao").value||"").toLowerCase().trim(), min=parseFloat(document.getElementById("filtroReceitaMin").value), max=parseFloat(document.getElementById("filtroReceitaMax").value), ini=document.getElementById("filtroReceitaInicio").value, fim=document.getElementById("filtroReceitaFim").value;
+ renderizarTabelaReceitas(receitasAtuais.filter(r=>(!desc||String(r.descricao||"").toLowerCase().includes(desc))&&(isNaN(min)||Number(r.valor)>=min)&&(isNaN(max)||Number(r.valor)<=max)&&(!ini||dataReceita(r.created_at)>=ini)&&(!fim||dataReceita(r.created_at)<=fim)));
+};
+window.limparFiltroReceitas=function(){["filtroReceitaDescricao","filtroReceitaMin","filtroReceitaMax","filtroReceitaInicio","filtroReceitaFim"].forEach(id=>document.getElementById(id).value="");renderizarTabelaReceitas(receitasAtuais);};
 
 function renderizarTabelaReceitas(receitas) {
     const tabela = document.getElementById("tabelaReceitas");
+    const contagem = document.getElementById("contagemReceitas");
+    if (contagem) contagem.textContent = `${receitas.length} de ${receitasAtuais.length} receita(s) exibida(s)`;
 
     if (!receitas || receitas.length === 0) {
-        tabela.innerHTML = `<tr><td colspan="3" style="text-align:center; color:#8FA1A3;">Nenhuma receita cadastrada.</td></tr>`;
+        tabela.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#8FA1A3;">Nenhuma receita cadastrada.</td></tr>`;
         return;
     }
 
@@ -70,6 +69,7 @@ function renderizarTabelaReceitas(receitas) {
         <tr id="linha-receita-${receita.id}">
             <td>${escapeHtml(receita.descricao)}</td>
             <td>R$ ${Number(receita.valor).toFixed(2)}</td>
+            <td>${receita.created_at ? new Date(String(receita.created_at).slice(0,10)+"T00:00:00").toLocaleDateString("pt-BR") : "--"}</td>
             <td>
                 <button onclick="editarReceita(${receita.id}, '${escapeHtml(receita.descricao).replace(/'/g, "&#39;")}', ${receita.valor})" style="background:transparent;border:1px solid #6FE7DD;color:#6FE7DD;padding:4px 8px;border-radius:4px;cursor:pointer;">Editar</button>
                 <button onclick="excluirReceita(${receita.id})" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer; margin-left:6px;">Excluir</button>

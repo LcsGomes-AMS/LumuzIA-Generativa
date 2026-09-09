@@ -78,7 +78,17 @@ function carregarGraficoPorAtivo(detalhes) {
 }
 
 // 1. CARREGAR E RENDERIZAR OS INVESTIMENTOS NA TELA
-async function carregarInvestimentos() {
+let investimentosAtuais = [];
+let respostaInvestimentosAtual = null;
+
+function aplicarFiltrosInvestimentos(lista){
+ const ticker=(document.getElementById("filtroInvTicker")?.value||"").toLowerCase().trim(); const tipo=document.getElementById("filtroInvTipo")?.value||""; const qmin=parseFloat(document.getElementById("filtroInvQtdMin")?.value), qmax=parseFloat(document.getElementById("filtroInvQtdMax")?.value), pmin=parseFloat(document.getElementById("filtroInvPrecoMin")?.value), pmax=parseFloat(document.getElementById("filtroInvPrecoMax")?.value); const ini=document.getElementById("filtroInvInicio")?.value||"", fim=document.getElementById("filtroInvFim")?.value||"";
+ return lista.filter(i=>{const d=String(i.dataCompra||"").slice(0,10); return (!ticker||String(i.ticker||"").toLowerCase().includes(ticker))&&(!tipo||i.tipo===tipo)&&(isNaN(qmin)||Number(i.quantidade)>=qmin)&&(isNaN(qmax)||Number(i.quantidade)<=qmax)&&(isNaN(pmin)||Number(i.precoMedio)>=pmin)&&(isNaN(pmax)||Number(i.precoMedio)<=pmax)&&(!ini||d>=ini)&&(!fim||d<=fim);});
+}
+window.filtrarInvestimentos=function(){buscarInvestimentos();};
+window.limparFiltroInvestimentos=function(){["filtroInvTicker","filtroInvTipo","filtroInvQtdMin","filtroInvQtdMax","filtroInvPrecoMin","filtroInvPrecoMax","filtroInvInicio","filtroInvFim"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";});buscarInvestimentos();};
+
+async function buscarInvestimentos() {
     const uid = auth.currentUser.uid;
     const tabela = document.getElementById("tabelaInvestimentos");
 
@@ -97,7 +107,9 @@ async function carregarInvestimentos() {
         if (!response.ok) throw new Error("Erro ao consultar backend.");
 
         const data = await response.json();
-        const detalhes = Array.isArray(data.detalhes) ? data.detalhes : [];
+        const detalhesOriginais = Array.isArray(data.detalhes) ? data.detalhes : [];
+        investimentosAtuais = detalhesOriginais;
+        const detalhes = aplicarFiltrosInvestimentos(detalhesOriginais);
 
         // ------------------------------------
         // A. ATUALIZA OS CARDS DO TOPO
@@ -127,6 +139,9 @@ async function carregarInvestimentos() {
         // ------------------------------------
         // B. PREENCHE A TABELA DINÂMICA
         // ------------------------------------
+        const contagem = document.getElementById("contagemInvestimentos");
+        if (contagem) contagem.textContent = `${detalhes.length} de ${detalhesOriginais.length} investimento(s) exibido(s)`;
+
         if (detalhes.length === 0) {
             tabela.innerHTML = `
                 <tr>
@@ -195,6 +210,8 @@ async function carregarInvestimentos() {
     }
 }
 
+const carregarInvestimentos = buscarInvestimentos;
+
 // 2. ADICIONAR NOVO ATIVO VIA FORMULÁRIO
 const form = document.getElementById("formInvestimento");
 if (form) {
@@ -221,7 +238,7 @@ if (form) {
             if (resData.success) {
                 form.reset();
                 if (inputData) inputData.valueAsDate = new Date();
-                carregarInvestimentos();
+                buscarInvestimentos();
                 carregarGraficoEvolucaoTotal(auth.currentUser.uid);
             } else {
                 alert("Erro ao salvar ativo: " + (resData.error || "Tente novamente."));
@@ -245,7 +262,7 @@ window.deletarInvestimento = async function(id) {
         const resData = await response.json();
 
         if (resData.success) {
-            carregarInvestimentos();
+            buscarInvestimentos();
         } else {
             alert("Erro ao excluir: " + (resData.error || "Ativo não encontrado."));
         }
@@ -268,7 +285,7 @@ onAuthStateChanged(auth, (user) => {
         window.location.href = "cad.html";
         return;
     }
-    carregarInvestimentos();
+    buscarInvestimentos();
     carregarGraficoEvolucaoTotal(user.uid);
     verificarParcelasPendentes();
 });

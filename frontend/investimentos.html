@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -15,13 +15,14 @@
         <div class="sidebar-brand" style="display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
                 <img src="img/LumuzIA.png" alt="LumuzIA" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">
             </div> 
-        <a href="dashboard.html">📊 Dashboard</a>
-        <a href="gastos.html">💸 Gastos</a>
-        <a href="receitas.html">💵 Receitas</a>
-        <a href="metas.html">🎯 Metas</a>
-        <a href="investimentos.html" class="active">📈 Investimentos</a>
-        <a href="chat.html">🤖 Chat</a>
-        <a href="perfil.html">👤 Perfil</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="gastos.html">Gastos</a>
+        <a href="receitas.html">Receitas</a>
+        <a href="metas.html">Metas</a>
+        <a href="investimentos.html">Investimentos</a>
+        <a href="relatorio.html">Relatório</a>
+        <a href="chat.html">Chat</a>
+        <a href="perfil.html">Perfil</a>
     </aside>
 
     <main>
@@ -75,8 +76,25 @@
         <div class="chart-container-canvas"><canvas id="graficoRendimentoPorAtivo"></canvas></div>
     </div>
 </div>
+
+        <section class="filtro-tabela" style="margin-top:30px;">
+            <h2 style="margin-top:0;">Filtrar investimentos</h2>
+            <div class="filtro-tabela-grid">
+                <input id="filtroInvTicker" placeholder="Ativo / Ticker">
+                <select id="filtroInvTipo"><option value="">Todos os tipos</option><option value="Ação">Ação</option><option value="FII">Fundo Imobiliário (FII)</option><option value="Cripto">Criptomoeda</option></select>
+                <input id="filtroInvQtdMin" type="number" step="0.00000001" placeholder="Qtd. mínima">
+                <input id="filtroInvQtdMax" type="number" step="0.00000001" placeholder="Qtd. máxima">
+                <input id="filtroInvPrecoMin" type="number" step="0.01" placeholder="Preço médio mínimo">
+                <input id="filtroInvPrecoMax" type="number" step="0.01" placeholder="Preço médio máximo">
+                <input id="filtroInvInicio" type="date" title="Data inicial">
+                <input id="filtroInvFim" type="date" title="Data final">
+            </div>
+            <div class="filtro-acoes"><button class="btn-filtrar" type="button" onclick="filtrarInvestimentos()">Filtrar</button><button class="btn-limpar" type="button" onclick="limparFiltroInvestimentos()">Limpar filtros</button></div>
+            <div id="contagemInvestimentos" class="filtro-contagem"></div>
+        </section>
+
         <!-- Tabela Dinâmica de Ativos -->
-        <section style="margin-top: 30px;">>
+        <section style="margin-top: 30px;">
             <h2>Seus Ativos</h2>
             <div style="overflow-x: auto; margin-top: 15px;">
                 <table style="width: 100%; border-collapse: collapse; text-align: left;">
@@ -103,5 +121,6 @@
 </div>
 
 <script type="module" src="./js/investimentos.js"></script>
+<script src="./js/sidebar.js"></script>
 </body>
 </html>

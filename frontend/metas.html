@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -113,18 +113,14 @@
         </div>
 
 
-        <a href="dashboard.html">📊 Dashboard</a>
-
-        <a href="gastos.html">💸 Gastos</a>
-
-        <a href="receitas.html">💵 Receitas</a>
-        <a href="metas.html" class="active">🎯 Metas</a>
-        <a href="investimentos.html">📈 Investimentos</a>
-
-        <a href="chat.html">🤖 Chat</a>
-
-        <a href="perfil.html">👤 Perfil</a>
-
+        <a href="dashboard.html">Dashboard</a>
+        <a href="gastos.html">Gastos</a>
+        <a href="receitas.html">Receitas</a>
+        <a href="metas.html">Metas</a>
+        <a href="investimentos.html">Investimentos</a>
+        <a href="relatorio.html">Relatório</a>
+        <a href="chat.html">Chat</a>
+        <a href="perfil.html">Perfil</a>
     </aside>
 
 
@@ -164,10 +160,26 @@
                 type="button"
                 onclick="salvarMeta()"
             >
-                🎯 Salvar Meta
+             Salvar Meta
             </button>
 
         </div>
+
+
+        <section class="filtro-tabela">
+            <h2 style="margin-top:0;">Filtrar metas</h2>
+            <div class="filtro-tabela-grid">
+                <input id="filtroMetaNome" placeholder="Nome da meta">
+                <input id="filtroMetaMin" type="number" step="0.01" placeholder="Objetivo mínimo">
+                <input id="filtroMetaMax" type="number" step="0.01" placeholder="Objetivo máximo">
+                <input id="filtroMetaPrazoMin" type="number" placeholder="Prazo mínimo (meses)">
+                <input id="filtroMetaPrazoMax" type="number" placeholder="Prazo máximo (meses)">
+                <input id="filtroMetaInicio" type="date" title="Data inicial">
+                <input id="filtroMetaFim" type="date" title="Data final">
+            </div>
+            <div class="filtro-acoes"><button class="btn-filtrar" type="button" onclick="filtrarMetas()">Filtrar</button><button class="btn-limpar" type="button" onclick="limparFiltroMetas()">Limpar filtros</button></div>
+            <div id="contagemMetas" class="filtro-contagem"></div>
+        </section>
 
         <div class="table-wrap">
 
@@ -191,6 +203,8 @@
 
                         <th>Meta Mensal</th>
 
+                        <th>Data</th>
+
                         <th>Ações</th>
 
                     </tr>
@@ -202,7 +216,7 @@
 
                     <tr>
 
-                        <td colspan="8">
+                        <td colspan="9">
                             Carregando metas...
                         </td>
 
@@ -252,5 +266,6 @@
         src="./js/metas.js"
     ></script>
 
+<script src="./js/sidebar.js"></script>
 </body>
 </html>
