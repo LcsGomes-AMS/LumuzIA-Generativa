@@ -28,8 +28,10 @@ function dataRegistro(v) {
 // =====================
 let todosGastos = [];
 let todasReceitas = [];
+let todosInvestimentos = [];
 let gastosFiltrados = [];
 let receitasFiltradas = [];
+let investimentosFiltrados = [];
 
 // =====================
 // CARREGAMENTO
@@ -43,15 +45,20 @@ async function carregarDados() {
 
     try {
         const [resGastos, resReceitas] = await Promise.all([
+        const [resGastos, resReceitas, resInvest] = await Promise.all([
             apiFetch(`/gastos/${uid}`),
             apiFetch(`/receitas/${uid}`)
+            apiFetch(`/receitas/${uid}`),
+            apiFetch(`/investimentos/${uid}`)
         ]);
 
         todosGastos = await resGastos.json();
         todasReceitas = await resReceitas.json();
+        todosInvestimentos = await resInvest.json();
 
         if (!Array.isArray(todosGastos)) todosGastos = [];
         if (!Array.isArray(todasReceitas)) todasReceitas = [];
+        if (!Array.isArray(todosInvestimentos)) todosInvestimentos = [];
 
         aplicarFiltro();
         status.textContent = "";
@@ -76,6 +83,11 @@ function aplicarFiltro() {
         return (!inicio || d >= inicio) && (!fim || d <= fim);
     });
 
+    investimentosFiltrados = todosInvestimentos.filter(i => {
+        const d = dataRegistro(i.created_at);
+        return (!inicio || d >= inicio) && (!fim || d <= fim);
+    });
+
     renderizarRelatorio();
 }
 
@@ -85,12 +97,14 @@ function aplicarFiltro() {
 function renderizarRelatorio() {
     const totalGastos = gastosFiltrados.reduce((s, g) => s + Number(g.valor || 0), 0);
     const totalReceitas = receitasFiltradas.reduce((s, r) => s + Number(r.valor || 0), 0);
+    const totalInvestido = investimentosFiltrados.reduce((s, i) => s + Number(i.total_investido || 0), 0);
     const saldo = totalReceitas - totalGastos;
 
     document.getElementById("rSaldo").textContent = fmtMoeda(saldo);
     document.getElementById("rSaldo").style.color = saldo >= 0 ? "var(--success)" : "var(--danger)";
     document.getElementById("rTotalReceitas").textContent = fmtMoeda(totalReceitas);
     document.getElementById("rTotalGastos").textContent = fmtMoeda(totalGastos);
+    document.getElementById("rTotalInvestido").textContent = fmtMoeda(totalInvestido);
 
     // Categorias
     const porCategoria = new Map();
@@ -129,6 +143,17 @@ function renderizarRelatorio() {
             `<tr><td>${fmtData(g.created_at)}</td><td>${escapeHtml(g.descricao)}</td><td>${escapeHtml(g.categoria)}</td><td class="valor-gasto">${fmtMoeda(g.valor)}</td></tr>`
         ).join("")
         : `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">Nenhum gasto no período.</td></tr>`;
+
+    // Investimentos
+    const corpoInvest = document.querySelector("#tabelaInvestimentosRel tbody");
+    const investOrdenados = [...investimentosFiltrados].sort((a, b) =>
+        dataRegistro(b.created_at).localeCompare(dataRegistro(a.created_at))
+    );
+    corpoInvest.innerHTML = investOrdenados.length
+        ? investOrdenados.map(i =>
+            `<tr><td>${fmtData(i.created_at)}</td><td>${escapeHtml(i.nome)}</td><td>${escapeHtml(i.tipo)}</td><td style="color:var(--accent-2)">${fmtMoeda(i.total_investido)}</td></tr>`
+        ).join("")
+        : `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">Nenhum investimento no período.</td></tr>`;
 }
 
 // =====================
@@ -211,6 +236,7 @@ async function gerarPdf() {
         // Resumo
         const totalGastos = gastosFiltrados.reduce((s, g) => s + Number(g.valor || 0), 0);
         const totalReceitas = receitasFiltradas.reduce((s, r) => s + Number(r.valor || 0), 0);
+        const totalInvestido = investimentosFiltrados.reduce((s, i) => s + Number(i.total_investido || 0), 0);
         const saldo = totalReceitas - totalGastos;
 
         doc.setFontSize(12);
@@ -224,6 +250,8 @@ async function gerarPdf() {
             margin: { left: margemEsquerda, right: margemEsquerda },
             head: [["Total de Receitas", "Total de Gastos", "Saldo"]],
             body: [[fmtMoeda(totalReceitas), fmtMoeda(totalGastos), fmtMoeda(saldo)]],
+            head: [["Total de Receitas", "Total de Gastos", "Saldo", "Total Investido"]],
+            body: [[fmtMoeda(totalReceitas), fmtMoeda(totalGastos), fmtMoeda(saldo), fmtMoeda(totalInvestido)]],
             theme: "grid",
             headStyles: { fillColor: [22, 30, 33], textColor: 255, fontStyle: "bold" },
             styles: { fontSize: 10, cellPadding: 6 }
@@ -304,6 +332,30 @@ async function gerarPdf() {
                 : [["-", "Nenhum gasto no período", "-", "-"]],
             theme: "striped",
             headStyles: { fillColor: [226, 104, 92], textColor: 255, fontStyle: "bold" },
+            styles: { fontSize: 10, cellPadding: 6 }
+        });
+        cursorY = doc.lastAutoTable.finalY + 24;
+
+        // Investimentos detalhados
+        const investOrdenados = [...investimentosFiltrados].sort((a, b) =>
+            dataRegistro(a.created_at).localeCompare(dataRegistro(b.created_at))
+        );
+
+        if (cursorY > 680) { doc.addPage(); cursorY = 40; }
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(12);
+        doc.text("Investimentos", margemEsquerda, cursorY);
+        cursorY += 8;
+
+        doc.autoTable({
+            startY: cursorY,
+            margin: { left: margemEsquerda, right: margemEsquerda },
+            head: [["Data", "Nome", "Tipo", "Total Investido"]],
+            body: investOrdenados.length
+                ? investOrdenados.map(i => [fmtData(i.created_at), i.nome || "", i.tipo || "", fmtMoeda(i.total_investido)])
+                : [["-", "Nenhum investimento no período", "-", "-"]],
+            theme: "striped",
+            headStyles: { fillColor: [111, 231, 221], textColor: 20, fontStyle: "bold" },
             styles: { fontSize: 10, cellPadding: 6 }
         });
 

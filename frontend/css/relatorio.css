@@ -11,27 +11,6 @@
   margin: 20px 0 24px;
 }
 
-.relatorio-filtro {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.relatorio-filtro label {
-  color: var(--text-muted);
-  font-size: 14px;
-}
-
-.relatorio-filtro input[type="date"] {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-family: var(--font-body);
-}
-
 .btn-secundario {
   background: transparent;
   border: 1px solid var(--border-light);

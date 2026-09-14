@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 
@@ -37,27 +37,42 @@
 
         <h1>Relatório de Gastos e Receitas</h1>
 
-        <div class="relatorio-toolbar">
-            <div class="relatorio-filtro">
-                <label for="filtroInicio">De</label>
-                <input type="date" id="filtroInicio">
-                <label for="filtroFim">Até</label>
-                <input type="date" id="filtroFim">
-                <button id="btnAplicarFiltro" class="btn-secundario">Aplicar</button>
-                <button id="btnLimparFiltro" class="btn-secundario">Limpar</button>
+        <section class="filtro-moderno">
+            <div class="filtro-moderno-header">
+                <i class="ph ph-funnel"></i> Filtrar Relatório
             </div>
-
-            <button id="btnGerarPdf" class="btn-pdf">
-                Gerar PDF
-            </button>
-        </div>
-
-        <div id="relatorioStatus" class="relatorio-status"></div>
+            
+            <div class="filtro-moderno-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                <div class="filtro-moderno-grupo">
+                    <label for="filtroInicio">Data Inicial</label>
+                    <input type="date" id="filtroInicio" class="filtro-moderno-input">
+                </div>
+                
+                <div class="filtro-moderno-grupo">
+                    <label for="filtroFim">Data Final</label>
+                    <input type="date" id="filtroFim" class="filtro-moderno-input">
+                </div>
+            </div>
+            
+            <div class="filtro-moderno-acoes">
+                <button id="btnLimparFiltro" class="filtro-moderno-btn-secundario">
+                    Limpar
+                </button>
+                <button id="btnAplicarFiltro" class="filtro-moderno-btn-primario">
+                    Aplicar Filtros
+                </button>
+                <button id="btnGerarPdf" class="filtro-moderno-btn-primario" style="background: var(--accent); color: var(--bg); margin-left: auto;">
+                    <i class="ph ph-file-pdf"></i> Gerar PDF
+                </button>
+            </div>
+            <div id="relatorioStatus" class="relatorio-status" style="margin-top: 10px;"></div>
+        </section>
 
         <!-- Área que também é usada como referência visual para o cabeçalho do PDF -->
         <div id="relatorioConteudo">
 
             <div class="cards">
+            <div class="cards" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
                 <div class="card">
                     <h3>Saldo do Período</h3>
                     <p id="rSaldo">R$ 0,00</p>
@@ -69,6 +84,10 @@
                 <div class="card">
                     <h3>Total de Gastos</h3>
                     <p id="rTotalGastos">R$ 0,00</p>
+                </div>
+                <div class="card">
+                    <h3>Total Investido</h3>
+                    <p id="rTotalInvestido">R$ 0,00</p>
                 </div>
             </div>
 
@@ -97,6 +116,16 @@
                 <table class="relatorio-tabela" id="tabelaGastosRel">
                     <thead>
                         <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </section>
+
+            <section class="relatorio-secao">
+                <h2>Investimentos Realizados</h2>
+                <table class="relatorio-tabela" id="tabelaInvestimentosRel">
+                    <thead>
+                        <tr><th>Data</th><th>Nome</th><th>Tipo</th><th>Total Investido</th></tr>
                     </thead>
                     <tbody></tbody>
                 </table>
