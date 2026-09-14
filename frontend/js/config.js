@@ -3,13 +3,13 @@ import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-aut
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyC71keQEOVxGO1ax1GqFMZdhW-Jv-XFt_M",
-  authDomain: "lumuzia-bb98d.firebaseapp.com",
-  projectId: "lumuzia-bb98d",
-  storageBucket: "lumuzia-bb98d.firebasestorage.app",
-  messagingSenderId: "175766461880",
-  appId: "1:175766461880:web:7046115ecfabe82355434d",
-  measurementId: "G-1YEBX4EEDL"
+  apiKey: "AIzaSyAYHdzCPoYipHo3mzJfHeDv4h-A0BNNrMY",
+  authDomain: "lumuz-e2f23.firebaseapp.com",
+  projectId: "lumuz-e2f23",
+  storageBucket: "lumuz-e2f23.firebasestorage.app",
+  messagingSenderId: "523410509147",
+  appId: "1:523410509147:web:fd1c9a5fd37504f7e29e7e",
+  measurementId: "G-2QRKRY2QLP"
 };
 
 export const app = initializeApp(firebaseConfig);

@@ -1,0 +1,29 @@
+# Dependências
+node_modules/
+
+# Variáveis de ambiente
+.env
+.env.*
+
+# Credenciais Firebase (NUNCA commitar)
+serviceAccountKey.json
+backend/serviceAccountKey.json
+
+# Banco de dados SQLite (contém dados de usuários)
+*.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operacional
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
