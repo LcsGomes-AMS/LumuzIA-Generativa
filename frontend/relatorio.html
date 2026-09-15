@@ -37,36 +37,20 @@
 
         <h1>Relatório de Gastos e Receitas</h1>
 
-        <!-- ÁREA DE FILTRAGEM ORGANIZADA COM INLINE STYLES E DIVS DE AGRUPAMENTO -->
-        <div class="relatorio-toolbar" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; background-color: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eaeaea; margin-bottom: 25px;">
-            
-            <div class="relatorio-filtro" style="display: flex; align-items: center; flex-wrap: wrap; gap: 15px;">
-                
-                <!-- Grupo Data Inicial -->
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <label for="filtroInicio" style="font-weight: 600; margin: 0;">De:</label>
-                    <input type="date" id="filtroInicio" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc; outline: none;">
-                </div>
-
-                <!-- Grupo Data Final -->
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <label for="filtroFim" style="font-weight: 600; margin: 0;">Até:</label>
-                    <input type="date" id="filtroFim" style="padding: 6px; border-radius: 4px; border: 1px solid #ccc; outline: none;">
-                </div>
-
-                <!-- Grupo Botões de Filtro -->
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <button id="btnAplicarFiltro" class="btn-secundario" style="cursor: pointer; padding: 7px 12px;">Aplicar</button>
-                    <button id="btnLimparFiltro" class="btn-secundario" style="cursor: pointer; padding: 7px 12px;">Limpar</button>
-                </div>
+        <div class="relatorio-toolbar">
+            <div class="relatorio-filtro">
+                <label for="filtroInicio">De</label>
+                <input type="date" id="filtroInicio">
+                <label for="filtroFim">Até</label>
+                <input type="date" id="filtroFim">
+                <button id="btnAplicarFiltro" class="btn-secundario">Aplicar</button>
+                <button id="btnLimparFiltro" class="btn-secundario">Limpar</button>
             </div>
 
-            <!-- Botão de PDF Isolado à Direita -->
-            <button id="btnGerarPdf" class="btn-pdf" style="cursor: pointer; padding: 8px 16px;">
+            <button id="btnGerarPdf" class="btn-pdf">
                 Gerar PDF
             </button>
         </div>
-        <!-- FIM DA ÁREA DE FILTRAGEM -->
 
         <div id="relatorioStatus" class="relatorio-status"></div>
 
@@ -125,6 +109,7 @@
 </div>
 
 <script type="module" src="../js/relatorio.js"></script>
+
 <script src="./js/sidebar.js"></script>
 </body>
 </html>
