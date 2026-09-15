@@ -29,16 +29,24 @@
         <h1>Dashboard Financeiro</h1>
 
         <!-- Painel de Filtro de Periodo -->
-        <div class="dash-filtro">
-            <div class="dash-filtro-controles">
-
-                <select id="modoFiltro" class="dash-filtro-select">
-                    <option value="mes">Mês</option>
-                    <option value="periodo">Período</option>
-                    <option value="ano">Ano</option>
-                </select>
+        <section class="filtro-moderno">
+            <div class="filtro-moderno-header" style="justify-content: space-between;">
+                <div><i class="ph ph-funnel"></i> Filtrar Período</div>
+                <span id="labelPeriodo" class="filtro-moderno-contagem" style="margin-left: 0;"></span>
+            </div>
+            
+            <div class="filtro-moderno-grid" style="grid-template-columns: auto 1fr;">
+                <div class="filtro-moderno-grupo">
+                    <label>Modo</label>
+                    <select id="modoFiltro" class="filtro-moderno-select" style="min-width: 140px;">
+                        <option value="mes">Mês</option>
+                        <option value="periodo">Período</option>
+                        <option value="ano">Ano</option>
+                    </select>
+                </div>
 
                 <!-- Mês específico -->
+<<<<<<< HEAD
                 <div id="grupoMes" class="dash-filtro-grupo">
                     <div class="dash-filtro-item">
                         <label for="inputMes" class="dash-filtro-mini-label">Mês de referência</label>
@@ -56,21 +64,44 @@
                     <div class="dash-filtro-item">
                         <label for="inputMesFim" class="dash-filtro-mini-label">📅 Mês final</label>
                         <input type="month" id="inputMesFim" class="dash-filtro-input">
+=======
+                <div id="grupoMes" class="filtro-moderno-grupo">
+                    <label>Selecione o Mês</label>
+                    <input type="month" id="inputMes" class="filtro-moderno-input">
+                </div>
+
+                <!-- Período -->
+                <div id="grupoPeriodo" class="filtro-moderno-grupo" style="display:none;">
+                    <label>Selecione o Período</label>
+                    <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
+                        <input type="month" id="inputMesInicio" class="filtro-moderno-input">
+                        <span style="color: var(--text-muted); font-size: 13px;">até</span>
+                        <input type="month" id="inputMesFim" class="filtro-moderno-input">
+>>>>>>> c99a77e8aff2d4586ee619cc31ab2ba508b5b252
                     </div>
                 </div>
 
                 <!-- Ano -->
+<<<<<<< HEAD
                 <div id="grupoAno" class="dash-filtro-grupo" style="display:none;">
                     <div class="dash-filtro-item">
                         <label for="inputAno" class="dash-filtro-mini-label">Ano</label>
                         <input type="number" id="inputAno" min="2020" max="2099" class="dash-filtro-input dash-filtro-ano">
                     </div>
+=======
+                <div id="grupoAno" class="filtro-moderno-grupo" style="display:none;">
+                    <label>Selecione o Ano</label>
+                    <input type="number" id="inputAno" min="2020" max="2099" class="filtro-moderno-input">
+>>>>>>> c99a77e8aff2d4586ee619cc31ab2ba508b5b252
                 </div>
-
-                <button id="btnFiltrar" class="dash-filtro-btn">Filtrar</button>
             </div>
-            <span id="labelPeriodo" class="dash-filtro-label"></span>
-        </div>
+            
+            <div class="filtro-moderno-acoes">
+                <button id="btnFiltrar" class="filtro-moderno-btn-primario">
+                    Aplicar Filtro
+                </button>
+            </div>
+        </section>
 
         <!-- Cards -->
         <div class="cards">

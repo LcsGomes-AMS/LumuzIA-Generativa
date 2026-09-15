@@ -908,6 +908,7 @@ table td:last-child {
   transform: scale(1.08);
 }
 
+<<<<<<< HEAD
 /* Filtros das tabelas financeiras */
 .filtro-tabela {
     margin: 20px 0;
@@ -1059,73 +1060,77 @@ table td:last-child {
     padding: 6px 12px;
 }
 
+=======
+>>>>>>> c99a77e8aff2d4586ee619cc31ab2ba508b5b252
 /* ==========================================================================
-   12. DASHBOARD — FILTRO DE PERÍODO
+   12. FILTROS MODERNOS (Dashboard, Gastos, Receitas, Metas, Relatórios)
    ========================================================================== */
-.dash-filtro {
-    margin-bottom: 24px;
-    background: linear-gradient(135deg, rgba(111,231,221,0.06), rgba(242,166,90,0.04));
-    border: 1px solid rgba(111,231,221,0.18);
+.filtro-moderno {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 16px 20px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.filtro-moderno-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    color: var(--accent-2);
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.filtro-moderno-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    align-items: end;
+}
+
+.filtro-moderno-grupo {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 6px;
 }
 
-.dash-filtro-controles {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
+.filtro-moderno-grupo label {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
 }
 
-/* select e inputs do filtro — override do global que força width:100% */
-.dash-filtro-select {
-    width: auto !important;
-    min-width: 140px;
-    background: var(--surface-2) !important;
-    border: 1px solid var(--accent-2) !important;
-    border-radius: 8px !important;
-    padding: 8px 12px !important;
-    color: var(--text) !important;
-    font-size: 14px;
-    cursor: pointer;
-}
-
-.dash-filtro-grupo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.dash-filtro-input {
-    width: auto !important;
-    background: var(--surface-2) !important;
+.filtro-moderno-input, .filtro-moderno-select {
+    width: 100% !important;
+    padding: 10px 14px !important;
+    background: var(--bg) !important;
     border: 1px solid var(--border-light) !important;
     border-radius: 8px !important;
-    padding: 8px 12px !important;
     color: var(--text) !important;
-    font-size: 14px;
-    transition: border-color 0.2s;
+    font-size: 14px !important;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
 }
 
-.dash-filtro-input:focus {
+.filtro-moderno-input:focus, .filtro-moderno-select:focus {
     border-color: var(--accent-2) !important;
     outline: none;
+    box-shadow: 0 0 0 2px rgba(111, 231, 221, 0.15);
 }
 
-.dash-filtro-ano {
-    width: 100px !important;
-}
-
-.dash-filtro-periodo {
+.filtro-moderno-acoes {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    gap: 12px;
+    margin-top: 20px;
     flex-wrap: wrap;
+    align-items: center;
 }
 
+<<<<<<< HEAD
 .dash-filtro-sep {
     color: var(--text-muted);
     font-size: 13px;
@@ -1150,30 +1155,51 @@ table td:last-child {
 
 /* Botão de filtro — override do button { width:100% } global */
 .dash-filtro-btn {
+=======
+.filtro-moderno-btn-primario, .filtro-moderno-btn-secundario {
+>>>>>>> c99a77e8aff2d4586ee619cc31ab2ba508b5b252
     width: auto !important;
-    padding: 8px 20px !important;
-    background: var(--accent-2) !important;
-    color: #0d1f26 !important;
-    border: none !important;
+    padding: 10px 20px !important;
     border-radius: 8px !important;
-    font-weight: 700 !important;
     font-size: 14px !important;
+    font-weight: 600 !important;
     cursor: pointer;
-    transition: opacity 0.2s, transform 0.15s;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     white-space: nowrap;
 }
 
-.dash-filtro-btn:hover {
-    opacity: 0.88;
+.filtro-moderno-btn-primario {
+    background: var(--accent-2) !important;
+    color: var(--bg) !important;
+    border: none !important;
+}
+
+.filtro-moderno-btn-primario:hover {
+    opacity: 0.9;
     transform: translateY(-1px);
 }
 
-.dash-filtro-label {
-    font-size: 13px;
+.filtro-moderno-btn-secundario {
+    background: transparent !important;
+    color: var(--text-muted) !important;
+    border: 1px solid var(--border-light) !important;
+}
+
+.filtro-moderno-btn-secundario:hover {
+    color: var(--text) !important;
+    border-color: var(--text-muted) !important;
+}
+
+.filtro-moderno-contagem {
+    margin-left: auto;
     color: var(--accent-2);
+    font-size: 13px;
     font-family: var(--font-mono);
     opacity: 0.8;
-    letter-spacing: 0.02em;
 }
 
 /* ==========================================================================
