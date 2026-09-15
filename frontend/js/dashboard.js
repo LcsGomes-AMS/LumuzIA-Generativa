@@ -235,19 +235,43 @@ async function carregarGrafico(uid) {
 
 // ─── controles do filtro ───────────────────────────────────────────────────
 
+function mesOffset(offsetMeses) {
+    const d = new Date();
+    d.setMonth(d.getMonth() + offsetMeses);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
 function inicializarFiltros(uid) {
-    const inputMes     = document.getElementById("inputMes");
-    const inputAno     = document.getElementById("inputAno");
-    const modoFiltro   = document.getElementById("modoFiltro");
-    const grupoMes     = document.getElementById("grupoMes");
-    const grupoPeriodo = document.getElementById("grupoPeriodo");
-    const grupoAno     = document.getElementById("grupoAno");
-    const btnFiltrar   = document.getElementById("btnFiltrar");
-    const labelPeriodo = document.getElementById("labelPeriodo");
+    const inputMes       = document.getElementById("inputMes");
+    const inputAno       = document.getElementById("inputAno");
+    const inputMesInicio = document.getElementById("inputMesInicio");
+    const inputMesFim    = document.getElementById("inputMesFim");
+    const modoFiltro     = document.getElementById("modoFiltro");
+    const grupoMes       = document.getElementById("grupoMes");
+    const grupoPeriodo   = document.getElementById("grupoPeriodo");
+    const grupoAno       = document.getElementById("grupoAno");
+    const btnFiltrar     = document.getElementById("btnFiltrar");
+    const labelPeriodo   = document.getElementById("labelPeriodo");
 
     // Preenche os inputs com os valores atuais ao carregar
     if (inputMes) inputMes.value = mesAtual();
     if (inputAno) inputAno.value = new Date().getFullYear();
+    if (inputMesInicio && !inputMesInicio.value) inputMesInicio.value = mesOffset(-5);
+    if (inputMesFim && !inputMesFim.value) inputMesFim.value = mesAtual();
+
+    if (inputMesInicio && inputMesFim && inputMesInicio.value) {
+        inputMesFim.min = inputMesInicio.value;
+    }
+    if (inputMesInicio && inputMesFim && inputMesFim.value) {
+        inputMesInicio.max = inputMesFim.value;
+    }
+
+    inputMesInicio?.addEventListener("change", () => {
+        if (inputMesInicio.value) inputMesFim.min = inputMesInicio.value;
+    });
+    inputMesFim?.addEventListener("change", () => {
+        if (inputMesFim.value) inputMesInicio.max = inputMesFim.value;
+    });
 
     /** Mostra apenas o grupo correspondente ao modo selecionado */
     function atualizarGrupos() {
@@ -255,6 +279,11 @@ function inicializarFiltros(uid) {
         grupoMes.style.display     = modo === "mes"     ? "flex" : "none";
         grupoPeriodo.style.display = modo === "periodo" ? "flex" : "none";
         grupoAno.style.display     = modo === "ano"     ? "flex" : "none";
+
+        if (modo === "periodo") {
+            if (inputMesInicio && !inputMesInicio.value) inputMesInicio.value = mesOffset(-5);
+            if (inputMesFim && !inputMesFim.value) inputMesFim.value = mesAtual();
+        }
     }
 
     /** Feedback visual: deixa os cards semi-transparentes durante a consulta */
@@ -271,9 +300,16 @@ function inicializarFiltros(uid) {
 
     modoFiltro?.addEventListener("change", atualizarGrupos);
 
-    btnFiltrar?.addEventListener("click", async () => {
-        // Atualiza o label antes da requisição
-        if (labelPeriodo) labelPeriodo.textContent = labelPeriodo.textContent; // mantém até resposta
+    async function executarFiltragem() {
+        const modo = modoFiltro?.value || "mes";
+        if (modo === "periodo") {
+            const ini = inputMesInicio?.value;
+            const fim = inputMesFim?.value;
+            if (ini && fim && ini > fim) {
+                alert("O mês inicial não pode ser posterior ao mês final.");
+                return;
+            }
+        }
 
         setCardsLoading(true);
         await Promise.allSettled([
@@ -281,6 +317,17 @@ function inicializarFiltros(uid) {
             carregarGrafico(uid)
         ]);
         setCardsLoading(false);
+    }
+
+    btnFiltrar?.addEventListener("click", executarFiltragem);
+
+    [inputMes, inputAno, inputMesInicio, inputMesFim].forEach(el => {
+        el?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                executarFiltragem();
+            }
+        });
     });
 
     // Garante que o estado inicial dos grupos está correto

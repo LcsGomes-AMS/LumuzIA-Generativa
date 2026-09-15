@@ -155,11 +155,94 @@ function renderizarMetas(metas) {
     });
 }
 
-window.filtrarMetas = function(){
- const nome=(document.getElementById("filtroMetaNome").value||"").toLowerCase().trim(); const min=parseFloat(document.getElementById("filtroMetaMin").value), max=parseFloat(document.getElementById("filtroMetaMax").value); const pmin=parseFloat(document.getElementById("filtroMetaPrazoMin").value), pmax=parseFloat(document.getElementById("filtroMetaPrazoMax").value); const ini=document.getElementById("filtroMetaInicio").value, fim=document.getElementById("filtroMetaFim").value;
- renderizarMetas(metasAtuais.filter(m=>(!nome||String(m.nome||"").toLowerCase().includes(nome))&&(isNaN(min)||Number(m.valor_objetivo)>=min)&&(isNaN(max)||Number(m.valor_objetivo)<=max)&&(isNaN(pmin)||Number(m.prazo)>=pmin)&&(isNaN(pmax)||Number(m.prazo)<=pmax)&&(!ini||String(m.created_at||"").slice(0,10)>=ini)&&(!fim||String(m.created_at||"").slice(0,10)<=fim)));
+window.filtrarMetas = function() {
+    const nome = (document.getElementById("filtroMetaNome")?.value || "").toLowerCase().trim();
+    const min = parseFloat(document.getElementById("filtroMetaMin")?.value);
+    const max = parseFloat(document.getElementById("filtroMetaMax")?.value);
+    const pmin = parseFloat(document.getElementById("filtroMetaPrazoMin")?.value);
+    const pmax = parseFloat(document.getElementById("filtroMetaPrazoMax")?.value);
+    const ini = document.getElementById("filtroMetaInicio")?.value || "";
+    const fim = document.getElementById("filtroMetaFim")?.value || "";
+    const erroEl = document.getElementById("filtroMetaErro");
+
+    if (ini && fim && ini > fim) {
+        if (erroEl) {
+            erroEl.textContent = "⚠️ A data inicial não pode ser posterior à data final.";
+            erroEl.style.display = "block";
+        }
+        return;
+    }
+    if (erroEl) {
+        erroEl.style.display = "none";
+        erroEl.textContent = "";
+    }
+
+    renderizarMetas(metasAtuais.filter(m => {
+        const d = String(m.created_at || "").slice(0, 10);
+        const matchNome = !nome || String(m.nome || "").toLowerCase().includes(nome);
+        const matchMin = isNaN(min) || Number(m.valor_objetivo) >= min;
+        const matchMax = isNaN(max) || Number(m.valor_objetivo) <= max;
+        const matchPmin = isNaN(pmin) || Number(m.prazo) >= pmin;
+        const matchPmax = isNaN(pmax) || Number(m.prazo) <= pmax;
+        const matchPeriodo = (!ini || d >= ini) && (!fim || d <= fim);
+        return matchNome && matchMin && matchMax && matchPmin && matchPmax && matchPeriodo;
+    }));
 };
-window.limparFiltroMetas=function(){["filtroMetaNome","filtroMetaMin","filtroMetaMax","filtroMetaPrazoMin","filtroMetaPrazoMax","filtroMetaInicio","filtroMetaFim"].forEach(id=>document.getElementById(id).value="");renderizarMetas(metasAtuais);};
+
+window.limparFiltroMetas = function() {
+    ["filtroMetaNome", "filtroMetaMin", "filtroMetaMax", "filtroMetaPrazoMin", "filtroMetaPrazoMax", "filtroMetaInicio", "filtroMetaFim"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+    });
+    const iniEl = document.getElementById("filtroMetaInicio");
+    const fimEl = document.getElementById("filtroMetaFim");
+    if (iniEl) iniEl.removeAttribute("max");
+    if (fimEl) fimEl.removeAttribute("min");
+    const erroEl = document.getElementById("filtroMetaErro");
+    if (erroEl) {
+        erroEl.style.display = "none";
+        erroEl.textContent = "";
+    }
+    renderizarMetas(metasAtuais);
+};
+
+function inicializarEventosFiltroMetas() {
+    const iniEl = document.getElementById("filtroMetaInicio");
+    const fimEl = document.getElementById("filtroMetaFim");
+    const erroEl = document.getElementById("filtroMetaErro");
+
+    iniEl?.addEventListener("change", () => {
+        if (iniEl.value) {
+            fimEl?.setAttribute("min", iniEl.value);
+        } else {
+            fimEl?.removeAttribute("min");
+        }
+        if (erroEl && iniEl.value && fimEl?.value && iniEl.value <= fimEl.value) {
+            erroEl.style.display = "none";
+        }
+    });
+
+    fimEl?.addEventListener("change", () => {
+        if (fimEl.value) {
+            iniEl?.setAttribute("max", fimEl.value);
+        } else {
+            iniEl?.removeAttribute("max");
+        }
+        if (erroEl && iniEl?.value && fimEl.value && iniEl.value <= fimEl.value) {
+            erroEl.style.display = "none";
+        }
+    });
+
+    ["filtroMetaNome", "filtroMetaMin", "filtroMetaMax", "filtroMetaPrazoMin", "filtroMetaPrazoMax", "filtroMetaInicio", "filtroMetaFim"].forEach(id => {
+        const el = document.getElementById(id);
+        el?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                window.filtrarMetas();
+            }
+        });
+    });
+}
 
 /* =========================================================
    MODAL GUARDAR / RETIRAR VALOR
@@ -334,6 +417,7 @@ onAuthStateChanged(auth, (user) => {
         window.location.href = "cad.html";
         return;
     }
+    inicializarEventosFiltroMetas();
     carregarMediaMensal().then(carregarMetas);
     verificarParcelasPendentes();
 });

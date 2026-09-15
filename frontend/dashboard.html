@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -40,19 +40,31 @@
 
                 <!-- Mês específico -->
                 <div id="grupoMes" class="dash-filtro-grupo">
-                    <input type="month" id="inputMes" class="dash-filtro-input">
+                    <div class="dash-filtro-item">
+                        <label for="inputMes" class="dash-filtro-mini-label">Mês de referência</label>
+                        <input type="month" id="inputMes" class="dash-filtro-input">
+                    </div>
                 </div>
 
                 <!-- Período -->
                 <div id="grupoPeriodo" class="dash-filtro-grupo dash-filtro-periodo" style="display:none;">
-                    <input type="month" id="inputMesInicio" class="dash-filtro-input">
+                    <div class="dash-filtro-item">
+                        <label for="inputMesInicio" class="dash-filtro-mini-label">📅 Mês inicial</label>
+                        <input type="month" id="inputMesInicio" class="dash-filtro-input">
+                    </div>
                     <span class="dash-filtro-sep">até</span>
-                    <input type="month" id="inputMesFim" class="dash-filtro-input">
+                    <div class="dash-filtro-item">
+                        <label for="inputMesFim" class="dash-filtro-mini-label">📅 Mês final</label>
+                        <input type="month" id="inputMesFim" class="dash-filtro-input">
+                    </div>
                 </div>
 
                 <!-- Ano -->
                 <div id="grupoAno" class="dash-filtro-grupo" style="display:none;">
-                    <input type="number" id="inputAno" min="2020" max="2099" class="dash-filtro-input dash-filtro-ano">
+                    <div class="dash-filtro-item">
+                        <label for="inputAno" class="dash-filtro-mini-label">Ano</label>
+                        <input type="number" id="inputAno" min="2020" max="2099" class="dash-filtro-input dash-filtro-ano">
+                    </div>
                 </div>
 
                 <button id="btnFiltrar" class="dash-filtro-btn">Filtrar</button>

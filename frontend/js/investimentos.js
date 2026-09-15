@@ -81,12 +81,169 @@ function carregarGraficoPorAtivo(detalhes) {
 let investimentosAtuais = [];
 let respostaInvestimentosAtual = null;
 
-function aplicarFiltrosInvestimentos(lista){
- const ticker=(document.getElementById("filtroInvTicker")?.value||"").toLowerCase().trim(); const tipo=document.getElementById("filtroInvTipo")?.value||""; const qmin=parseFloat(document.getElementById("filtroInvQtdMin")?.value), qmax=parseFloat(document.getElementById("filtroInvQtdMax")?.value), pmin=parseFloat(document.getElementById("filtroInvPrecoMin")?.value), pmax=parseFloat(document.getElementById("filtroInvPrecoMax")?.value); const ini=document.getElementById("filtroInvInicio")?.value||"", fim=document.getElementById("filtroInvFim")?.value||"";
- return lista.filter(i=>{const d=String(i.dataCompra||"").slice(0,10); return (!ticker||String(i.ticker||"").toLowerCase().includes(ticker))&&(!tipo||i.tipo===tipo)&&(isNaN(qmin)||Number(i.quantidade)>=qmin)&&(isNaN(qmax)||Number(i.quantidade)<=qmax)&&(isNaN(pmin)||Number(i.precoMedio)>=pmin)&&(isNaN(pmax)||Number(i.precoMedio)<=pmax)&&(!ini||d>=ini)&&(!fim||d<=fim);});
+function aplicarFiltrosInvestimentos(lista) {
+    const ticker = (document.getElementById("filtroInvTicker")?.value || "").toLowerCase().trim();
+    const tipo = document.getElementById("filtroInvTipo")?.value || "";
+    const qmin = parseFloat(document.getElementById("filtroInvQtdMin")?.value);
+    const qmax = parseFloat(document.getElementById("filtroInvQtdMax")?.value);
+    const pmin = parseFloat(document.getElementById("filtroInvPrecoMin")?.value);
+    const pmax = parseFloat(document.getElementById("filtroInvPrecoMax")?.value);
+    const ini = document.getElementById("filtroInvInicio")?.value || "";
+    const fim = document.getElementById("filtroInvFim")?.value || "";
+
+    return lista.filter(i => {
+        const d = String(i.dataCompra || "").slice(0, 10);
+        const matchTicker = !ticker || String(i.ticker || "").toLowerCase().includes(ticker);
+        const matchTipo = !tipo || i.tipo === tipo;
+        const matchQmin = isNaN(qmin) || Number(i.quantidade) >= qmin;
+        const matchQmax = isNaN(qmax) || Number(i.quantidade) <= qmax;
+        const matchPmin = isNaN(pmin) || Number(i.precoMedio) >= pmin;
+        const matchPmax = isNaN(pmax) || Number(i.precoMedio) <= pmax;
+        const matchPeriodo = (!ini || d >= ini) && (!fim || d <= fim);
+        return matchTicker && matchTipo && matchQmin && matchQmax && matchPmin && matchPmax && matchPeriodo;
+    });
 }
-window.filtrarInvestimentos=function(){buscarInvestimentos();};
-window.limparFiltroInvestimentos=function(){["filtroInvTicker","filtroInvTipo","filtroInvQtdMin","filtroInvQtdMax","filtroInvPrecoMin","filtroInvPrecoMax","filtroInvInicio","filtroInvFim"].forEach(id=>{const e=document.getElementById(id);if(e)e.value="";});buscarInvestimentos();};
+
+function renderizarInvestimentosFiltrados() {
+    const tabela = document.getElementById("tabelaInvestimentos");
+    if (!tabela) return;
+
+    const detalhes = aplicarFiltrosInvestimentos(investimentosAtuais);
+    const contagem = document.getElementById("contagemInvestimentos");
+    if (contagem) contagem.textContent = `${detalhes.length} de ${investimentosAtuais.length} investimento(s) exibido(s)`;
+
+    if (detalhes.length === 0) {
+        tabela.innerHTML = `
+            <tr>
+                <td colspan="9" style="text-align: center; padding: 20px; color: #8FA1A3;">
+                    ${investimentosAtuais.length === 0 ? "Nenhum ativo cadastrado até o momento." : "Nenhum investimento encontrado com esses filtros."}
+                </td>
+            </tr>
+        `;
+        carregarGraficoPorAtivo([]);
+        return;
+    }
+
+    let htmlRows = "";
+    detalhes.forEach((item) => {
+        const qtd = Number(item.quantidade) || 0;
+        const pm = Number(item.precoMedio) || 0;
+        const pa = Number(item.precoAtual) || 0;
+        const total = Number(item.valorTotalAtual) || 0;
+        const lucro = Number(item.lucroOuPrejuizo) || 0;
+        const corLucro = lucro >= 0 ? "#10B981" : "#EF4444";
+
+        let dataFormatada = "--";
+        if (item.dataCompra) {
+            const partes = item.dataCompra.split("-");
+            if (partes.length === 3) {
+                dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+            }
+        }
+
+        htmlRows += `
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                <td style="padding: 12px; font-weight: bold; color: #6FE7DD;">${escapeHtml(item.ticker)}</td>
+                <td style="padding: 12px; color: #fff;">${escapeHtml(item.tipo)}</td>
+                <td style="padding: 12px; color: #fff;">${qtd}</td>
+                <td style="padding: 12px; color: #fff;">R$ ${pm.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td style="padding: 12px; font-weight: bold; color: #FFF;">R$ ${pa.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td style="padding: 12px; font-weight: bold; color: #FFF;">R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td style="padding: 12px; color: ${corLucro}; font-weight: bold;">
+                    ${lucro >= 0 ? '+' : ''}R$ ${lucro.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </td>
+                <td style="padding: 12px; color: #8FA1A3;">${dataFormatada}</td>
+                <td style="padding: 12px;">
+                    <button onclick="deletarInvestimento(${item.id})" style="background: transparent; border: 1px solid #EF4444; color: #EF4444; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
+                        Excluir
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    tabela.innerHTML = htmlRows;
+    carregarGraficoPorAtivo(detalhes);
+}
+
+window.filtrarInvestimentos = function() {
+    const ini = document.getElementById("filtroInvInicio")?.value || "";
+    const fim = document.getElementById("filtroInvFim")?.value || "";
+    const erroEl = document.getElementById("filtroInvErro");
+
+    if (ini && fim && ini > fim) {
+        if (erroEl) {
+            erroEl.textContent = "⚠️ A data inicial não pode ser posterior à data final.";
+            erroEl.style.display = "block";
+        }
+        return;
+    }
+    if (erroEl) {
+        erroEl.style.display = "none";
+        erroEl.textContent = "";
+    }
+
+    if (investimentosAtuais && investimentosAtuais.length > 0) {
+        renderizarInvestimentosFiltrados();
+    } else {
+        buscarInvestimentos();
+    }
+};
+
+window.limparFiltroInvestimentos = function() {
+    ["filtroInvTicker", "filtroInvTipo", "filtroInvQtdMin", "filtroInvQtdMax", "filtroInvPrecoMin", "filtroInvPrecoMax", "filtroInvInicio", "filtroInvFim"].forEach(id => {
+        const e = document.getElementById(id);
+        if (e) e.value = "";
+    });
+    const iniEl = document.getElementById("filtroInvInicio");
+    const fimEl = document.getElementById("filtroInvFim");
+    if (iniEl) iniEl.removeAttribute("max");
+    if (fimEl) fimEl.removeAttribute("min");
+    const erroEl = document.getElementById("filtroInvErro");
+    if (erroEl) {
+        erroEl.style.display = "none";
+        erroEl.textContent = "";
+    }
+    renderizarInvestimentosFiltrados();
+};
+
+function inicializarEventosFiltroInvestimentos() {
+    const iniEl = document.getElementById("filtroInvInicio");
+    const fimEl = document.getElementById("filtroInvFim");
+    const erroEl = document.getElementById("filtroInvErro");
+
+    iniEl?.addEventListener("change", () => {
+        if (iniEl.value) {
+            fimEl?.setAttribute("min", iniEl.value);
+        } else {
+            fimEl?.removeAttribute("min");
+        }
+        if (erroEl && iniEl.value && fimEl?.value && iniEl.value <= fimEl.value) {
+            erroEl.style.display = "none";
+        }
+    });
+
+    fimEl?.addEventListener("change", () => {
+        if (fimEl.value) {
+            iniEl?.setAttribute("max", fimEl.value);
+        } else {
+            iniEl?.removeAttribute("max");
+        }
+        if (erroEl && iniEl?.value && fimEl.value && iniEl.value <= fimEl.value) {
+            erroEl.style.display = "none";
+        }
+    });
+
+    ["filtroInvTicker", "filtroInvTipo", "filtroInvQtdMin", "filtroInvQtdMax", "filtroInvPrecoMin", "filtroInvPrecoMax", "filtroInvInicio", "filtroInvFim"].forEach(id => {
+        const el = document.getElementById(id);
+        el?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                window.filtrarInvestimentos();
+            }
+        });
+    });
+}
 
 async function buscarInvestimentos() {
     const uid = auth.currentUser.uid;
@@ -109,7 +266,7 @@ async function buscarInvestimentos() {
         const data = await response.json();
         const detalhesOriginais = Array.isArray(data.detalhes) ? data.detalhes : [];
         investimentosAtuais = detalhesOriginais;
-        const detalhes = aplicarFiltrosInvestimentos(detalhesOriginais);
+        respostaInvestimentosAtual = data;
 
         // ------------------------------------
         // A. ATUALIZA OS CARDS DO TOPO
@@ -139,64 +296,7 @@ async function buscarInvestimentos() {
         // ------------------------------------
         // B. PREENCHE A TABELA DINÂMICA
         // ------------------------------------
-        const contagem = document.getElementById("contagemInvestimentos");
-        if (contagem) contagem.textContent = `${detalhes.length} de ${detalhesOriginais.length} investimento(s) exibido(s)`;
-
-        if (detalhes.length === 0) {
-            tabela.innerHTML = `
-                <tr>
-                    <td colspan="9" style="text-align: center; padding: 20px; color: #8FA1A3;">
-                        Nenhum ativo cadastrado até o momento.
-                    </td>
-                </tr>
-            `;
-            return;
-        }
-
-        let htmlRows = "";
-
-        detalhes.forEach((item) => {
-            const qtd = Number(item.quantidade) || 0;
-            const pm = Number(item.precoMedio) || 0;
-            const pa = Number(item.precoAtual) || 0;
-            const total = Number(item.valorTotalAtual) || 0;
-            const lucro = Number(item.lucroOuPrejuizo) || 0;
-
-            const corLucro = lucro >= 0 ? "#10B981" : "#EF4444";
-
-            let dataFormatada = "--";
-            if (item.dataCompra) {
-                const partes = item.dataCompra.split("-");
-                if (partes.length === 3) {
-                    dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
-                }
-            }
-
-            htmlRows += `
-                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
-                    <td style="padding: 12px; font-weight: bold; color: #6FE7DD;">${escapeHtml(item.ticker)}</td>
-                    <td style="padding: 12px; color: #fff;">${escapeHtml(item.tipo)}</td>
-                    <td style="padding: 12px; color: #fff;">${qtd}</td>
-                    <td style="padding: 12px; color: #fff;">R$ ${pm.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    <td style="padding: 12px; font-weight: bold; color: #FFF;">R$ ${pa.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    <td style="padding: 12px; font-weight: bold; color: #FFF;">R$ ${total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    <td style="padding: 12px; color: ${corLucro}; font-weight: bold;">
-                        ${lucro >= 0 ? '+' : ''}R$ ${lucro.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </td>
-                    <td style="padding: 12px; color: #8FA1A3;">${dataFormatada}</td>
-                    <td style="padding: 12px;">
-                        <button onclick="deletarInvestimento(${item.id})" style="background: transparent; border: 1px solid #EF4444; color: #EF4444; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
-                            Excluir
-                        </button>
-                    </td>
-                </tr>
-            `;
-        });
-
-        tabela.innerHTML = htmlRows;
-
-        // Desenha o gráfico de rendimento por ativo assim que os dados chegam
-        carregarGraficoPorAtivo(detalhes);
+        renderizarInvestimentosFiltrados();
 
     } catch (err) {
         console.error("Erro ao carregar dados na tela:", err);
@@ -286,6 +386,7 @@ onAuthStateChanged(auth, (user) => {
         return;
     }
     buscarInvestimentos();
+    inicializarEventosFiltroInvestimentos();
     carregarGraficoEvolucaoTotal(user.uid);
     verificarParcelasPendentes();
 });

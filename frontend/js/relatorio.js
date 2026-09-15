@@ -65,6 +65,19 @@ async function carregarDados() {
 function aplicarFiltro() {
     const inicio = document.getElementById("filtroInicio").value;
     const fim = document.getElementById("filtroFim").value;
+    const status = document.getElementById("relatorioStatus");
+
+    if (inicio && fim && inicio > fim) {
+        if (status) {
+            status.textContent = "⚠️ A data inicial não pode ser posterior à data final.";
+            status.classList.add("erro");
+        }
+        return;
+    }
+    if (status && status.classList.contains("erro") && status.textContent.includes("data")) {
+        status.textContent = "";
+        status.classList.remove("erro");
+    }
 
     gastosFiltrados = todosGastos.filter(g => {
         const d = dataRegistro(g.created_at);
@@ -331,13 +344,52 @@ async function gerarPdf() {
 // =====================
 // EVENTOS
 // =====================
-document.getElementById("btnAplicarFiltro").addEventListener("click", aplicarFiltro);
-document.getElementById("btnLimparFiltro").addEventListener("click", () => {
-    document.getElementById("filtroInicio").value = "";
-    document.getElementById("filtroFim").value = "";
+const inputIni = document.getElementById("filtroInicio");
+const inputFim = document.getElementById("filtroFim");
+
+inputIni?.addEventListener("change", () => {
+    if (inputIni.value) {
+        inputFim?.setAttribute("min", inputIni.value);
+    } else {
+        inputFim?.removeAttribute("min");
+    }
+});
+
+inputFim?.addEventListener("change", () => {
+    if (inputFim.value) {
+        inputIni?.setAttribute("max", inputFim.value);
+    } else {
+        inputIni?.removeAttribute("max");
+    }
+});
+
+[inputIni, inputFim].forEach(el => {
+    el?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            aplicarFiltro();
+        }
+    });
+});
+
+document.getElementById("btnAplicarFiltro")?.addEventListener("click", aplicarFiltro);
+document.getElementById("btnLimparFiltro")?.addEventListener("click", () => {
+    if (inputIni) {
+        inputIni.value = "";
+        inputIni.removeAttribute("max");
+    }
+    if (inputFim) {
+        inputFim.value = "";
+        inputFim.removeAttribute("min");
+    }
+    const status = document.getElementById("relatorioStatus");
+    if (status && status.classList.contains("erro") && status.textContent.includes("data")) {
+        status.textContent = "";
+        status.classList.remove("erro");
+    }
     aplicarFiltro();
 });
-document.getElementById("btnGerarPdf").addEventListener("click", gerarPdf);
+document.getElementById("btnGerarPdf")?.addEventListener("click", gerarPdf);
 
 // =====================
 // INICIALIZAÇÃO

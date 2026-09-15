@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
     <head>
         <meta charset="UTF-8">
@@ -38,15 +38,36 @@
 
 
                 <section class="filtro-tabela">
-                    <h2 style="margin-top:0;">Filtrar receitas</h2>
-                    <div class="filtro-tabela-grid">
-                        <input id="filtroReceitaDescricao" placeholder="Descrição">
-                        <input id="filtroReceitaMin" type="number" step="0.01" placeholder="Valor mínimo">
-                        <input id="filtroReceitaMax" type="number" step="0.01" placeholder="Valor máximo">
-                        <input id="filtroReceitaInicio" type="date" title="Data inicial">
-                        <input id="filtroReceitaFim" type="date" title="Data final">
+                    <div class="filtro-tabela-topo">
+                        <h3 class="filtro-tabela-titulo">🔍 Filtrar Receitas</h3>
                     </div>
-                    <div class="filtro-acoes"><button class="btn-filtrar" type="button" onclick="filtrarReceitas()">Filtrar</button><button class="btn-limpar" type="button" onclick="limparFiltroReceitas()">Limpar filtros</button></div>
+                    <div class="filtro-tabela-grid">
+                        <div class="filtro-campo">
+                            <label for="filtroReceitaDescricao">Descrição</label>
+                            <input id="filtroReceitaDescricao" type="text" placeholder="Buscar por descrição...">
+                        </div>
+                        <div class="filtro-campo">
+                            <label for="filtroReceitaMin">Valor Mínimo (R$)</label>
+                            <input id="filtroReceitaMin" type="number" step="0.01" min="0" placeholder="0,00">
+                        </div>
+                        <div class="filtro-campo">
+                            <label for="filtroReceitaMax">Valor Máximo (R$)</label>
+                            <input id="filtroReceitaMax" type="number" step="0.01" min="0" placeholder="Sem limite">
+                        </div>
+                        <div class="filtro-campo">
+                            <label for="filtroReceitaInicio" class="filtro-label-destaque">📅 Data Inicial</label>
+                            <input id="filtroReceitaInicio" type="date">
+                        </div>
+                        <div class="filtro-campo">
+                            <label for="filtroReceitaFim" class="filtro-label-destaque">📅 Data Final</label>
+                            <input id="filtroReceitaFim" type="date">
+                        </div>
+                    </div>
+                    <div id="filtroReceitaErro" class="filtro-aviso-erro"></div>
+                    <div class="filtro-acoes">
+                        <button class="btn-filtrar" type="button" onclick="filtrarReceitas()">Filtrar</button>
+                        <button class="btn-limpar" type="button" onclick="limparFiltroReceitas()">Limpar filtros</button>
+                    </div>
                     <div id="contagemReceitas" class="filtro-contagem"></div>
                 </section>
 

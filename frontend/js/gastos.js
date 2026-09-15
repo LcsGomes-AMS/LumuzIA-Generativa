@@ -56,12 +56,91 @@ function renderizarGastos(gastos) {
 }
 
 window.filtrarGastos = function() {
-    const desc=(document.getElementById("filtroGastoDescricao").value||"").toLowerCase().trim();
-    const cat=document.getElementById("filtroGastoCategoria").value; const min=parseFloat(document.getElementById("filtroGastoMin").value); const max=parseFloat(document.getElementById("filtroGastoMax").value);
-    const ini=document.getElementById("filtroGastoInicio").value; const fim=document.getElementById("filtroGastoFim").value;
-    renderizarGastos(gastosAtuais.filter(g=> (!desc || String(g.descricao||"").toLowerCase().includes(desc)) && (!cat || g.categoria===cat) && (isNaN(min)||Number(g.valor)>=min) && (isNaN(max)||Number(g.valor)<=max) && filtrarPorPeriodo(dataRegistro(g.created_at),ini,fim)));
+    const desc = (document.getElementById("filtroGastoDescricao")?.value || "").toLowerCase().trim();
+    const cat = document.getElementById("filtroGastoCategoria")?.value || "";
+    const min = parseFloat(document.getElementById("filtroGastoMin")?.value);
+    const max = parseFloat(document.getElementById("filtroGastoMax")?.value);
+    const ini = document.getElementById("filtroGastoInicio")?.value || "";
+    const fim = document.getElementById("filtroGastoFim")?.value || "";
+    const erroEl = document.getElementById("filtroGastoErro");
+
+    if (ini && fim && ini > fim) {
+        if (erroEl) {
+            erroEl.textContent = "⚠️ A data inicial não pode ser posterior à data final.";
+            erroEl.style.display = "block";
+        }
+        return;
+    }
+    if (erroEl) {
+        erroEl.style.display = "none";
+        erroEl.textContent = "";
+    }
+
+    renderizarGastos(gastosAtuais.filter(g => {
+        const d = dataRegistro(g.created_at);
+        const matchDesc = !desc || String(g.descricao || "").toLowerCase().includes(desc);
+        const matchCat = !cat || g.categoria === cat;
+        const matchMin = isNaN(min) || Number(g.valor) >= min;
+        const matchMax = isNaN(max) || Number(g.valor) <= max;
+        const matchPeriodo = filtrarPorPeriodo(d, ini, fim);
+        return matchDesc && matchCat && matchMin && matchMax && matchPeriodo;
+    }));
 };
-window.limparFiltroGastos = function(){ ["filtroGastoDescricao","filtroGastoCategoria","filtroGastoMin","filtroGastoMax","filtroGastoInicio","filtroGastoFim"].forEach(id=>document.getElementById(id).value=""); renderizarGastos(gastosAtuais); };
+
+window.limparFiltroGastos = function() {
+    ["filtroGastoDescricao", "filtroGastoCategoria", "filtroGastoMin", "filtroGastoMax", "filtroGastoInicio", "filtroGastoFim"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+    });
+    const iniEl = document.getElementById("filtroGastoInicio");
+    const fimEl = document.getElementById("filtroGastoFim");
+    if (iniEl) iniEl.removeAttribute("max");
+    if (fimEl) fimEl.removeAttribute("min");
+    const erroEl = document.getElementById("filtroGastoErro");
+    if (erroEl) {
+        erroEl.style.display = "none";
+        erroEl.textContent = "";
+    }
+    renderizarGastos(gastosAtuais);
+};
+
+function inicializarEventosFiltroGastos() {
+    const iniEl = document.getElementById("filtroGastoInicio");
+    const fimEl = document.getElementById("filtroGastoFim");
+    const erroEl = document.getElementById("filtroGastoErro");
+
+    iniEl?.addEventListener("change", () => {
+        if (iniEl.value) {
+            fimEl?.setAttribute("min", iniEl.value);
+        } else {
+            fimEl?.removeAttribute("min");
+        }
+        if (erroEl && iniEl.value && fimEl?.value && iniEl.value <= fimEl.value) {
+            erroEl.style.display = "none";
+        }
+    });
+
+    fimEl?.addEventListener("change", () => {
+        if (fimEl.value) {
+            iniEl?.setAttribute("max", fimEl.value);
+        } else {
+            iniEl?.removeAttribute("max");
+        }
+        if (erroEl && iniEl?.value && fimEl.value && iniEl.value <= fimEl.value) {
+            erroEl.style.display = "none";
+        }
+    });
+
+    ["filtroGastoDescricao", "filtroGastoCategoria", "filtroGastoMin", "filtroGastoMax", "filtroGastoInicio", "filtroGastoFim"].forEach(id => {
+        const el = document.getElementById(id);
+        el?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                window.filtrarGastos();
+            }
+        });
+    });
+}
 
 window.excluirGasto = async function (id) {
     if (!confirm("Excluir este gasto?")) return;
@@ -534,6 +613,7 @@ onAuthStateChanged(auth, (user) => {
         return;
     }
     carregarGastos();
+    inicializarEventosFiltroGastos();
     inicializarCalendario();
     carregarAgendamentos();
     carregarParcelas();

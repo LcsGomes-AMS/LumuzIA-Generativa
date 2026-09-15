@@ -4,32 +4,65 @@
 
 .relatorio-toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 16px;
   margin: 20px 0 24px;
+  background: linear-gradient(135deg, rgba(111, 231, 221, 0.05), rgba(15, 23, 42, 0.65));
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(111, 231, 221, 0.18);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .relatorio-filtro {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: flex-end;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
-.relatorio-filtro label {
-  color: var(--text-muted);
-  font-size: 14px;
+.relatorio-filtro-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.relatorio-filtro-item label {
+  color: #A3B8B6;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .relatorio-filtro input[type="date"] {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--text);
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #fff;
   border-radius: 8px;
-  padding: 8px 10px;
-  font-family: var(--font-body);
+  padding: 9px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  color-scheme: dark;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.relatorio-filtro input[type="date"]:focus {
+  outline: none;
+  border-color: #6FE7DD;
+  box-shadow: 0 0 0 2px rgba(111, 231, 221, 0.25);
+  background: #131f33;
+}
+
+.relatorio-filtro-botoes {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .btn-secundario {

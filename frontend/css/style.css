@@ -910,16 +910,154 @@ table td:last-child {
 
 /* Filtros das tabelas financeiras */
 .filtro-tabela {
-    margin: 18px 0; padding: 16px; border: 1px solid rgba(111,231,221,.14);
-    border-radius: 10px; background: rgba(111,231,221,.045);
+    margin: 20px 0;
+    padding: 18px 20px;
+    border: 1px solid rgba(111, 231, 221, 0.2);
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(111, 231, 221, 0.05), rgba(15, 23, 42, 0.65));
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
-.filtro-tabela-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; }
-.filtro-tabela input, .filtro-tabela select { width:100%; box-sizing:border-box; padding:9px 10px; border-radius:6px; border:1px solid #334155; background:#0f172a; color:#fff; }
-.filtro-acoes { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
-.filtro-acoes button { padding:9px 14px; border-radius:6px; cursor:pointer; }
-.btn-filtrar { background:#6FE7DD; color:#161E21; border:0; font-weight:bold; }
-.btn-limpar { background:transparent; color:#8FA1A3; border:1px solid #475569; }
-.filtro-contagem { color:#8FA1A3; font-size:12px; margin-top:8px; }
+
+.filtro-tabela-topo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filtro-tabela-titulo {
+    font-size: 15px;
+    font-weight: 700;
+    color: #6FE7DD;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.filtro-tabela-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.filtro-campo {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.filtro-campo label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #A3B8B6;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.filtro-campo label.filtro-label-destaque {
+    color: #6FE7DD;
+}
+
+.filtro-tabela input,
+.filtro-tabela select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #0f172a;
+    color: #fff;
+    font-size: 13px;
+    font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+}
+
+.filtro-tabela input[type="date"] {
+    color-scheme: dark;
+    cursor: pointer;
+}
+
+.filtro-tabela input:focus,
+.filtro-tabela select:focus {
+    outline: none;
+    border-color: #6FE7DD;
+    box-shadow: 0 0 0 2px rgba(111, 231, 221, 0.25);
+    background: #131f33;
+}
+
+.filtro-tabela input::placeholder {
+    color: #64748b;
+    font-size: 13px;
+}
+
+.filtro-acoes {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 14px;
+}
+
+.filtro-acoes button {
+    padding: 9px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-filtrar {
+    background: #6FE7DD;
+    color: #161E21;
+    border: 0;
+}
+
+.btn-filtrar:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+}
+
+.btn-limpar {
+    background: transparent;
+    color: #8FA1A3;
+    border: 1px solid #475569;
+}
+
+.btn-limpar:hover {
+    color: #fff;
+    border-color: #64748b;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.filtro-contagem {
+    color: #8FA1A3;
+    font-size: 12px;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filtro-aviso-erro {
+    color: #EF4444;
+    font-size: 12px;
+    margin-top: 8px;
+    display: none;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 6px;
+    padding: 6px 12px;
+}
 
 /* ==========================================================================
    12. DASHBOARD — FILTRO DE PERÍODO
@@ -992,6 +1130,22 @@ table td:last-child {
     color: var(--text-muted);
     font-size: 13px;
     white-space: nowrap;
+    align-self: flex-end;
+    margin-bottom: 8px;
+}
+
+.dash-filtro-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dash-filtro-mini-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #8FA1A3;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* Botão de filtro — override do button { width:100% } global */

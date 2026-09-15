@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 
@@ -39,15 +39,21 @@
 
         <div class="relatorio-toolbar">
             <div class="relatorio-filtro">
-                <label for="filtroInicio">De</label>
-                <input type="date" id="filtroInicio">
-                <label for="filtroFim">Até</label>
-                <input type="date" id="filtroFim">
-                <button id="btnAplicarFiltro" class="btn-secundario">Aplicar</button>
-                <button id="btnLimparFiltro" class="btn-secundario">Limpar</button>
+                <div class="relatorio-filtro-item">
+                    <label for="filtroInicio">📅 Data Inicial</label>
+                    <input type="date" id="filtroInicio">
+                </div>
+                <div class="relatorio-filtro-item">
+                    <label for="filtroFim">📅 Data Final</label>
+                    <input type="date" id="filtroFim">
+                </div>
+                <div class="relatorio-filtro-botoes">
+                    <button id="btnAplicarFiltro" class="btn-secundario" type="button">Aplicar</button>
+                    <button id="btnLimparFiltro" class="btn-secundario" type="button">Limpar</button>
+                </div>
             </div>
 
-            <button id="btnGerarPdf" class="btn-pdf">
+            <button id="btnGerarPdf" class="btn-pdf" type="button">
                 Gerar PDF
             </button>
         </div>

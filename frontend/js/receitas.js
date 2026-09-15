@@ -49,11 +49,90 @@ async function carregarReceitas() {
     try { const res=await apiFetch(`/receitas/${uid}`); if(!res.ok) throw new Error(`Erro ${res.status}`); receitasAtuais=await res.json(); renderizarTabelaReceitas(receitasAtuais); }
     catch(erro){console.error(erro); tabela.innerHTML=`<tr><td colspan="4">Erro ao carregar dados do servidor.</td></tr>`;}
 }
-window.filtrarReceitas=function(){
- const desc=(document.getElementById("filtroReceitaDescricao").value||"").toLowerCase().trim(), min=parseFloat(document.getElementById("filtroReceitaMin").value), max=parseFloat(document.getElementById("filtroReceitaMax").value), ini=document.getElementById("filtroReceitaInicio").value, fim=document.getElementById("filtroReceitaFim").value;
- renderizarTabelaReceitas(receitasAtuais.filter(r=>(!desc||String(r.descricao||"").toLowerCase().includes(desc))&&(isNaN(min)||Number(r.valor)>=min)&&(isNaN(max)||Number(r.valor)<=max)&&(!ini||dataReceita(r.created_at)>=ini)&&(!fim||dataReceita(r.created_at)<=fim)));
+window.filtrarReceitas = function() {
+    const desc = (document.getElementById("filtroReceitaDescricao")?.value || "").toLowerCase().trim();
+    const min = parseFloat(document.getElementById("filtroReceitaMin")?.value);
+    const max = parseFloat(document.getElementById("filtroReceitaMax")?.value);
+    const ini = document.getElementById("filtroReceitaInicio")?.value || "";
+    const fim = document.getElementById("filtroReceitaFim")?.value || "";
+    const erroEl = document.getElementById("filtroReceitaErro");
+
+    if (ini && fim && ini > fim) {
+        if (erroEl) {
+            erroEl.textContent = "⚠️ A data inicial não pode ser posterior à data final.";
+            erroEl.style.display = "block";
+        }
+        return;
+    }
+    if (erroEl) {
+        erroEl.style.display = "none";
+        erroEl.textContent = "";
+    }
+
+    renderizarTabelaReceitas(receitasAtuais.filter(r => {
+        const d = dataReceita(r.created_at);
+        const matchDesc = !desc || String(r.descricao || "").toLowerCase().includes(desc);
+        const matchMin = isNaN(min) || Number(r.valor) >= min;
+        const matchMax = isNaN(max) || Number(r.valor) <= max;
+        const matchPeriodo = (!ini || d >= ini) && (!fim || d <= fim);
+        return matchDesc && matchMin && matchMax && matchPeriodo;
+    }));
 };
-window.limparFiltroReceitas=function(){["filtroReceitaDescricao","filtroReceitaMin","filtroReceitaMax","filtroReceitaInicio","filtroReceitaFim"].forEach(id=>document.getElementById(id).value="");renderizarTabelaReceitas(receitasAtuais);};
+
+window.limparFiltroReceitas = function() {
+    ["filtroReceitaDescricao", "filtroReceitaMin", "filtroReceitaMax", "filtroReceitaInicio", "filtroReceitaFim"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = "";
+    });
+    const iniEl = document.getElementById("filtroReceitaInicio");
+    const fimEl = document.getElementById("filtroReceitaFim");
+    if (iniEl) iniEl.removeAttribute("max");
+    if (fimEl) fimEl.removeAttribute("min");
+    const erroEl = document.getElementById("filtroReceitaErro");
+    if (erroEl) {
+        erroEl.style.display = "none";
+        erroEl.textContent = "";
+    }
+    renderizarTabelaReceitas(receitasAtuais);
+};
+
+function inicializarEventosFiltroReceitas() {
+    const iniEl = document.getElementById("filtroReceitaInicio");
+    const fimEl = document.getElementById("filtroReceitaFim");
+    const erroEl = document.getElementById("filtroReceitaErro");
+
+    iniEl?.addEventListener("change", () => {
+        if (iniEl.value) {
+            fimEl?.setAttribute("min", iniEl.value);
+        } else {
+            fimEl?.removeAttribute("min");
+        }
+        if (erroEl && iniEl.value && fimEl?.value && iniEl.value <= fimEl.value) {
+            erroEl.style.display = "none";
+        }
+    });
+
+    fimEl?.addEventListener("change", () => {
+        if (fimEl.value) {
+            iniEl?.setAttribute("max", fimEl.value);
+        } else {
+            iniEl?.removeAttribute("max");
+        }
+        if (erroEl && iniEl?.value && fimEl.value && iniEl.value <= fimEl.value) {
+            erroEl.style.display = "none";
+        }
+    });
+
+    ["filtroReceitaDescricao", "filtroReceitaMin", "filtroReceitaMax", "filtroReceitaInicio", "filtroReceitaFim"].forEach(id => {
+        const el = document.getElementById(id);
+        el?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                window.filtrarReceitas();
+            }
+        });
+    });
+}
 
 function renderizarTabelaReceitas(receitas) {
     const tabela = document.getElementById("tabelaReceitas");
@@ -256,6 +335,7 @@ onAuthStateChanged(auth, (user) => {
         return;
     }
     carregarReceitas();
+    inicializarEventosFiltroReceitas();
     carregarAReceber();
     verificarParcelasPendentes();
 });
