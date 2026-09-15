@@ -1,115 +1,411 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="img/LumuzIA.png">
+    <title>Relatório - LumuzIA</title>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="./img/png" href="img/LumuzIA.png">
-<title>Relatório - LumuzIA</title>
+    <!-- Fontes modernas (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Ícones modernos (Phosphor Icons) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-<link rel="stylesheet" href="../css/relatorio.css">
-<link rel="stylesheet" href="../css/style.css">
+    <!-- Seus arquivos CSS originais -->
+    <link rel="stylesheet" href="../css/relatorio.css">
+    <link rel="stylesheet" href="../css/style.css">
 
-<!-- jsPDF + AutoTable, usados apenas para montar o PDF no botão "Gerar PDF" -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <!-- CSS Adicional para dar o aspecto Profissional (Você pode mover para seus arquivos CSS) -->
+    <style>
+        :root {
+            --bg-body: #f3f4f6;
+            --bg-surface: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --primary: #4f46e5; /* Cor principal (Roxo/Azul) */
+            --primary-hover: #4338ca;
+            --success: #10b981; /* Verde Receitas */
+            --danger: #ef4444; /* Vermelho Gastos */
+            --border: #e5e7eb;
+            --radius: 8px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
 
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Profissional */
+        .sidebar {
+            width: 250px;
+            background-color: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .sidebar a i {
+            font-size: 1.2rem;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: #f5f3ff;
+            color: var(--primary);
+            border-right: 3px solid var(--primary);
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            color: var(--text-main);
+        }
+
+        /* Toolbar de Filtros */
+        .relatorio-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            background: var(--bg-surface);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .relatorio-filtro {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .relatorio-filtro label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .relatorio-filtro input[type="date"] {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-family: inherit;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .relatorio-filtro input[type="date"]:focus {
+            border-color: var(--primary);
+        }
+
+        button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: none;
+            border-radius: var(--radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-secundario {
+            background-color: #f3f4f6;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secundario:hover {
+            background-color: #e5e7eb;
+        }
+
+        .btn-pdf {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-pdf:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Cards de Resumo */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .card {
+            background: var(--bg-surface);
+            padding: 24px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--border);
+        }
+
+        .card:nth-child(1) { border-left-color: var(--primary); }
+        .card:nth-child(2) { border-left-color: var(--success); }
+        .card:nth-child(3) { border-left-color: var(--danger); }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .card-header i {
+            font-size: 1.5rem;
+        }
+
+        .card:nth-child(1) .card-header i { color: var(--primary); }
+        .card:nth-child(2) .card-header i { color: var(--success); }
+        .card:nth-child(3) .card-header i { color: var(--danger); }
+
+        .card p {
+            margin: 0;
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        /* Tabelas */
+        .relatorio-secao {
+            background: var(--bg-surface);
+            padding: 24px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 32px;
+        }
+
+        .relatorio-secao h2 {
+            font-size: 1.25rem;
+            margin-top: 0;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .relatorio-tabela {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .relatorio-tabela th, .relatorio-tabela td {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .relatorio-tabela th {
+            background-color: #f9fafb;
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .relatorio-tabela tbody tr:hover {
+            background-color: #f9fafb;
+        }
+        
+        /* Ajuste de responsividade */
+        @media (max-width: 768px) {
+            .container { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; flex-direction: row; overflow-x: auto; padding: 10px; }
+            .sidebar-brand { display: none !important; }
+            main { padding: 20px; }
+            .relatorio-toolbar { flex-direction: column; align-items: stretch; }
+            .btn-pdf { width: 100%; justify-content: center; }
+        }
+    </style>
+
+    <!-- Bibliotecas para PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 
 <div class="container">
 
+    <!-- SIDEBAR -->
     <aside class="sidebar">
-        <div class="sidebar-brand" style="display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
-           <img src="img/LumuzIA.png" alt="LumuzIA" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">
+        <div class="sidebar-brand" style="display:flex; flex-direction:column; align-items:center; justify-content:center; margin-bottom:30px;">
+            <img src="img/LumuzIA.png" alt="LumuzIA" style="width:60px; height:60px; border-radius:50%; object-fit:cover; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <span style="margin-top: 10px; font-weight: 700; color: var(--text-main);">LumuzIA</span>
         </div>
-        <a href="dashboard.html">Dashboard</a>
-        <a href="gastos.html">Gastos</a>
-        <a href="receitas.html">Receitas</a>
-        <a href="metas.html">Metas</a>
-        <a href="investimentos.html">Investimentos</a>
-        <a href="relatorio.html">Relatório</a>
-        <a href="chat.html">Chat</a>
-        <a href="perfil.html">Perfil</a>
+        <a href="dashboard.html"><i class="ph ph-squares-four"></i> Dashboard</a>
+        <a href="gastos.html"><i class="ph ph-trend-down"></i> Gastos</a>
+        <a href="receitas.html"><i class="ph ph-trend-up"></i> Receitas</a>
+        <a href="metas.html"><i class="ph ph-target"></i> Metas</a>
+        <a href="investimentos.html"><i class="ph ph-chart-line-up"></i> Investimentos</a>
+        <a href="relatorio.html" class="active"><i class="ph ph-file-text"></i> Relatório</a>
+        <a href="chat.html"><i class="ph ph-chat-teardrop-dots"></i> Chat</a>
+        <a href="perfil.html"><i class="ph ph-user"></i> Perfil</a>
     </aside>
 
+    <!-- CONTEÚDO PRINCIPAL -->
     <main>
 
         <h1>Relatório de Gastos e Receitas</h1>
 
+        <!-- TOOLBAR / FILTROS -->
         <div class="relatorio-toolbar">
             <div class="relatorio-filtro">
                 <label for="filtroInicio">De</label>
                 <input type="date" id="filtroInicio">
                 <label for="filtroFim">Até</label>
                 <input type="date" id="filtroFim">
-                <button id="btnAplicarFiltro" class="btn-secundario">Aplicar</button>
-                <button id="btnLimparFiltro" class="btn-secundario">Limpar</button>
+                <button id="btnAplicarFiltro" class="btn-secundario">
+                    <i class="ph ph-funnel"></i> Aplicar
+                </button>
+                <button id="btnLimparFiltro" class="btn-secundario">
+                    <i class="ph ph-eraser"></i> Limpar
+                </button>
             </div>
 
             <button id="btnGerarPdf" class="btn-pdf">
-                Gerar PDF
+                <i class="ph ph-file-pdf"></i> Gerar PDF
             </button>
         </div>
 
         <div id="relatorioStatus" class="relatorio-status"></div>
 
-        <!-- Área que também é usada como referência visual para o cabeçalho do PDF -->
         <div id="relatorioConteudo">
 
+            <!-- CARDS DE RESUMO -->
             <div class="cards">
                 <div class="card">
-                    <h3>Saldo do Período</h3>
+                    <div class="card-header">
+                        <h3>Saldo do Período</h3>
+                        <i class="ph ph-wallet"></i>
+                    </div>
                     <p id="rSaldo">R$ 0,00</p>
                 </div>
                 <div class="card">
-                    <h3>Total de Receitas</h3>
-                    <p id="rTotalReceitas">R$ 0,00</p>
+                    <div class="card-header">
+                        <h3>Total de Receitas</h3>
+                        <i class="ph ph-arrow-circle-up"></i>
+                    </div>
+                    <p id="rTotalReceitas" style="color: var(--success);">R$ 0,00</p>
                 </div>
                 <div class="card">
-                    <h3>Total de Gastos</h3>
-                    <p id="rTotalGastos">R$ 0,00</p>
+                    <div class="card-header">
+                        <h3>Total de Gastos</h3>
+                        <i class="ph ph-arrow-circle-down"></i>
+                    </div>
+                    <p id="rTotalGastos" style="color: var(--danger);">R$ 0,00</p>
                 </div>
             </div>
 
+            <!-- TABELAS -->
             <section class="relatorio-secao">
                 <h2>Gastos por Categoria</h2>
-                <table class="relatorio-tabela" id="tabelaCategorias">
-                    <thead>
-                        <tr><th>Categoria</th><th>Total</th><th>% do total de gastos</th></tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div style="overflow-x: auto;">
+                    <table class="relatorio-tabela" id="tabelaCategorias">
+                        <thead>
+                            <tr>
+                                <th>Categoria</th>
+                                <th>Total</th>
+                                <th>% do total de gastos</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- O JS vai preencher aqui -->
+                        </tbody>
+                    </table>
+                </div>
             </section>
 
             <section class="relatorio-secao">
-                <h2>Receitas</h2>
-                <table class="relatorio-tabela" id="tabelaReceitasRel">
-                    <thead>
-                        <tr><th>Data</th><th>Descrição</th><th>Valor</th></tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <h2>Extrato de Receitas</h2>
+                <div style="overflow-x: auto;">
+                    <table class="relatorio-tabela" id="tabelaReceitasRel">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- O JS vai preencher aqui -->
+                        </tbody>
+                    </table>
+                </div>
             </section>
 
             <section class="relatorio-secao">
-                <h2>Gastos</h2>
-                <table class="relatorio-tabela" id="tabelaGastosRel">
-                    <thead>
-                        <tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <h2>Extrato de Gastos</h2>
+                <div style="overflow-x: auto;">
+                    <table class="relatorio-tabela" id="tabelaGastosRel">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th>Categoria</th>
+                                <th>Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- O JS vai preencher aqui -->
+                        </tbody>
+                    </table>
+                </div>
             </section>
 
         </div>
-
     </main>
-
 </div>
 
+<!-- Seus scripts mantidos originais -->
 <script type="module" src="../js/relatorio.js"></script>
-
 <script src="./js/sidebar.js"></script>
+
 </body>
 </html>
