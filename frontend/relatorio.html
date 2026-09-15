@@ -1,26 +1,27 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- CORREÇÃO: O type do ícone estava "./img/png", o correto é "image/png" -->
-    <link rel="icon" type="image/png" href="img/LumuzIA.png">
-    <title>Relatório - LumuzIA</title>
 
-    <link rel="stylesheet" href="../css/relatorio.css">
-    <link rel="stylesheet" href="../css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="./img/png" href="img/LumuzIA.png">
+<title>Relatório - LumuzIA</title>
 
-    <!-- jsPDF + AutoTable, usados apenas para montar o PDF no botão "Gerar PDF" -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<link rel="stylesheet" href="../css/relatorio.css">
+<link rel="stylesheet" href="../css/style.css">
+
+<!-- jsPDF + AutoTable, usados apenas para montar o PDF no botão "Gerar PDF" -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
 </head>
 <body>
 
 <div class="container">
 
     <aside class="sidebar">
-        <div class="sidebar-brand" style="display:flex; align-items:center; justify-content:center; margin-bottom:10px;">
-           <img src="img/LumuzIA.png" alt="LumuzIA" style="width:50px; height:50px; border-radius:50%; object-fit:cover;">
+        <div class="sidebar-brand" style="display:flex;align-items:center;justify-content:center;margin-bottom:10px;">
+           <img src="img/LumuzIA.png" alt="LumuzIA" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">
         </div>
         <a href="dashboard.html">Dashboard</a>
         <a href="gastos.html">Gastos</a>
@@ -33,44 +34,30 @@
     </aside>
 
     <main>
+
         <h1>Relatório de Gastos e Receitas</h1>
 
-        <section class="filtro-moderno">
-            <div class="filtro-moderno-header">
-                <i class="ph ph-funnel"></i> Filtrar Relatório
+        <div class="relatorio-toolbar">
+            <div class="relatorio-filtro">
+                <label for="filtroInicio">De</label>
+                <input type="date" id="filtroInicio">
+                <label for="filtroFim">Até</label>
+                <input type="date" id="filtroFim">
+                <button id="btnAplicarFiltro" class="btn-secundario">Aplicar</button>
+                <button id="btnLimparFiltro" class="btn-secundario">Limpar</button>
             </div>
-            
-            <div class="filtro-moderno-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
-                <div class="filtro-moderno-grupo">
-                    <label for="filtroInicio">Data Inicial</label>
-                    <input type="date" id="filtroInicio" class="filtro-moderno-input">
-                </div>
-                
-                <div class="filtro-moderno-grupo">
-                    <label for="filtroFim">Data Final</label>
-                    <input type="date" id="filtroFim" class="filtro-moderno-input">
-                </div>
-            </div>
-            
-            <div class="filtro-moderno-acoes">
-                <button id="btnLimparFiltro" class="filtro-moderno-btn-secundario">
-                    Limpar
-                </button>
-                <button id="btnAplicarFiltro" class="filtro-moderno-btn-primario">
-                    Aplicar Filtros
-                </button>
-                <button id="btnGerarPdf" class="filtro-moderno-btn-primario" style="background: var(--accent); color: var(--bg); margin-left: auto;">
-                    <i class="ph ph-file-pdf"></i> Gerar PDF
-                </button>
-            </div>
-            <div id="relatorioStatus" class="relatorio-status" style="margin-top: 10px;"></div>
-        </section>
+
+            <button id="btnGerarPdf" class="btn-pdf">
+                Gerar PDF
+            </button>
+        </div>
+
+        <div id="relatorioStatus" class="relatorio-status"></div>
 
         <!-- Área que também é usada como referência visual para o cabeçalho do PDF -->
         <div id="relatorioConteudo">
 
-            <!-- CORREÇÃO PRINCIPAL: Havia duas <div class="cards"> abertas em sequência, o que quebrava o layout. Fundi as duas. -->
-            <div class="cards" style="display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 20px;">
+            <div class="cards">
                 <div class="card">
                     <h3>Saldo do Período</h3>
                     <p id="rSaldo">R$ 0,00</p>
@@ -82,10 +69,6 @@
                 <div class="card">
                     <h3>Total de Gastos</h3>
                     <p id="rTotalGastos">R$ 0,00</p>
-                </div>
-                <div class="card">
-                    <h3>Total Investido</h3>
-                    <p id="rTotalInvestido">R$ 0,00</p>
                 </div>
             </div>
 
@@ -119,22 +102,14 @@
                 </table>
             </section>
 
-            <section class="relatorio-secao">
-                <h2>Investimentos Realizados</h2>
-                <table class="relatorio-tabela" id="tabelaInvestimentosRel">
-                    <thead>
-                        <tr><th>Data</th><th>Nome</th><th>Tipo</th><th>Total Investido</th></tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </section>
-
         </div>
+
     </main>
 
 </div>
 
 <script type="module" src="../js/relatorio.js"></script>
+
 <script src="./js/sidebar.js"></script>
 </body>
 </html>
