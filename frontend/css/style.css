@@ -776,7 +776,7 @@ table td:last-child {
     main {
         margin-left: 0 !important;
         padding: 18px;
-        padding-top: 68px;     /* espaço para o botão hamburguer */
+        padding-top: 90px !important; /* espaço para o topbar fixo (68px) + margem (22px) */
     }
 
     main h1 { font-size: 22px; }
@@ -816,6 +816,7 @@ table td:last-child {
 @media (max-width: 420px) {
   main {
     padding: 14px;
+    padding-top: 90px !important;
   }
 
   .card {
