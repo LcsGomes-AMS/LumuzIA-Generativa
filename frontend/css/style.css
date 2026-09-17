@@ -1306,3 +1306,7 @@ table td:last-child {
       display: none !important;
   }
 }
+
+@media (max-width: 420px) { .filtro-moderno-grid { grid-template-columns: 1fr; } }
+
+@media (max-width: 768px) { .filtro-moderno-grupo { grid-column: span 1 !important; } }

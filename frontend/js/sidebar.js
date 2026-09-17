@@ -47,13 +47,31 @@
     overlay.className = 'sidebar-overlay';
     document.body.appendChild(overlay);
 
-    // ─── 5. Padronizar Datas (Hoje) ──────────────────────────────────────────
+    // ─── 5. Padronizar Datas ──────────────────────────────────────────
     document.querySelectorAll('input[type="date"]').forEach(function(input) {
         if (!input.value) {
             var today = new Date();
-            // Ajustar fuso horário local
-            today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
-            input.value = today.toISOString().split('T')[0];
+            var id = (input.id || "").toLowerCase();
+            
+            // Se for data de INÍCIO de filtro (ex: filtroInicio, filtroGastoInicio)
+            if (id.includes('inicio') || id.includes('inicial') || id.includes('min')) {
+                // Setar para o PRIMEIRO dia do mês atual
+                var firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+                firstDay.setMinutes(firstDay.getMinutes() - firstDay.getTimezoneOffset());
+                input.value = firstDay.toISOString().split('T')[0];
+            } 
+            // Se for data FINAL (ex: filtroFim, filtroGastoFim)
+            else if (id.includes('fim') || id.includes('final') || id.includes('max')) {
+                // Setar para o ÚLTIMO dia do mês atual
+                var lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                lastDay.setMinutes(lastDay.getMinutes() - lastDay.getTimezoneOffset());
+                input.value = lastDay.toISOString().split('T')[0];
+            }
+            // Para outros (ex: dataCompra, dataAtual, pcDataPrimeira)
+            else {
+                today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+                input.value = today.toISOString().split('T')[0];
+            }
         }
     });
 
