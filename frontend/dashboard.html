@@ -46,33 +46,29 @@
                 </div>
 
                 <!-- Mês específico -->
-
-                <div id="grupoMes" class="dash-filtro-grupo">
-                    <div class="dash-filtro-item">
-                        <label for="inputMes" class="dash-filtro-mini-label">Mês de referência</label>
-                        <input type="month" id="inputMes" class="dash-filtro-input">
-                    </div>
+                <div id="grupoMes" class="filtro-moderno-grupo">
+                    <label for="inputMes" class="filtro-moderno-label">Mês de referência</label>
+                    <input type="month" id="inputMes" class="filtro-moderno-input">
                 </div>
 
                 <!-- Período -->
-                <div id="grupoPeriodo" class="dash-filtro-grupo dash-filtro-periodo" style="display:none;">
-                    <div class="dash-filtro-item">
-                        <label for="inputMesInicio" class="dash-filtro-mini-label">📅 Mês inicial</label>
-                        <input type="month" id="inputMesInicio" class="dash-filtro-input">
-                    </div>
-                    <span class="dash-filtro-sep">até</span>
-                    <div class="dash-filtro-item">
-                        <label for="inputMesFim" class="dash-filtro-mini-label">📅 Mês final</label>
-                        <input type="month" id="inputMesFim" class="dash-filtro-input">
+                <div id="grupoPeriodo" class="filtro-moderno-grupo" style="display:none; grid-column: span 2;">
+                    <label class="filtro-moderno-label">Período de referência</label>
+                    <div style="display: flex; gap: 10px; align-items: center; width: 100%;">
+                        <div style="flex: 1;">
+                            <input type="month" id="inputMesInicio" class="filtro-moderno-input">
+                        </div>
+                        <span style="color: var(--text-muted); font-size: 13px;">até</span>
+                        <div style="flex: 1;">
+                            <input type="month" id="inputMesFim" class="filtro-moderno-input">
+                        </div>
                     </div>
                 </div>
 
                 <!-- Ano -->
-                <div id="grupoAno" class="dash-filtro-grupo" style="display:none;">
-                    <div class="dash-filtro-item">
-                        <label for="inputAno" class="dash-filtro-mini-label">Ano</label>
-                        <input type="number" id="inputAno" min="2020" max="2099" class="dash-filtro-input dash-filtro-ano">
-                    </div>
+                <div id="grupoAno" class="filtro-moderno-grupo" style="display:none;">
+                    <label for="inputAno" class="filtro-moderno-label">Ano</label>
+                    <input type="number" id="inputAno" min="2020" max="2099" class="filtro-moderno-input">
                 </div>
             </div>
             

@@ -1261,9 +1261,47 @@ table td:last-child {
     object-fit: cover;
 }
 
-/* === AJUSTES DE PERFIL E LOGO MOBILE === */
+/* === AJUSTES DE PERFIL E MOBILE TOPBAR === */
 .lz-card { margin: 0 auto; max-width: 600px; }
-.mobile-logo { display: none; }
+.mobile-topbar { display: none; }
 @media (max-width: 768px) {
-  .mobile-logo { display: block; position: fixed; top: 14px; left: 64px; width: 40px; height: 40px; border-radius: 50%; z-index: 400; object-fit: cover; }
+  .mobile-topbar { 
+      display: flex; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      right: 0; 
+      height: 68px; 
+      background: var(--surface-2); 
+      border-bottom: 1px solid var(--border);
+      z-index: 400; 
+      align-items: center; 
+      padding: 0 16px;
+      gap: 12px;
+  }
+  .hamburger {
+      position: relative !important;
+      top: 0 !important;
+      left: 0 !important;
+      margin: 0 !important;
+  }
+  .mobile-logo {
+      width: 40px; 
+      height: 40px; 
+      border-radius: 50%; 
+      object-fit: cover;
+  }
+  .mobile-title {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+  }
+  .hide-on-mobile {
+      display: none !important;
+  }
 }

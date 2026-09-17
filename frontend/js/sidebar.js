@@ -10,26 +10,42 @@
         }
     });
 
-    // ─── 2. Botão hamburguer (criado dinamicamente) ──────────────────────────
+    // ─── 2. Mobile Topbar (Criado dinamicamente) ─────────────────────────
+    var mobileTopbar = document.createElement('div');
+    mobileTopbar.className = 'mobile-topbar';
+
     var btn = document.createElement('button');
     btn.id = 'hamburger';
     btn.className = 'hamburger';
     btn.setAttribute('aria-label', 'Abrir menu');
     btn.innerHTML = '<span></span><span></span><span></span>';
-    document.body.prepend(btn);
+
+    var mobileLogo = document.createElement('img');
+    mobileLogo.src = 'img/LumuzIA.png';
+    mobileLogo.className = 'mobile-logo';
+    mobileLogo.alt = 'LumuzIA';
+
+    // Tentar pegar o título da página atual
+    var pageTitle = document.createElement('h1');
+    pageTitle.className = 'mobile-title';
+    var mainH1 = document.querySelector('main h1');
+    if (mainH1) {
+        pageTitle.textContent = mainH1.textContent;
+        // Esconder o h1 original no mobile
+        mainH1.classList.add('hide-on-mobile');
+    }
+
+    mobileTopbar.appendChild(btn);
+    mobileTopbar.appendChild(mobileLogo);
+    mobileTopbar.appendChild(pageTitle);
+    
+    document.body.prepend(mobileTopbar);
 
     // ─── 3. Overlay ──────────────────────────────────────────────────────────
     var overlay = document.createElement('div');
     overlay.id = 'sidebar-overlay';
     overlay.className = 'sidebar-overlay';
     document.body.appendChild(overlay);
-
-    // ─── 4. Mobile Logo ──────────────────────────────────────────────────────
-    var mobileLogo = document.createElement('img');
-    mobileLogo.src = 'img/LumuzIA.png';
-    mobileLogo.className = 'mobile-logo';
-    mobileLogo.alt = 'LumuzIA';
-    document.body.prepend(mobileLogo);
 
     // ─── 5. Padronizar Datas (Hoje) ──────────────────────────────────────────
     document.querySelectorAll('input[type="date"]').forEach(function(input) {
