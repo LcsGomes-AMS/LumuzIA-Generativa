@@ -912,7 +912,7 @@ table td:last-child {
   transform: scale(1.08);
 }
 
-<<<<<<< HEAD
+
 /* Filtros das tabelas financeiras */
 .filtro-tabela {
     margin: 20px 0;
@@ -1064,8 +1064,7 @@ table td:last-child {
     padding: 6px 12px;
 }
 
-=======
->>>>>>> c99a77e8aff2d4586ee619cc31ab2ba508b5b252
+
 /* Responsivo filtros tabela */
 @media (max-width: 768px) {
     .filtro-tabela-grid {
