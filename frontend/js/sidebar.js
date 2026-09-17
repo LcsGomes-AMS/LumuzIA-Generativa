@@ -1,4 +1,4 @@
-﻿// sidebar.js — menu hamburguer + active link automático
+// sidebar.js — menu hamburguer + active link automático
 (function () {
 
     // ─── 1. Marca o link ativo com base na URL atual ─────────────────────────
@@ -23,6 +23,23 @@
     overlay.id = 'sidebar-overlay';
     overlay.className = 'sidebar-overlay';
     document.body.appendChild(overlay);
+
+    // ─── 4. Mobile Logo ──────────────────────────────────────────────────────
+    var mobileLogo = document.createElement('img');
+    mobileLogo.src = 'img/LumuzIA.png';
+    mobileLogo.className = 'mobile-logo';
+    mobileLogo.alt = 'LumuzIA';
+    document.body.prepend(mobileLogo);
+
+    // ─── 5. Padronizar Datas (Hoje) ──────────────────────────────────────────
+    document.querySelectorAll('input[type="date"]').forEach(function(input) {
+        if (!input.value) {
+            var today = new Date();
+            // Ajustar fuso horário local
+            today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+            input.value = today.toISOString().split('T')[0];
+        }
+    });
 
     var sidebar = document.querySelector('.sidebar, aside');
     if (!sidebar) return;

@@ -92,11 +92,7 @@ onAuthStateChanged(auth, async (user) => {
   const providerId = user.providerData[0]?.providerId || "password";
   const displayName = user.displayName || "";
 
-  const userRef = doc(db, "usuarios", user.uid);
-  const userSnap = await getDoc(userRef);
-  currentUserData = userSnap.exists() ? userSnap.data() : {};
-
-  renderAvatar(currentUserData.photoURL, displayName, user.email);
+  // Mostrar UI imediatamente com dados do Auth
   nameEl.textContent = displayName || user.email;
   emailEl.textContent = user.email;
   providerEl.textContent = providerLabel(providerId);
@@ -105,8 +101,25 @@ onAuthStateChanged(auth, async (user) => {
     : "-";
   editName.value = displayName;
 
+  // Mostra avatar com iniciais enquanto carrega
+  renderAvatar(user.photoURL, displayName, user.email);
+
   loading.style.display = "none";
   profileBox.style.display = "block";
+
+  // Buscar foto do Firestore em background
+  try {
+    const userRef = doc(db, "usuarios", user.uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+      currentUserData = userSnap.data();
+      if (currentUserData.photoURL) {
+        renderAvatar(currentUserData.photoURL, displayName, user.email);
+      }
+    }
+  } catch (e) {
+    console.error("Erro ao buscar dados adicionais:", e);
+  }
 });
 
 avatarEditBtn.addEventListener("click", () => avatarInput.click());

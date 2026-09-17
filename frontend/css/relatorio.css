@@ -16,7 +16,6 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
-<<<<<<< HEAD
 .relatorio-filtro {
   display: flex;
   align-items: flex-end;
@@ -66,8 +65,6 @@
   align-items: center;
 }
 
-=======
->>>>>>> c99a77e8aff2d4586ee619cc31ab2ba508b5b252
 .btn-secundario {
   background: transparent;
   border: 1px solid var(--border-light);

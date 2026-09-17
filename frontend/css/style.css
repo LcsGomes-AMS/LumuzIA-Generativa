@@ -1062,6 +1062,18 @@ table td:last-child {
 
 =======
 >>>>>>> c99a77e8aff2d4586ee619cc31ab2ba508b5b252
+/* Responsivo filtros tabela */
+@media (max-width: 768px) {
+    .filtro-tabela-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+@media (max-width: 420px) {
+    .filtro-tabela-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ==========================================================================
    12. FILTROS MODERNOS (Dashboard, Gastos, Receitas, Metas, Relatórios)
    ========================================================================== */
@@ -1130,7 +1142,6 @@ table td:last-child {
     align-items: center;
 }
 
-<<<<<<< HEAD
 .dash-filtro-sep {
     color: var(--text-muted);
     font-size: 13px;
@@ -1154,10 +1165,7 @@ table td:last-child {
 }
 
 /* Botão de filtro — override do button { width:100% } global */
-.dash-filtro-btn {
-=======
-.filtro-moderno-btn-primario, .filtro-moderno-btn-secundario {
->>>>>>> c99a77e8aff2d4586ee619cc31ab2ba508b5b252
+.dash-filtro-btn, .filtro-moderno-btn-primario, .filtro-moderno-btn-secundario {
     width: auto !important;
     padding: 10px 20px !important;
     border-radius: 8px !important;
@@ -1248,4 +1256,11 @@ table td:last-child {
     height: 50px !important;
     border-radius: 50% !important;
     object-fit: cover;
+}
+
+/* === AJUSTES DE PERFIL E LOGO MOBILE === */
+.lz-card { margin: 0 auto; max-width: 600px; }
+.mobile-logo { display: none; }
+@media (max-width: 768px) {
+  .mobile-logo { display: block; position: fixed; top: 14px; left: 64px; width: 40px; height: 40px; border-radius: 50%; z-index: 400; object-fit: cover; }
 }
