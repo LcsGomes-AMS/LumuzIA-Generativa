@@ -270,10 +270,6 @@ tbody td[colspan="6"] {
 }
 
 @media (max-width: 900px) {
-  .sidebar,
-  aside {
-    width: 220px;
-  }
   main {
     padding: 25px;
     overflow-x: auto;
@@ -287,39 +283,6 @@ tbody td[colspan="6"] {
 }
 
 @media (max-width: 640px) {
-  body {
-    display: block;
-  }
-  .sidebar,
-  aside {
-    width: 100%;
-    min-height: auto;
-    height: auto;
-    padding: 12px;
-    flex-direction: row;
-    align-items: center;
-    overflow-x: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-    -webkit-overflow-scrolling: touch;
-  }
-  .sidebar-brand {
-    width: auto;
-    margin: 0 12px 0 0 !important;
-    flex-shrink: 0;
-  }
-  .sidebar-brand img {
-    width: 45px !important;
-    height: 45px !important;
-  }
-  .sidebar a,
-  aside a {
-    flex-shrink: 0;
-    margin: 0 4px 0 0;
-    padding: 10px 12px;
-    font-size: 12px;
-    white-space: nowrap;
-  }
   main {
     min-height: calc(100vh - 70px);
     padding: 20px 16px;
@@ -444,11 +407,6 @@ tbody td[colspan="6"] {
   }
   .form {
     padding: 14px;
-  }
-  .sidebar a,
-  aside a {
-    font-size: 11px;
-    padding: 9px 10px;
   }
   tbody td {
     font-size: 12px;
