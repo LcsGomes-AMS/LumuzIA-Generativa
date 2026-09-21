@@ -9,5 +9,8 @@
     "helmet": "^8.3.0",
     "sqlite3": "^6.0.1",
     "yahoo-finance2": "^4.0.2"
+  },
+  "allowScripts": {
+    "sqlite3@6.0.1": true
   }
 }

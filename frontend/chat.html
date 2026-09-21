@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -7,7 +7,10 @@
     <title>Chat IA - LumuzIA</title>
     <link rel="stylesheet" href="./css/style.css">
     <style>
-        .chat-box { display: flex; flex-direction: column; height: 65vh; background: #1e293b; border-radius: 12px; padding: 20px; margin-top: 20px; }
+        .chat-box { display: flex; flex-direction: column; height: 65vh; background: #1e293b; border-radius: 12px; padding: 20px; margin-top: 20px; position: relative; }
+        .chat-header-actions { display: flex; justify-content: flex-start; margin-bottom: 15px; }
+        .chat-header-actions button { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .chat-header-actions button:hover { background: var(--surface-1); }
         .chat-messages { flex: 1; overflow-y: auto; margin-bottom: 20px; padding-right: 10px; display: flex; flex-direction: column; gap: 15px; }
         .message { padding: 12px 16px; border-radius: 8px; max-width: 75%; line-height: 1.5; font-size: 15px; }
         .user-message { background: #3b82f6; align-self: flex-end; color: white; }
@@ -17,9 +20,35 @@
         .chat-input-area button { padding: 0 25px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; }
         .chat-input-area button:hover { background: #059669; }
         .typing { color: #94a3b8; font-style: italic; }
+
+        /* Histórico Sidebar */
+        .chat-history-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; }
+        .chat-history-drawer { position: fixed; top: 0; bottom: 0; left: -300px; width: 280px; background: var(--surface); border-right: 1px solid var(--border); z-index: 501; transition: left 0.3s ease; display: flex; flex-direction: column; padding: 20px; }
+        .chat-history-drawer.open { left: 0; }
+        .chat-history-drawer h2 { font-size: 18px; margin-top: 0; margin-bottom: 20px; color: var(--text); display: flex; justify-content: space-between; align-items: center; }
+        .btn-close-history { background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px; }
+        .btn-nova-conversa { background: #10b981; color: white; border: none; padding: 10px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-bottom: 20px; }
+        .btn-nova-conversa:hover { background: #059669; }
+        .conversa-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .conversa-item { background: var(--surface-2); padding: 12px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; transition: border-color 0.2s; position: relative; }
+        .conversa-item:hover { border-color: var(--accent-1); }
+        .conversa-item.active { border-color: #10b981; background: rgba(16, 185, 129, 0.1); }
+        .conversa-titulo { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; padding-right: 24px; }
+        .conversa-data { font-size: 11px; color: var(--text-muted); }
+        .conversa-item-delete { position: absolute; right: 10px; top: 12px; background: transparent; border: none; color: #ef4444; cursor: pointer; display: none; }
+        .conversa-item:hover .conversa-item-delete { display: block; }
     </style>
 </head>
 <body>
+
+<div class="chat-history-overlay" id="chatHistoryOverlay"></div>
+<div class="chat-history-drawer" id="chatHistoryDrawer">
+    <h2>Histórico <button class="btn-close-history" id="btnCloseHistory">&times;</button></h2>
+    <button class="btn-nova-conversa" id="btnNovaConversa">+ Nova Conversa</button>
+    <div class="conversa-list" id="conversaList">
+        <!-- Lista de conversas injetada via JS -->
+    </div>
+</div>
 
 <div class="container">
         <aside class="sidebar">
@@ -41,6 +70,12 @@
         <p style="color: #94a3b8;">Sua inteligência artificial integrada para análise e dicas financeiras.</p>
 
         <div class="chat-box">
+            <div class="chat-header-actions">
+                <button type="button" id="btnOpenHistory">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+                    Histórico
+                </button>
+            </div>
             <div class="chat-messages" id="chatContainer">
                 <div class="message ai-message">
                     <strong>LumuzIA:</strong> Olá! Analisei o seu banco de dados e estou pronta para te ajudar. Pode me perguntar sobre seus gastos, saldo ou pedir dicas para economizar!

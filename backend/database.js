@@ -141,6 +141,30 @@ db.serialize(() => {
         )
     `, "create agendamentos");
 
+    // Tabela de Conversas do Chat
+    run(`
+        CREATE TABLE IF NOT EXISTS chat_conversas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            titulo TEXT,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+    `, "create chat_conversas");
+
+    // Tabela de Mensagens do Chat
+    run(`
+        CREATE TABLE IF NOT EXISTS chat_mensagens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            conversa_id INTEGER NOT NULL,
+            user_id TEXT NOT NULL,
+            role TEXT NOT NULL,
+            conteudo TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (conversa_id) REFERENCES chat_conversas(id) ON DELETE CASCADE
+        )
+    `, "create chat_mensagens");
+
     // Migração segura: só adiciona data_compra se ainda não existir
     db.all(`PRAGMA table_info(investimentos)`, (err, columns) => {
         if (err) {

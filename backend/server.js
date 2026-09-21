@@ -955,17 +955,88 @@ app.get("/api/investimentos/historico-ativo/:userId/:ticker", async (req, res) =
 });
 
 // =====================
-// IA / OLLAMA
+// IA / OLLAMA E CHAT
 // =====================
+
+app.post("/api/chat/conversas", async (req, res) => {
+    const userId = req.uid;
+    const { titulo } = req.body;
+    try {
+        await dbRun(`INSERT INTO chat_conversas (user_id, titulo) VALUES (?, ?)`, [userId, titulo || "Nova Conversa"]);
+        const row = await dbGet(`SELECT * FROM chat_conversas WHERE user_id = ? ORDER BY id DESC LIMIT 1`, [userId]);
+        res.json({ success: true, conversa: row });
+    } catch (err) {
+        console.error("Erro ao criar conversa:", err);
+        res.status(500).json({ success: false, error: "Erro ao criar conversa." });
+    }
+});
+
+app.get("/api/chat/conversas/:userId", async (req, res) => {
+    if (req.params.userId !== req.uid) {
+        return res.status(403).json({ success: false, error: "Acesso negado." });
+    }
+    try {
+        const rows = await dbAll("SELECT * FROM chat_conversas WHERE user_id = ? ORDER BY id DESC", [req.uid]);
+        res.json(rows);
+    } catch (err) {
+        console.error("Erro ao buscar conversas:", err);
+        res.status(500).json([]);
+    }
+});
+
+app.get("/api/chat/conversas/:userId/:conversaId/mensagens", async (req, res) => {
+    if (req.params.userId !== req.uid) {
+        return res.status(403).json({ success: false, error: "Acesso negado." });
+    }
+    try {
+        const rows = await dbAll(
+            "SELECT * FROM chat_mensagens WHERE conversa_id = ? AND user_id = ? ORDER BY id ASC",
+            [req.params.conversaId, req.uid]
+        );
+        res.json(rows);
+    } catch (err) {
+        console.error("Erro ao buscar mensagens:", err);
+        res.status(500).json([]);
+    }
+});
+
+app.delete("/api/chat/conversas/:userId/:conversaId", async (req, res) => {
+    if (req.params.userId !== req.uid) {
+        return res.status(403).json({ success: false, error: "Acesso negado." });
+    }
+    try {
+        await dbRun("DELETE FROM chat_conversas WHERE id = ? AND user_id = ?", [req.params.conversaId, req.uid]);
+        res.json({ success: true });
+    } catch (err) {
+        console.error("Erro ao deletar conversa:", err);
+        res.status(500).json({ success: false, error: "Erro ao deletar conversa." });
+    }
+});
+
 app.post("/api/ia/chat", async (req, res) => {
     const userId = req.uid;
-    const { prompt, modelo } = req.body;
+    const { prompt, modelo, conversaId } = req.body;
 
     if (!prompt) {
         return res.status(400).json({ success: false, error: "O campo 'prompt' é obrigatório." });
     }
 
     try {
+        // Salvar mensagem do usuário se houver conversa
+        if (conversaId) {
+            await dbRun(
+                `INSERT INTO chat_mensagens (conversa_id, user_id, role, conteudo) VALUES (?, ?, 'user', ?)`,
+                [conversaId, userId, prompt]
+            );
+            
+            // Atualizar o título da conversa se for "Nova Conversa"
+            const conversa = await dbGet(`SELECT titulo FROM chat_conversas WHERE id = ?`, [conversaId]);
+            if (conversa && conversa.titulo === "Nova Conversa") {
+                const novoTitulo = prompt.length > 30 ? prompt.substring(0, 30) + "..." : prompt;
+                await dbRun(`UPDATE chat_conversas SET titulo = ? WHERE id = ?`, [novoTitulo, conversaId]);
+            }
+        }
+
         const resumo = await dbGet(
             `SELECT 
                 (SELECT IFNULL(SUM(valor),0) FROM receitas WHERE user_id = ?) AS receitas,
@@ -987,7 +1058,9 @@ Dados financeiros atuais do usuário:
 
         const baseUrl = (process.env.OLLAMA_URL || "https://ra.projetoscti.com.br/2557068").replace(/\/$/, "");
         
-        // Chamada enviando action = 'generate' exigida pelo PHP
+        // Buscar histórico da conversa para o LLM ter contexto (se aplicável ao provedor, mas a API atual não aceita array de mensagens no PHP?
+        // Como o PHP espera apenas 'prompt', mandaremos o prompt atual e não o histórico inteiro na chamada.
+        
         const response = await axios.post(
             `${baseUrl}/index.php`,
             {
@@ -1000,16 +1073,22 @@ Dados financeiros atuais do usuário:
             {
                 headers: { "Content-Type": "application/json" },
                 httpsAgent,
-                timeout: 120000 // Aumentado para 120s para acompanhar o tempo de resposta do PHP/Ollama
+                timeout: 120000 
             }
         );
 
-        // O PHP retorna a resposta dentro do campo 'resposta'
         if (response.data?.success) {
-            return res.json({ success: true, resposta: response.data.resposta });
+            const respostaIA = response.data.resposta;
+            // Salvar resposta da IA
+            if (conversaId) {
+                await dbRun(
+                    `INSERT INTO chat_mensagens (conversa_id, user_id, role, conteudo) VALUES (?, ?, 'assistant', ?)`,
+                    [conversaId, userId, respostaIA]
+                );
+            }
+            return res.json({ success: true, resposta: respostaIA });
         }
 
-        // Se o PHP retornar erro (ex: Ollama offline)
         return res.status(500).json({ 
             success: false, 
             error: response.data?.error || "Erro ao obter resposta da IA." 
