@@ -166,13 +166,15 @@
             <h2>Calendario de Agendamentos</h2>
             <p style="color:#8FA1A3;">Marque uma meta, gasto ou receita para uma data futura (qualquer ano). Quando o dia chegar, ela é lançada automaticamente.</p>
 
-            <div class="calendario-header" style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:15px; flex-wrap:wrap;">
-                <button id="calMesAnterior" type="button" class="cal-nav-btn">&lt;</button>
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <select id="calSelectMes"></select>
-                    <select id="calSelectAno"></select>
+            <div class="calendario-header">
+                <div class="calendario-nav-grupo">
+                    <button id="calMesAnterior" type="button" class="cal-nav-btn">&lt;</button>
+                    <button id="calMesProximo" type="button" class="cal-nav-btn">&gt;</button>
+                    <div class="calendario-selects">
+                        <select id="calSelectMes"></select>
+                        <select id="calSelectAno"></select>
+                    </div>
                 </div>
-                <button id="calMesProximo" type="button" class="cal-nav-btn">&gt;</button>
                 <button id="calHoje" type="button" class="cal-nav-btn">Hoje</button>
             </div>
 
