@@ -28,10 +28,13 @@ async function salvarMeta() {
     const data = await res.json();
 
     if (data.success) {
+        alert("Meta salva com sucesso!");
         carregarMetas();
         document.getElementById("nome").value = "";
         document.getElementById("valorObjetivo").value = "";
         document.getElementById("prazo").value = "";
+    } else {
+        alert("Erro ao salvar meta: " + (data.error || "Desconhecido"));
     }
 }
 

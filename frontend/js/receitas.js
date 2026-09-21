@@ -31,11 +31,16 @@ async function salvarReceita() {
         });
 
         if (!res.ok) throw new Error(`Erro no servidor: ${res.status}`);
-        await res.json();
-
-        descricaoInput.value = "";
-        valorInput.value = "";
-        carregarReceitas();
+        const data = await res.json();
+        
+        if (data.success) {
+            alert("Receita salva com sucesso!");
+            descricaoInput.value = "";
+            valorInput.value = "";
+            carregarReceitas();
+        } else {
+            alert("Erro ao salvar receita: " + (data.error || "Erro desconhecido"));
+        }
     } catch (erro) {
         console.error("Falha ao salvar receita:", erro);
         alert("Não foi possível salvar a receita. Verifique se o servidor está rodando.");

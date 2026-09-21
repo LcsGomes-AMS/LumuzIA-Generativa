@@ -25,9 +25,12 @@ async function salvarGasto() {
     const data = await res.json();
 
     if (data.success) {
+        alert("Gasto salvo com sucesso!");
         carregarGastos();
         document.getElementById("descricao").value = "";
         document.getElementById("valor").value = "";
+    } else {
+        alert("Erro ao salvar gasto: " + (data.error || "Desconhecido"));
     }
 }
 
