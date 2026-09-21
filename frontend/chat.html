@@ -33,10 +33,10 @@
         .conversa-item { background: var(--surface-2); padding: 12px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; transition: border-color 0.2s; position: relative; }
         .conversa-item:hover { border-color: var(--accent-1); }
         .conversa-item.active { border-color: #10b981; background: rgba(16, 185, 129, 0.1); }
-        .conversa-titulo { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; padding-right: 24px; }
+        .conversa-titulo { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; padding-right: 28px; }
         .conversa-data { font-size: 11px; color: var(--text-muted); }
-        .conversa-item-delete { position: absolute; right: 10px; top: 12px; background: transparent; border: none; color: #ef4444; cursor: pointer; display: none; }
-        .conversa-item:hover .conversa-item-delete { display: block; }
+        .conversa-item-delete { position: absolute; right: 6px; top: 8px; background: transparent; border: none; color: #ef4444; cursor: pointer; display: block; opacity: 0.6; font-size: 18px; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 4px; transition: all 0.2s; }
+        .conversa-item-delete:hover { opacity: 1; background: rgba(239, 68, 68, 0.15); }
     </style>
 </head>
 <body>

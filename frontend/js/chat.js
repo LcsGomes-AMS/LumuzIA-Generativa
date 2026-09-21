@@ -102,14 +102,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 <button class="conversa-item-delete" title="Excluir Conversa">&times;</button>
             `;
 
-            div.addEventListener("click", (e) => {
-                if (e.target.classList.contains('conversa-item-delete')) {
-                    deletarConversa(conv.id);
-                    return;
-                }
+            div.addEventListener("click", () => {
                 carregarMensagens(conv.id);
                 fecharHistorico();
             });
+
+            const btnDel = div.querySelector('.conversa-item-delete');
+            if (btnDel) {
+                btnDel.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    deletarConversa(conv.id);
+                });
+            }
 
             conversaList.appendChild(div);
         });
