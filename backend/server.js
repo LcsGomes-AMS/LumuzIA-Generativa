@@ -962,6 +962,7 @@ app.post("/api/chat/conversas", async (req, res) => {
     const userId = req.uid;
     const { titulo } = req.body;
     try {
+        await garantirUsuarioExiste(userId);
         await dbRun(`INSERT INTO chat_conversas (user_id, titulo) VALUES (?, ?)`, [userId, titulo || "Nova Conversa"]);
         const row = await dbGet(`SELECT * FROM chat_conversas WHERE user_id = ? ORDER BY id DESC LIMIT 1`, [userId]);
         res.json({ success: true, conversa: row });
@@ -1022,6 +1023,7 @@ app.post("/api/ia/chat", async (req, res) => {
     }
 
     try {
+        await garantirUsuarioExiste(userId);
         // Salvar mensagem do usuário se houver conversa
         if (conversaId) {
             await dbRun(
