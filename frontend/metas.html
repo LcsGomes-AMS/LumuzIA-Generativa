@@ -168,46 +168,46 @@
 
 
 
-        <section class="filtro-tabela">
-            <div class="filtro-tabela-topo">
-                <h3 class="filtro-tabela-titulo">🔍 Filtrar Metas</h3>
+        <section class="filtro-moderno">
+            <div class="filtro-moderno-header">
+                🔍 Filtrar Metas
             </div>
-            <div class="filtro-tabela-grid">
-                <div class="filtro-campo">
+            <div class="filtro-moderno-grid">
+                <div class="filtro-moderno-grupo">
                     <label for="filtroMetaNome">Nome da Meta</label>
-                    <input id="filtroMetaNome" type="text" placeholder="Buscar por nome...">
+                    <input id="filtroMetaNome" type="text" class="filtro-moderno-input" placeholder="Buscar por nome...">
                 </div>
-                <div class="filtro-campo">
-                    <label for="filtroMetaMin">Objetivo Mínimo (R$)</label>
-                    <input id="filtroMetaMin" type="number" step="0.01" min="0" placeholder="0,00">
+                <div class="filtro-moderno-grupo">
+                    <label for="filtroMetaMin">Objetivo Mín. (R$)</label>
+                    <input id="filtroMetaMin" type="number" step="0.01" min="0" class="filtro-moderno-input" placeholder="0,00">
                 </div>
-                <div class="filtro-campo">
-                    <label for="filtroMetaMax">Objetivo Máximo (R$)</label>
-                    <input id="filtroMetaMax" type="number" step="0.01" min="0" placeholder="Sem limite">
+                <div class="filtro-moderno-grupo">
+                    <label for="filtroMetaMax">Objetivo Máx. (R$)</label>
+                    <input id="filtroMetaMax" type="number" step="0.01" min="0" class="filtro-moderno-input" placeholder="Sem limite">
                 </div>
-                <div class="filtro-campo">
+                <div class="filtro-moderno-grupo">
                     <label for="filtroMetaPrazoMin">Prazo Mín. (meses)</label>
-                    <input id="filtroMetaPrazoMin" type="number" min="1" placeholder="1">
+                    <input id="filtroMetaPrazoMin" type="number" min="1" class="filtro-moderno-input" placeholder="1">
                 </div>
-                <div class="filtro-campo">
+                <div class="filtro-moderno-grupo">
                     <label for="filtroMetaPrazoMax">Prazo Máx. (meses)</label>
-                    <input id="filtroMetaPrazoMax" type="number" min="1" placeholder="Sem limite">
+                    <input id="filtroMetaPrazoMax" type="number" min="1" class="filtro-moderno-input" placeholder="Sem limite">
                 </div>
-                <div class="filtro-campo">
-                    <label for="filtroMetaInicio" class="filtro-label-destaque">📅 Data Inicial</label>
-                    <input id="filtroMetaInicio" type="date">
+                <div class="filtro-moderno-grupo">
+                    <label for="filtroMetaInicio">📅 Data Inicial</label>
+                    <input id="filtroMetaInicio" type="date" class="filtro-moderno-input">
                 </div>
-                <div class="filtro-campo">
-                    <label for="filtroMetaFim" class="filtro-label-destaque">📅 Data Final</label>
-                    <input id="filtroMetaFim" type="date">
+                <div class="filtro-moderno-grupo">
+                    <label for="filtroMetaFim">📅 Data Final</label>
+                    <input id="filtroMetaFim" type="date" class="filtro-moderno-input">
                 </div>
             </div>
-            <div id="filtroMetaErro" class="filtro-aviso-erro"></div>
-            <div class="filtro-acoes">
-                <button class="btn-filtrar" type="button" onclick="filtrarMetas()">Filtrar</button>
-                <button class="btn-limpar" type="button" onclick="limparFiltroMetas()">Limpar filtros</button>
+            <div id="filtroMetaErro" class="filtro-aviso-erro" style="margin-top: 10px;"></div>
+            <div class="filtro-moderno-acoes">
+                <button class="filtro-moderno-btn-primario" type="button" onclick="filtrarMetas()">Filtrar</button>
+                <button class="filtro-moderno-btn-secundario" type="button" onclick="limparFiltroMetas()">Limpar filtros</button>
+                <span id="contagemMetas" class="filtro-moderno-contagem"></span>
             </div>
-            <div id="contagemMetas" class="filtro-contagem"></div>
         </section>
 
         <div class="table-wrap">

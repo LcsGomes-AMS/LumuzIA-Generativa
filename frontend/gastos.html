@@ -64,18 +64,18 @@
         </div>
 
 
-        <section class="filtro-tabela">
-            <div class="filtro-tabela-topo">
-                <h3 class="filtro-tabela-titulo">🔍 Filtrar Gastos</h3>
+        <section class="filtro-moderno">
+            <div class="filtro-moderno-header">
+                🔍 Filtrar Gastos
             </div>
-            <div class="filtro-tabela-grid">
-                <div class="filtro-campo">
+            <div class="filtro-moderno-grid">
+                <div class="filtro-moderno-grupo">
                     <label for="filtroGastoDescricao">Descrição</label>
-                    <input id="filtroGastoDescricao" type="text" placeholder="Buscar por descrição...">
+                    <input id="filtroGastoDescricao" type="text" class="filtro-moderno-input" placeholder="Buscar por descrição...">
                 </div>
-                <div class="filtro-campo">
+                <div class="filtro-moderno-grupo">
                     <label for="filtroGastoCategoria">Categoria</label>
-                    <select id="filtroGastoCategoria">
+                    <select id="filtroGastoCategoria" class="filtro-moderno-select">
                         <option value="">Todas as categorias</option>
                         <option>Alimentação</option>
                         <option>Transporte</option>
@@ -86,29 +86,29 @@
                         <option>Outros</option>
                     </select>
                 </div>
-                <div class="filtro-campo">
+                <div class="filtro-moderno-grupo">
                     <label for="filtroGastoMin">Valor Mínimo (R$)</label>
-                    <input id="filtroGastoMin" type="number" step="0.01" min="0" placeholder="0,00">
+                    <input id="filtroGastoMin" type="number" step="0.01" min="0" class="filtro-moderno-input" placeholder="0,00">
                 </div>
-                <div class="filtro-campo">
+                <div class="filtro-moderno-grupo">
                     <label for="filtroGastoMax">Valor Máximo (R$)</label>
-                    <input id="filtroGastoMax" type="number" step="0.01" min="0" placeholder="Sem limite">
+                    <input id="filtroGastoMax" type="number" step="0.01" min="0" class="filtro-moderno-input" placeholder="Sem limite">
                 </div>
-                <div class="filtro-campo">
-                    <label for="filtroGastoInicio" class="filtro-label-destaque">📅 Data Inicial</label>
-                    <input id="filtroGastoInicio" type="date">
+                <div class="filtro-moderno-grupo">
+                    <label for="filtroGastoInicio">📅 Data Inicial</label>
+                    <input id="filtroGastoInicio" type="date" class="filtro-moderno-input">
                 </div>
-                <div class="filtro-campo">
-                    <label for="filtroGastoFim" class="filtro-label-destaque">📅 Data Final</label>
-                    <input id="filtroGastoFim" type="date">
+                <div class="filtro-moderno-grupo">
+                    <label for="filtroGastoFim">📅 Data Final</label>
+                    <input id="filtroGastoFim" type="date" class="filtro-moderno-input">
                 </div>
             </div>
-            <div id="filtroGastoErro" class="filtro-aviso-erro"></div>
-            <div class="filtro-acoes">
-                <button class="btn-filtrar" type="button" onclick="filtrarGastos()">Filtrar</button>
-                <button class="btn-limpar" type="button" onclick="limparFiltroGastos()">Limpar filtros</button>
+            <div id="filtroGastoErro" class="filtro-aviso-erro" style="margin-top: 10px;"></div>
+            <div class="filtro-moderno-acoes">
+                <button class="filtro-moderno-btn-primario" type="button" onclick="filtrarGastos()">Filtrar</button>
+                <button class="filtro-moderno-btn-secundario" type="button" onclick="limparFiltroGastos()">Limpar filtros</button>
+                <span id="contagemGastos" class="filtro-moderno-contagem"></span>
             </div>
-            <div id="contagemGastos" class="filtro-contagem"></div>
         </section>
 
         <table>

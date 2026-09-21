@@ -110,11 +110,12 @@ table {
 }
 
 thead th {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   padding: 15px 16px;
   white-space: nowrap;
+  color: var(--text-muted);
 }
 
 tbody td {

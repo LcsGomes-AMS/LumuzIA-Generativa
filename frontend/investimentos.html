@@ -77,55 +77,55 @@
     </div>
 </div>
 
-        <section class="filtro-tabela" style="margin-top:30px;">
-            <div class="filtro-tabela-topo">
-                <h3 class="filtro-tabela-titulo">🔍 Filtrar Investimentos</h3>
+        <section class="filtro-moderno" style="margin-top:30px;">
+            <div class="filtro-moderno-header">
+                🔍 Filtrar Investimentos
             </div>
-            <div class="filtro-tabela-grid">
-                <div class="filtro-campo">
+            <div class="filtro-moderno-grid">
+                <div class="filtro-moderno-grupo">
                     <label for="filtroInvTicker">Ativo / Ticker</label>
-                    <input id="filtroInvTicker" type="text" placeholder="Ex: PETR4, BTC...">
+                    <input id="filtroInvTicker" type="text" class="filtro-moderno-input" placeholder="Ex: PETR4, BTC...">
                 </div>
-                <div class="filtro-campo">
+                <div class="filtro-moderno-grupo">
                     <label for="filtroInvTipo">Tipo de Ativo</label>
-                    <select id="filtroInvTipo">
+                    <select id="filtroInvTipo" class="filtro-moderno-select">
                         <option value="">Todos os tipos</option>
                         <option value="Ação">Ação</option>
                         <option value="FII">Fundo Imobiliário (FII)</option>
                         <option value="Cripto">Criptomoeda</option>
                     </select>
                 </div>
-                <div class="filtro-campo">
+                <div class="filtro-moderno-grupo">
                     <label for="filtroInvQtdMin">Qtd. Mínima</label>
-                    <input id="filtroInvQtdMin" type="number" step="0.00000001" min="0" placeholder="0">
+                    <input id="filtroInvQtdMin" type="number" step="0.00000001" min="0" class="filtro-moderno-input" placeholder="0">
                 </div>
-                <div class="filtro-campo">
+                <div class="filtro-moderno-grupo">
                     <label for="filtroInvQtdMax">Qtd. Máxima</label>
-                    <input id="filtroInvQtdMax" type="number" step="0.00000001" min="0" placeholder="Sem limite">
+                    <input id="filtroInvQtdMax" type="number" step="0.00000001" min="0" class="filtro-moderno-input" placeholder="Sem limite">
                 </div>
-                <div class="filtro-campo">
+                <div class="filtro-moderno-grupo">
                     <label for="filtroInvPrecoMin">Preço Médio Mín. (R$)</label>
-                    <input id="filtroInvPrecoMin" type="number" step="0.01" min="0" placeholder="0,00">
+                    <input id="filtroInvPrecoMin" type="number" step="0.01" min="0" class="filtro-moderno-input" placeholder="0,00">
                 </div>
-                <div class="filtro-campo">
+                <div class="filtro-moderno-grupo">
                     <label for="filtroInvPrecoMax">Preço Médio Máx. (R$)</label>
-                    <input id="filtroInvPrecoMax" type="number" step="0.01" min="0" placeholder="Sem limite">
+                    <input id="filtroInvPrecoMax" type="number" step="0.01" min="0" class="filtro-moderno-input" placeholder="Sem limite">
                 </div>
-                <div class="filtro-campo">
-                    <label for="filtroInvInicio" class="filtro-label-destaque">📅 Data Inicial</label>
-                    <input id="filtroInvInicio" type="date">
+                <div class="filtro-moderno-grupo">
+                    <label for="filtroInvInicio">📅 Data Inicial</label>
+                    <input id="filtroInvInicio" type="date" class="filtro-moderno-input">
                 </div>
-                <div class="filtro-campo">
-                    <label for="filtroInvFim" class="filtro-label-destaque">📅 Data Final</label>
-                    <input id="filtroInvFim" type="date">
+                <div class="filtro-moderno-grupo">
+                    <label for="filtroInvFim">📅 Data Final</label>
+                    <input id="filtroInvFim" type="date" class="filtro-moderno-input">
                 </div>
             </div>
-            <div id="filtroInvErro" class="filtro-aviso-erro"></div>
-            <div class="filtro-acoes">
-                <button class="btn-filtrar" type="button" onclick="filtrarInvestimentos()">Filtrar</button>
-                <button class="btn-limpar" type="button" onclick="limparFiltroInvestimentos()">Limpar filtros</button>
+            <div id="filtroInvErro" class="filtro-aviso-erro" style="margin-top: 10px;"></div>
+            <div class="filtro-moderno-acoes">
+                <button class="filtro-moderno-btn-primario" type="button" onclick="filtrarInvestimentos()">Filtrar</button>
+                <button class="filtro-moderno-btn-secundario" type="button" onclick="limparFiltroInvestimentos()">Limpar filtros</button>
+                <span id="contagemInvestimentos" class="filtro-moderno-contagem"></span>
             </div>
-            <div id="contagemInvestimentos" class="filtro-contagem"></div>
         </section>
 
         <!-- Tabela Dinâmica de Ativos -->

@@ -38,38 +38,38 @@
 
 
 
-                <section class="filtro-tabela">
-                    <div class="filtro-tabela-topo">
-                        <h3 class="filtro-tabela-titulo">🔍 Filtrar Receitas</h3>
+                <section class="filtro-moderno">
+                    <div class="filtro-moderno-header">
+                        🔍 Filtrar Receitas
                     </div>
-                    <div class="filtro-tabela-grid">
-                        <div class="filtro-campo">
+                    <div class="filtro-moderno-grid">
+                        <div class="filtro-moderno-grupo">
                             <label for="filtroReceitaDescricao">Descrição</label>
-                            <input id="filtroReceitaDescricao" type="text" placeholder="Buscar por descrição...">
+                            <input id="filtroReceitaDescricao" type="text" class="filtro-moderno-input" placeholder="Buscar por descrição...">
                         </div>
-                        <div class="filtro-campo">
+                        <div class="filtro-moderno-grupo">
                             <label for="filtroReceitaMin">Valor Mínimo (R$)</label>
-                            <input id="filtroReceitaMin" type="number" step="0.01" min="0" placeholder="0,00">
+                            <input id="filtroReceitaMin" type="number" step="0.01" min="0" class="filtro-moderno-input" placeholder="0,00">
                         </div>
-                        <div class="filtro-campo">
+                        <div class="filtro-moderno-grupo">
                             <label for="filtroReceitaMax">Valor Máximo (R$)</label>
-                            <input id="filtroReceitaMax" type="number" step="0.01" min="0" placeholder="Sem limite">
+                            <input id="filtroReceitaMax" type="number" step="0.01" min="0" class="filtro-moderno-input" placeholder="Sem limite">
                         </div>
-                        <div class="filtro-campo">
-                            <label for="filtroReceitaInicio" class="filtro-label-destaque">📅 Data Inicial</label>
-                            <input id="filtroReceitaInicio" type="date">
+                        <div class="filtro-moderno-grupo">
+                            <label for="filtroReceitaInicio">📅 Data Inicial</label>
+                            <input id="filtroReceitaInicio" type="date" class="filtro-moderno-input">
                         </div>
-                        <div class="filtro-campo">
-                            <label for="filtroReceitaFim" class="filtro-label-destaque">📅 Data Final</label>
-                            <input id="filtroReceitaFim" type="date">
+                        <div class="filtro-moderno-grupo">
+                            <label for="filtroReceitaFim">📅 Data Final</label>
+                            <input id="filtroReceitaFim" type="date" class="filtro-moderno-input">
                         </div>
                     </div>
-                    <div id="filtroReceitaErro" class="filtro-aviso-erro"></div>
-                    <div class="filtro-acoes">
-                        <button class="btn-filtrar" type="button" onclick="filtrarReceitas()">Filtrar</button>
-                        <button class="btn-limpar" type="button" onclick="limparFiltroReceitas()">Limpar filtros</button>
+                    <div id="filtroReceitaErro" class="filtro-aviso-erro" style="margin-top: 10px;"></div>
+                    <div class="filtro-moderno-acoes">
+                        <button class="filtro-moderno-btn-primario" type="button" onclick="filtrarReceitas()">Filtrar</button>
+                        <button class="filtro-moderno-btn-secundario" type="button" onclick="limparFiltroReceitas()">Limpar filtros</button>
+                        <span id="contagemReceitas" class="filtro-moderno-contagem"></span>
                     </div>
-                    <div id="contagemReceitas" class="filtro-contagem"></div>
                 </section>
 
                 <table>
