@@ -49,25 +49,31 @@ app.use(express.urlencoded({ extended: true, limit: "200kb" }));
 // Servir arquivos estáticos do frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
 
-// Helper: Promisify para consultas SQLite
-const dbRun = (sql, params = []) => new Promise((resolve, reject) => {
-    db.run(sql, params, function (err) {
-        if (err) reject(err); else resolve(this);
-    });
-});
+const dbRun = async (sql, params = []) => {
+    if (sql.trim().toUpperCase().startsWith("INSERT") && !sql.toUpperCase().includes("RETURNING") && !sql.toUpperCase().includes("ON CONFLICT")) {
+        sql += " RETURNING id";
+    }
+    const res = await db.query(sql, params);
+    return {
+        changes: res.rowCount,
+        lastID: res.rows && res.rows.length > 0 ? res.rows[0].id : null
+    };
+};
 
-const dbGet = (sql, params = []) => new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => err ? reject(err) : resolve(row));
-});
+const dbGet = async (sql, params = []) => {
+    const res = await db.query(sql, params);
+    return res.rows[0];
+};
 
-const dbAll = (sql, params = []) => new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => err ? reject(err) : resolve(rows));
-});
+const dbAll = async (sql, params = []) => {
+    const res = await db.query(sql, params);
+    return res.rows;
+};
 
 // Helper para evitar violações de chave estrangeira ao cadastrar dados
 async function garantirUsuarioExiste(userId) {
     if (!userId) return;
-    await dbRun(`INSERT OR IGNORE INTO users (id) VALUES (?)`, [userId]);
+    await dbRun(`INSERT INTO users (id) VALUES (?) ON CONFLICT DO NOTHING`, [userId]);
 }
 
 // Lança automaticamente na tabela certa (gastos/receitas/metas) todo
@@ -460,13 +466,13 @@ app.get("/estatisticas/:userId", async (req, res) => {
     let params = [req.uid];
 
     if (ano) {
-        filtro = `AND strftime('%Y', created_at) = ?`;
+        filtro = `AND to_char(created_at, 'YYYY') = ?`;
         params = [req.uid, String(ano)];
     } else if (mesInicio && mesFim) {
-        filtro = `AND strftime('%Y-%m', created_at) >= ? AND strftime('%Y-%m', created_at) <= ?`;
+        filtro = `AND to_char(created_at, 'YYYY-MM') >= ? AND to_char(created_at, 'YYYY-MM') <= ?`;
         params = [req.uid, mesInicio, mesFim];
     } else {
-        filtro = `AND strftime('%Y-%m', created_at) = ?`;
+        filtro = `AND to_char(created_at, 'YYYY-MM') = ?`;
         params = [req.uid, mes || mesAtual];
     }
 
@@ -563,11 +569,11 @@ app.get("/metas/estimativa/:userId", async (req, res) => {
     }
     try {
         const receitasPorMes = await dbAll(
-            `SELECT strftime('%Y-%m', created_at) AS mes, SUM(valor) AS total FROM receitas WHERE user_id = ? GROUP BY mes`,
+            `SELECT to_char(created_at, 'YYYY-MM') AS mes, SUM(valor) AS total FROM receitas WHERE user_id = ? GROUP BY mes`,
             [req.uid]
         );
         const gastosPorMes = await dbAll(
-            `SELECT strftime('%Y-%m', created_at) AS mes, SUM(valor) AS total FROM gastos WHERE user_id = ? GROUP BY mes`,
+            `SELECT to_char(created_at, 'YYYY-MM') AS mes, SUM(valor) AS total FROM gastos WHERE user_id = ? GROUP BY mes`,
             [req.uid]
         );
 
@@ -1041,8 +1047,8 @@ app.post("/api/ia/chat", async (req, res) => {
 
         const resumo = await dbGet(
             `SELECT 
-                (SELECT IFNULL(SUM(valor),0) FROM receitas WHERE user_id = ?) AS receitas,
-                (SELECT IFNULL(SUM(valor),0) FROM gastos WHERE user_id = ?) AS gastos`,
+                (SELECT COALESCE(SUM(valor),0) FROM receitas WHERE user_id = ?) AS receitas,
+                (SELECT COALESCE(SUM(valor),0) FROM gastos WHERE user_id = ?) AS gastos`,
             [userId, userId]
         );
 
@@ -1130,19 +1136,19 @@ app.get("/dashboard/:userId", async (req, res) => {
 
     if (ano) {
         // Ano inteiro
-        filtroReceitas = `AND strftime('%Y', created_at) = ?`;
-        filtroGastos   = `AND strftime('%Y', created_at) = ?`;
+        filtroReceitas = `AND to_char(created_at, 'YYYY') = ?`;
+        filtroGastos   = `AND to_char(created_at, 'YYYY') = ?`;
         params = [userId, String(ano)];
     } else if (mesInicio && mesFim) {
         // Período (conjunto de meses)
-        filtroReceitas = `AND strftime('%Y-%m', created_at) >= ? AND strftime('%Y-%m', created_at) <= ?`;
-        filtroGastos   = `AND strftime('%Y-%m', created_at) >= ? AND strftime('%Y-%m', created_at) <= ?`;
+        filtroReceitas = `AND to_char(created_at, 'YYYY-MM') >= ? AND to_char(created_at, 'YYYY-MM') <= ?`;
+        filtroGastos   = `AND to_char(created_at, 'YYYY-MM') >= ? AND to_char(created_at, 'YYYY-MM') <= ?`;
         params = [userId, mesInicio, mesFim];
     } else {
         // Mês específico ou mês atual
         const mesFiltro = mes || mesAtual;
-        filtroReceitas = `AND strftime('%Y-%m', created_at) = ?`;
-        filtroGastos   = `AND strftime('%Y-%m', created_at) = ?`;
+        filtroReceitas = `AND to_char(created_at, 'YYYY-MM') = ?`;
+        filtroGastos   = `AND to_char(created_at, 'YYYY-MM') = ?`;
         params = [userId, mesFiltro];
     }
 
@@ -1150,11 +1156,11 @@ app.get("/dashboard/:userId", async (req, res) => {
         const user = await dbGet("SELECT * FROM users WHERE id = ?", [userId]);
 
         const totalReceitasRow = await dbGet(
-            `SELECT IFNULL(SUM(valor), 0) AS total FROM receitas WHERE user_id = ? ${filtroReceitas}`,
+            `SELECT COALESCE(SUM(valor), 0) AS total FROM receitas WHERE user_id = ? ${filtroReceitas}`,
             params
         );
         const totalGastosRow = await dbGet(
-            `SELECT IFNULL(SUM(valor), 0) AS total FROM gastos WHERE user_id = ? ${filtroGastos}`,
+            `SELECT COALESCE(SUM(valor), 0) AS total FROM gastos WHERE user_id = ? ${filtroGastos}`,
             params
         );
 
