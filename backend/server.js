@@ -1067,15 +1067,17 @@ Dados financeiros atuais do usuário:
             `${baseUrl}/index.php`,
             {
                 action: "generate",
-                model: modelo || "qwen2.5:3b",
+                model: modelo || process.env.OLLAMA_MODEL || "llama3.2:1b",
                 prompt: prompt,
                 system: systemPrompt,
-                stream: false
+                stream: false,
+                auto_clean: true,
+                max_memory_percent: 70
             },
             {
                 headers: { "Content-Type": "application/json" },
                 httpsAgent,
-                timeout: 120000 
+                timeout: 190000 // 3 minutos e 10 segundos (margem de segurança para o timeout de 180s do servidor)
             }
         );
 
