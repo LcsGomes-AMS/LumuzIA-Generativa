@@ -25,7 +25,6 @@ async function salvarGasto() {
     const data = await res.json();
 
     if (data.success) {
-        alert("Gasto salvo com sucesso!");
         carregarGastos();
         document.getElementById("descricao").value = "";
         document.getElementById("valor").value = "";
@@ -222,7 +221,6 @@ async function salvarParcelamento() {
         document.getElementById("pcParcelas").value = "";
         document.getElementById("pcDataPrimeira").value = "";
 
-        alert(`Compra parcelada em ${numParcelas}x criada com sucesso!`);
         carregarParcelas();
         carregarAgendamentos();
     } catch (err) {

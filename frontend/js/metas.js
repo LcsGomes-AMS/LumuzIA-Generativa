@@ -28,7 +28,6 @@ async function salvarMeta() {
     const data = await res.json();
 
     if (data.success) {
-        alert("Meta salva com sucesso!");
         carregarMetas();
         document.getElementById("nome").value = "";
         document.getElementById("valorObjetivo").value = "";

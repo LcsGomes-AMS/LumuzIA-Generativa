@@ -34,7 +34,6 @@ async function salvarReceita() {
         const data = await res.json();
         
         if (data.success) {
-            alert("Receita salva com sucesso!");
             descricaoInput.value = "";
             valorInput.value = "";
             carregarReceitas();
