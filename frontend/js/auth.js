@@ -192,6 +192,6 @@ if (forgotForm) {
 // =====================
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        window.location.href = "./como-usar.html";
+        window.location.href = "../como-usar.html";
     }
 });
