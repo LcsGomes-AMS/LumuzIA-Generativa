@@ -128,7 +128,7 @@ if (googleBtn) {
         try {
             const provider = new GoogleAuthProvider();
             await signInWithPopup(auth, provider);
-            window.location.href = "./dashboard.html";
+            window.location.href = "./como-usar.html";
         } catch (err) {
             console.error(err);
             mostrarMensagem(traduzirErroFirebase(err), "error");
