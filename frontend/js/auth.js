@@ -108,7 +108,7 @@ authForm.addEventListener("submit", async (e) => {
             await signInWithEmailAndPassword(auth, email, password);
         }
 
-        window.location.href = "./dashboard.html";
+        window.location.href = "./como-usar.html";
     } catch (err) {
         console.error(err);
         mostrarMensagem(traduzirErroFirebase(err), "error");
@@ -192,6 +192,6 @@ if (forgotForm) {
 // =====================
 onAuthStateChanged(auth, (user) => {
     if (user) {
-        window.location.href = "../como-usar.html";
+        window.location.href = "./como-usar.html";
     }
 });
