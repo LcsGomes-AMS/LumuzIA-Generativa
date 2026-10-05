@@ -307,6 +307,33 @@ app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "../frontend/dashboard.html"));
 });
 
+// Endpoint público de diagnóstico de banco de dados e persistência (permite verificar se o Neon está ativo no Render)
+app.get("/api/db-status", async (req, res) => {
+    try {
+        const userCount = await dbGet("SELECT COUNT(*) AS total FROM users");
+        const receitaCount = await dbGet("SELECT COUNT(*) AS total FROM receitas");
+        const gastoCount = await dbGet("SELECT COUNT(*) AS total FROM gastos");
+        const metaCount = await dbGet("SELECT COUNT(*) AS total FROM metas");
+
+        res.json({
+            status: "online",
+            engine: isPostgres ? "PostgreSQL (Neon)" : "SQLite Local",
+            persistente: isPostgres,
+            aviso: isPostgres
+                ? "Conexão com Neon PostgreSQL ativa. Os dados estão seguros na nuvem e NÃO serão apagados após commits ou deploys."
+                : "ATENÇÃO: A aplicação está usando SQLite local. No Render, o disco é efêmero e os dados somem no deploy/commit. Configure DATABASE_URL no painel do Render para conectar ao Neon!",
+            contadores: {
+                usuarios: userCount?.total || 0,
+                receitas: receitaCount?.total || 0,
+                gastos: gastoCount?.total || 0,
+                metas: metaCount?.total || 0
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ status: "error", error: err.message });
+    }
+});
+
 // A partir daqui, TODAS as rotas abaixo exigem token válido (header Authorization: Bearer <token>).
 app.get("/favicon.ico", (req, res) => res.status(204).end());
 app.use(verificarAutenticacao);
