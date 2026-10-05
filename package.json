@@ -1,4 +1,10 @@
 {
+  "name": "lumuzia",
+  "version": "0.89.0",
+  "scripts": {
+    "start": "node backend/server.js",
+    "test:security": "node backend/test-security.js"
+  },
   "dependencies": {
     "axios": "^1.19.0",
     "cors": "^2.8.6",

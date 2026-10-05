@@ -66,3 +66,21 @@ Sua missão é proteger a plataforma financeira, garantir o isolamento estrito d
 3. **Modelagem de Ameaças:** Simular cenários de abuso de API, bypass de autorização e manipulação indevida de dados financeiros.
 4. **Hardening e Remediação:** Aplicar correções defensivas, reforçar middlewares, parametrizar consultas e documentar mitigações.
 5. **Validação:** Confirmar que as correções não quebram funcionalidades legítimas e garantem a segurança da plataforma.
+
+---
+
+## 6. Suíte Automatizada de Testes de Segurança (DAST Defensivo)
+Para verificar a resistência do backend contra ataques e falhas OWASP de forma controlada e sem riscos:
+- **Script:** `backend/test-security.js`
+- **Comando:** `npm run test:security`
+- **Vetores Testados:**
+  - Presença de cabeçalhos de segurança (Helmet).
+  - Bloqueio de requisições anônimas (401 Unauthorized).
+  - Rejeição de tokens forjados/inválidos (401 Unauthorized).
+  - Isolamento multi-tenant e mitigação de IDOR em leitura e deleção (403 Forbidden / 404 Not Found).
+  - Injeção de SQL em query params e bodies.
+  - Validação estrita de tipos e valores numéricos contra payloads maliciosos.
+  - Rejeição de sobrecarga de memória (HTTP 413 Payload Too Large).
+  - Rate limiting contra flood e força bruta no chat de IA (HTTP 429 Too Many Requests).
+  - Limpeza e restauração automática do banco de dados após a execução.
+

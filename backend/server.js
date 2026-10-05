@@ -84,7 +84,12 @@ app.use(express.static(path.join(__dirname, "../frontend")));
 // Helpers de validação de dados financeiros e durabilidade
 function parseNumeroPositivo(val) {
     if (val === null || val === undefined) return null;
-    const num = parseFloat(String(val).replace(",", "."));
+    const str = String(val).trim().replace(",", ".");
+    // Validação estrita: deve conter exclusivamente dígitos e ponto decimal válido
+    if (!/^\d+(\.\d+)?$/.test(str)) {
+        return null;
+    }
+    const num = parseFloat(str);
     return (!isNaN(num) && isFinite(num) && num > 0) ? num : null;
 }
 
@@ -1082,8 +1087,8 @@ app.post("/api/ia/chat", async (req, res) => {
 
         const resumo = await dbGet(
             `SELECT 
-                (SELECT IFNULL(SUM(valor),0) FROM receitas WHERE user_id = ?) AS receitas,
-                (SELECT IFNULL(SUM(valor),0) FROM gastos WHERE user_id = ?) AS gastos`,
+                (SELECT COALESCE(SUM(valor),0) FROM receitas WHERE user_id = ?) AS receitas,
+                (SELECT COALESCE(SUM(valor),0) FROM gastos WHERE user_id = ?) AS gastos`,
             [userId, userId]
         );
 
@@ -1193,11 +1198,11 @@ app.get("/dashboard/:userId", async (req, res) => {
         const user = await dbGet("SELECT * FROM users WHERE id = ?", [userId]);
 
         const totalReceitasRow = await dbGet(
-            `SELECT IFNULL(SUM(valor), 0) AS total FROM receitas WHERE user_id = ? ${filtroReceitas}`,
+            `SELECT COALESCE(SUM(valor), 0) AS total FROM receitas WHERE user_id = ? ${filtroReceitas}`,
             params
         );
         const totalGastosRow = await dbGet(
-            `SELECT IFNULL(SUM(valor), 0) AS total FROM gastos WHERE user_id = ? ${filtroGastos}`,
+            `SELECT COALESCE(SUM(valor), 0) AS total FROM gastos WHERE user_id = ? ${filtroGastos}`,
             params
         );
 
@@ -1219,9 +1224,11 @@ app.get("/dashboard/:userId", async (req, res) => {
 // =====================
 // INICIALIZAÇÃO
 // =====================
-app.listen(PORT, () => {
-    console.log(`Servidor rodando com sucesso na porta ${PORT}`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Servidor rodando com sucesso na porta ${PORT}`);
+    });
+}
 
 // =====================
 // PROTEÇÃO CONTRA CRASHES GLOBAIS
@@ -1232,3 +1239,5 @@ process.on("unhandledRejection", (reason) => {
 process.on("uncaughtException", (err) => {
     console.error("[SEGURANÇA / DURABILIDADE] Uncaught Exception capturada:", err);
 });
+
+module.exports = app;

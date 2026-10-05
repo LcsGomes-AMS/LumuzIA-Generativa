@@ -17,6 +17,9 @@ function toPgSql(sql) {
         .replace(/strftime\s*\(\s*'%Y'\s*,\s*([a-zA-Z0-9_.]+)\s*\)/gi, "to_char($1, 'YYYY')")
         .replace(/strftime\s*\(\s*'%Y-%m-%d'\s*,\s*([a-zA-Z0-9_.]+)\s*\)/gi, "to_char($1, 'YYYY-MM-DD')");
 
+    // Compatibilidade IFNULL do SQLite para PostgreSQL
+    converted = converted.replace(/IFNULL\s*\(/gi, "COALESCE(");
+
     // Compatibilidade INSERT OR IGNORE do SQLite para PostgreSQL
     converted = converted.replace(/INSERT\s+OR\s+IGNORE\s+INTO\s+([a-zA-Z0-9_]+)\s*\(([^)]+)\)/gi, (match, table, cols) => {
         const firstCol = cols.split(",")[0].trim();

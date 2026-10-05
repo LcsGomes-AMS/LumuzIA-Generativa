@@ -16,6 +16,12 @@ const authAdmin = getAuth();
 // Middleware: valida o Firebase ID token enviado no header Authorization.
 // Se válido, define req.uid com o UID real do usuário autenticado.
 async function verificarAutenticacao(req, res, next) {
+    // Permite simulação segura de identidade nos testes automatizados de segurança
+    if (process.env.NODE_ENV === "test" && req.headers["x-test-uid"]) {
+        req.uid = String(req.headers["x-test-uid"]);
+        return next();
+    }
+
     const authHeader = req.headers.authorization || "";
     const token = authHeader.startsWith("Bearer ") ? authHeader.split("Bearer ")[1] : null;
 
