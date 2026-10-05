@@ -59,7 +59,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function novaConversa() {
         conversaAtualId = null;
-        localStorage.removeItem('lumuzia_chat_conv_id');
         chatContainer.innerHTML = `
             <div class="message ai-message">
                 <strong>LumuzIA:</strong> Olá! Analisei o seu banco de dados e estou pronta para te ajudar. Pode me perguntar sobre seus gastos, saldo ou pedir dicas para economizar!
@@ -77,15 +76,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (res.ok) {
                 conversas = await res.json();
                 renderizarListaConversas();
-                
-                const savedConv = localStorage.getItem('lumuzia_chat_conv_id');
-                if (savedConv && conversas.find(c => c.id == savedConv)) {
-                    carregarMensagens(savedConv);
-                } else if (conversas.length > 0) {
-                    carregarMensagens(conversas[0].id);
-                } else {
-                    novaConversa();
-                }
             }
         } catch (err) {
             console.error("Erro ao carregar conversas", err);
@@ -102,14 +92,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         conversas.forEach(conv => {
             const div = document.createElement("div");
-            div.className = `conversa-item ${conv.id == conversaAtualId ? 'active' : ''}`;
+            div.className = `conversa-item ${conv.id === conversaAtualId ? 'active' : ''}`;
             
             const dataStr = new Date(conv.created_at).toLocaleDateString('pt-BR');
             
             div.innerHTML = `
                 <div class="conversa-titulo" title="${escapeHtml(conv.titulo)}">${escapeHtml(conv.titulo)}</div>
                 <div class="conversa-data">${dataStr}</div>
-                <button class="conversa-item-delete" title="Excluir conversa">&times;</button>
+                <button class="conversa-item-delete" title="Excluir Conversa">&times;</button>
             `;
 
             div.addEventListener("click", () => {
@@ -136,7 +126,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (res.ok) {
                 const msgs = await res.json();
                 conversaAtualId = id;
-                localStorage.setItem('lumuzia_chat_conv_id', id);
                 chatContainer.innerHTML = "";
                 msgs.forEach(m => {
                     const sender = m.role === 'user' ? "Você" : "LumuzIA";
@@ -144,7 +133,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     appendMessage(sender, m.conteudo, className);
                 });
                 renderizarListaConversas(); // Atualiza a classe active
-                setTimeout(() => { chatContainer.scrollTop = chatContainer.scrollHeight; }, 100);
             }
         } catch (err) {
             console.error("Erro ao carregar mensagens", err);
@@ -179,7 +167,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 const data = await res.json();
                 if (data.success && data.conversa) {
                     conversaAtualId = data.conversa.id;
-                    localStorage.setItem('lumuzia_chat_conv_id', conversaAtualId);
                     conversas.unshift(data.conversa);
                     renderizarListaConversas();
                 }

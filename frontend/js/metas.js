@@ -28,6 +28,7 @@ async function salvarMeta() {
     const data = await res.json();
 
     if (data.success) {
+        alert("Meta salva com sucesso!");
         carregarMetas();
         document.getElementById("nome").value = "";
         document.getElementById("valorObjetivo").value = "";
@@ -110,12 +111,6 @@ async function carregarMediaMensal() {
 let metasAtuais = [];
 
 async function carregarMetas() {
-    const tabela = document.getElementById("tabelaMetas");
-    tabela.innerHTML = `<tr><td colspan="9">
-        <span class="skeleton" style="width: 100%; height: 30px; margin-bottom: 10px;"></span>
-        <span class="skeleton" style="width: 100%; height: 30px; margin-bottom: 10px;"></span>
-        <span class="skeleton" style="width: 100%; height: 30px;"></span>
-    </td></tr>`;
     const uid = auth.currentUser.uid;
     const res = await apiFetch(`/metas/${uid}`);
     metasAtuais = await res.json();
@@ -130,11 +125,18 @@ function renderizarMetas(metas) {
     tabela.innerHTML = "";
 
     if (!metas || metas.length === 0) {
+        const mensagem = (!metasAtuais || metasAtuais.length === 0)
+            ? "Que tal começar a planejar o seu futuro hoje?"
+            : "Nenhuma meta corresponde aos filtros selecionados.";
+        const titulo = (!metasAtuais || metasAtuais.length === 0)
+            ? "Nenhuma meta cadastrada"
+            : "Nenhuma meta encontrada";
+
         tabela.innerHTML = `<tr><td colspan="9">
             <div class="empty-state">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <h4>Nenhuma meta encontrada</h4>
-                <p>Que tal começar a planejar o seu futuro hoje?</p>
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 48px; height: 48px; margin: 0 auto 12px; display: block; opacity: 0.6;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <h4 style="margin: 0 0 6px 0; font-size: 16px; color: var(--text, #E5F2F0);">${titulo}</h4>
+                <p style="margin: 0; font-size: 13px; color: var(--text-muted, #8FA1A3);">${mensagem}</p>
             </div>
         </td></tr>`;
         return;
@@ -150,12 +152,12 @@ function renderizarMetas(metas) {
         const nomeEscapado = escapeHtml(meta.nome).replace(/'/g, "&#39;");
 
         tabela.innerHTML += `
-            <tr class="fade-out" style="opacity: 1; transform: scale(1);">
+            <tr>
                 <td>${escapeHtml(meta.nome)}</td>
-                <td class="text-right">R$ ${Number(meta.valor_objetivo).toFixed(2)}</td>
-                <td class="text-right text-success">R$ ${Number(meta.valor_atual || 0).toFixed(2)}</td>
-                <td class="text-right">${meta.prazo} meses</td>
-                <td class="text-right">${progresso}%</td>
+                <td>R$ ${Number(meta.valor_objetivo).toFixed(2)}</td>
+                <td>R$ ${Number(meta.valor_atual || 0).toFixed(2)}</td>
+                <td>${meta.prazo} meses</td>
+                <td>${progresso}%</td>
                 <td class="meta-previsao ${previsao.classe}">${previsao.texto}</td>
                 <td class="${metaMensal.classe}">${metaMensal.texto}</td>
                 <td>${meta.created_at ? new Date(String(meta.created_at).slice(0,10)+"T00:00:00").toLocaleDateString("pt-BR") : "--"}</td>
