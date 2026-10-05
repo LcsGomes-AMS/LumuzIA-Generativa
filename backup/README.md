@@ -13,6 +13,6 @@ Este diretório armazena os backups periódicos da aplicação.
    - Versões em destaque ficam permanentemente preservadas e não entram no limite da limpeza automática.
 
 ## Histórico de Backups
-| Versão | Data | Tipo | Status |
-|---|---|---|---|
-| *(Nenhum backup gerado ainda - próximo na 5ª modificação)* | - | - | - |
+| Versão | Data | Tipo | Arquivo | Status |
+|---|---|---|---|---|
+| `v0.88` | 05/10/2026 | Completo (Código + Configs) | `backup-v0.88.zip` | Ativo (1 de 5) |

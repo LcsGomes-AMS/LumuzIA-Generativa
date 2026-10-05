@@ -6,11 +6,43 @@ const path = require("path");
 const axios = require("axios");
 const { db, dbRun, dbGet, dbAll, isPostgres } = require("./database");
 const { verificarAutenticacao } = require("./firebaseAdmin");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middlewares
+// =========================================================================
+// MIDDLEWARES DE SEGURANÇA E DURABILIDADE
+// =========================================================================
+
+// Proteção de Cabeçalhos HTTP com Helmet (mitiga Clickjacking, MIME sniffing, etc.)
+app.use(
+    helmet({
+        contentSecurityPolicy: false, // Mantém compatibilidade com assets e CDNs do Firebase e Google Fonts
+        crossOriginEmbedderPolicy: false
+    })
+);
+
+// Rate Limiter Geral: até 200 requisições a cada 15 minutos por IP
+const limiterGeral = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 200,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: "Muitas requisições. Tente novamente em alguns minutos." }
+});
+app.use("/api/", limiterGeral);
+
+// Rate Limiter Estrito para o Chat da IA: até 15 mensagens por minuto por IP
+const limiterChatIA = rateLimit({
+    windowMs: 1 * 60 * 1000,
+    max: 15,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, error: "Limite de mensagens no chat atingido. Aguarde 1 minuto." }
+});
+app.use("/api/ia/chat", limiterChatIA);
 
 // CORS restrito: só aceita requisições vindas dos domínios listados em
 // CORS_ORIGINS (separados por vírgula). Ex: CORS_ORIGINS=https://lumuzia.com,https://www.lumuzia.com
@@ -48,6 +80,18 @@ app.use(express.urlencoded({ extended: true, limit: "200kb" }));
 
 // Servir arquivos estáticos do frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
+
+// Helpers de validação de dados financeiros e durabilidade
+function parseNumeroPositivo(val) {
+    if (val === null || val === undefined) return null;
+    const num = parseFloat(String(val).replace(",", "."));
+    return (!isNaN(num) && isFinite(num) && num > 0) ? num : null;
+}
+
+function sanitizarTexto(str, maxLen = 150) {
+    if (!str || typeof str !== "string") return "";
+    return str.trim().slice(0, maxLen);
+}
 
 // Helper para evitar violações de chave estrangeira ao cadastrar dados
 async function garantirUsuarioExiste(userId) {
@@ -293,21 +337,23 @@ app.post("/perfil", async (req, res) => {
 app.post("/receitas", async (req, res) => {
     const userId = req.uid;
     const { descricao, valor } = req.body;
+    const descSanitizada = sanitizarTexto(descricao, 150);
+    const numValor = parseNumeroPositivo(valor);
 
-    if (!descricao || valor == null) {
-        return res.status(400).json({ success: false, error: "Dados incompletos." });
+    if (!descSanitizada || numValor === null) {
+        return res.status(400).json({ success: false, error: "Descrição válida e valor numérico positivo são obrigatórios." });
     }
 
     try {
         await garantirUsuarioExiste(userId);
         await dbRun(
             `INSERT INTO receitas (user_id, descricao, valor) VALUES (?, ?, ?)`,
-            [userId, descricao, valor]
+            [userId, descSanitizada, numValor]
         );
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false });
+        console.error("Erro ao cadastrar receita:", err);
+        res.status(500).json({ success: false, error: "Erro ao cadastrar receita." });
     }
 });
 
@@ -341,15 +387,17 @@ app.delete("/receitas/:id", async (req, res) => {
 app.put("/receitas/:id", async (req, res) => {
     const id = parseInt(req.params.id, 10);
     const { descricao, valor } = req.body;
+    const descSanitizada = sanitizarTexto(descricao, 150);
+    const numValor = parseNumeroPositivo(valor);
 
-    if (isNaN(id)) {
-        return res.status(400).json({ success: false, error: "Parâmetros inválidos." });
+    if (isNaN(id) || !descSanitizada || numValor === null) {
+        return res.status(400).json({ success: false, error: "Parâmetros inválidos ou valor não numérico." });
     }
 
     try {
         const result = await dbRun(
             "UPDATE receitas SET descricao = ?, valor = ? WHERE id = ? AND user_id = ?",
-            [descricao, valor, id, req.uid]
+            [descSanitizada, numValor, id, req.uid]
         );
         if (result.changes === 0) return res.status(404).json({ success: false, error: "Registro não encontrado." });
         res.json({ success: true, changes: result.changes });
@@ -364,21 +412,24 @@ app.put("/receitas/:id", async (req, res) => {
 app.post("/gastos", async (req, res) => {
     const userId = req.uid;
     const { descricao, valor, categoria } = req.body;
+    const descSanitizada = sanitizarTexto(descricao, 150);
+    const numValor = parseNumeroPositivo(valor);
+    const catSanitizada = sanitizarTexto(categoria, 50) || "Geral";
 
-    if (!descricao || valor == null) {
-        return res.status(400).json({ success: false, error: "Dados incompletos." });
+    if (!descSanitizada || numValor === null) {
+        return res.status(400).json({ success: false, error: "Descrição válida e valor numérico positivo são obrigatórios." });
     }
 
     try {
         await garantirUsuarioExiste(userId);
         await dbRun(
             `INSERT INTO gastos (user_id, descricao, valor, categoria) VALUES (?, ?, ?, ?)`,
-            [userId, descricao, valor, categoria || "Geral"]
+            [userId, descSanitizada, numValor, catSanitizada]
         );
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false });
+        console.error("Erro ao cadastrar gasto:", err);
+        res.status(500).json({ success: false, error: "Erro ao cadastrar gasto." });
     }
 });
 
@@ -477,21 +528,24 @@ app.get("/estatisticas/:userId", async (req, res) => {
 app.post("/metas", async (req, res) => {
     const userId = req.uid;
     const { nome, valorObjetivo, prazo } = req.body;
+    const nomeSanitizado = sanitizarTexto(nome, 100);
+    const numObjetivo = parseNumeroPositivo(valorObjetivo);
+    const numPrazo = parseInt(prazo, 10);
 
-    if (!nome) {
-        return res.status(400).json({ success: false, error: "Dados incompletos." });
+    if (!nomeSanitizado || numObjetivo === null || isNaN(numPrazo) || numPrazo <= 0) {
+        return res.status(400).json({ success: false, error: "Nome, valor objetivo positivo e prazo em meses são obrigatórios." });
     }
 
     try {
         await garantirUsuarioExiste(userId);
         await dbRun(
             `INSERT INTO metas (user_id, nome, valor_objetivo, prazo) VALUES (?, ?, ?, ?)`,
-            [userId, nome, valorObjetivo || 0, prazo || 12]
+            [userId, nomeSanitizado, numObjetivo, numPrazo]
         );
         res.json({ success: true });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ success: false });
+        console.error("Erro ao cadastrar meta:", err);
+        res.status(500).json({ success: false, error: "Erro ao cadastrar meta." });
     }
 });
 
@@ -1003,9 +1057,11 @@ app.post("/api/ia/chat", async (req, res) => {
     const userId = req.uid;
     const { prompt, modelo, conversaId } = req.body;
 
-    if (!prompt) {
+    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
         return res.status(400).json({ success: false, error: "O campo 'prompt' é obrigatório." });
     }
+
+    const promptLimpo = prompt.trim().slice(0, 1500);
 
     try {
         await garantirUsuarioExiste(userId);
@@ -1013,7 +1069,7 @@ app.post("/api/ia/chat", async (req, res) => {
         if (conversaId) {
             await dbRun(
                 `INSERT INTO chat_mensagens (conversa_id, user_id, role, conteudo) VALUES (?, ?, 'user', ?)`,
-                [conversaId, userId, prompt]
+                [conversaId, userId, promptLimpo]
             );
             
             // Atualizar o título da conversa se for "Nova Conversa"
@@ -1053,7 +1109,7 @@ Dados financeiros atuais do usuário:
             {
                 action: "generate",
                 model: modelo || process.env.OLLAMA_MODEL || "llama3.2:1b",
-                prompt: prompt,
+                prompt: promptLimpo,
                 system: systemPrompt,
                 stream: false,
                 auto_clean: true,
@@ -1165,4 +1221,14 @@ app.get("/dashboard/:userId", async (req, res) => {
 // =====================
 app.listen(PORT, () => {
     console.log(`Servidor rodando com sucesso na porta ${PORT}`);
+});
+
+// =====================
+// PROTEÇÃO CONTRA CRASHES GLOBAIS
+// =====================
+process.on("unhandledRejection", (reason) => {
+    console.error("[SEGURANÇA / DURABILIDADE] Unhandled Rejection capturado:", reason);
+});
+process.on("uncaughtException", (err) => {
+    console.error("[SEGURANÇA / DURABILIDADE] Uncaught Exception capturada:", err);
 });
