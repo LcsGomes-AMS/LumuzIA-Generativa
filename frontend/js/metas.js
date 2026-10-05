@@ -110,6 +110,12 @@ async function carregarMediaMensal() {
 let metasAtuais = [];
 
 async function carregarMetas() {
+    const tabela = document.getElementById("tabelaMetas");
+    tabela.innerHTML = `<tr><td colspan="9">
+        <span class="skeleton" style="width: 100%; height: 30px; margin-bottom: 10px;"></span>
+        <span class="skeleton" style="width: 100%; height: 30px; margin-bottom: 10px;"></span>
+        <span class="skeleton" style="width: 100%; height: 30px;"></span>
+    </td></tr>`;
     const uid = auth.currentUser.uid;
     const res = await apiFetch(`/metas/${uid}`);
     metasAtuais = await res.json();
@@ -124,7 +130,13 @@ function renderizarMetas(metas) {
     tabela.innerHTML = "";
 
     if (!metas || metas.length === 0) {
-        tabela.innerHTML = `<tr><td colspan="9" style="text-align:center; color:#8FA1A3;">Nenhuma meta cadastrada.</td></tr>`;
+        tabela.innerHTML = `<tr><td colspan="9">
+            <div class="empty-state">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <h4>Nenhuma meta encontrada</h4>
+                <p>Que tal começar a planejar o seu futuro hoje?</p>
+            </div>
+        </td></tr>`;
         return;
     }
 
@@ -138,12 +150,12 @@ function renderizarMetas(metas) {
         const nomeEscapado = escapeHtml(meta.nome).replace(/'/g, "&#39;");
 
         tabela.innerHTML += `
-            <tr>
+            <tr class="fade-out" style="opacity: 1; transform: scale(1);">
                 <td>${escapeHtml(meta.nome)}</td>
-                <td>R$ ${Number(meta.valor_objetivo).toFixed(2)}</td>
-                <td>R$ ${Number(meta.valor_atual || 0).toFixed(2)}</td>
-                <td>${meta.prazo} meses</td>
-                <td>${progresso}%</td>
+                <td class="text-right">R$ ${Number(meta.valor_objetivo).toFixed(2)}</td>
+                <td class="text-right text-success">R$ ${Number(meta.valor_atual || 0).toFixed(2)}</td>
+                <td class="text-right">${meta.prazo} meses</td>
+                <td class="text-right">${progresso}%</td>
                 <td class="meta-previsao ${previsao.classe}">${previsao.texto}</td>
                 <td class="${metaMensal.classe}">${metaMensal.texto}</td>
                 <td>${meta.created_at ? new Date(String(meta.created_at).slice(0,10)+"T00:00:00").toLocaleDateString("pt-BR") : "--"}</td>
