@@ -16,3 +16,4 @@ Este diretório armazena os backups periódicos da aplicação.
 | Versão | Data | Tipo | Arquivo | Status |
 |---|---|---|---|---|
 | `v0.88` | 05/10/2026 | Completo (Código + Configs) | `backup-v0.88.zip` | Ativo (1 de 5) |
+| `v0.93` | 05/10/2026 | Completo (Código + Configs) | `backup-v0.93.zip` | Ativo (2 de 5) |

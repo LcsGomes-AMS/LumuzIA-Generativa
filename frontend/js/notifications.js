@@ -113,7 +113,7 @@ function criarToast({ titulo, mensagem, tipo = "proxima" }) {
     toast.style.borderLeft = `4px solid ${cor.borda}`;
 
     toast.innerHTML = `
-        <button class="lz-toast-close" aria-label="Fechar">✕</button>
+        <button class="lz-toast-close" aria-label="Fechar">&times;</button>
         <div class="lz-toast-title">${escapeHtml(titulo)}</div>
         <div class="lz-toast-body">${escapeHtml(mensagem)}</div>
     `;

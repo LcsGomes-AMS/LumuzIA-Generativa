@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -6,78 +6,14 @@
     <title>Como Usar & Educação Financeira - LumuzIA</title>
     <link rel="icon" type="image/png" href="img/LumuzIA.png">
     <link rel="stylesheet" href="./css/style.css">
-    <style>
-        .educacao-container {
-            max-width: 800px;
-            margin: 0 auto;
-            line-height: 1.6;
-        }
-        .educacao-section {
-            background: var(--surface);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border: 1px solid var(--border);
-        }
-        .educacao-section h2 {
-            color: var(--accent-2);
-            margin-top: 0;
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 8px;
-            margin-bottom: 16px;
-        }
-        .educacao-section h3 {
-            margin-top: 20px;
-            color: var(--text);
-        }
-        .fonte-gov {
-            font-size: 0.85em;
-            color: var(--text-muted);
-            font-style: italic;
-            display: block;
-            margin-top: 12px;
-            padding-top: 8px;
-            border-top: 1px dashed var(--border);
-        }
-        .fonte-gov a {
-            color: var(--accent-2);
-            text-decoration: none;
-        }
-        .fonte-gov a:hover {
-            text-decoration: underline;
-        }
-        ul.passo-a-passo {
-            list-style-type: none;
-            padding: 0;
-        }
-        ul.passo-a-passo li {
-            position: relative;
-            padding-left: 30px;
-            margin-bottom: 12px;
-        }
-        ul.passo-a-passo li::before {
-            content: '✓';
-            position: absolute;
-            left: 0;
-            color: var(--success);
-            font-weight: bold;
-            font-size: 1.2em;
-        }
-        .educacao-section ul:not(.passo-a-passo) {
-            padding-left: 20px;
-        }
-        .educacao-section ul:not(.passo-a-passo) li {
-            margin-bottom: 8px;
-        }
-    </style>
+    <link rel="stylesheet" href="./css/como-usar.css">
 </head>
 <body>
 
 <div class="container">
     <aside class="sidebar">
-        <div class="sidebar-brand">
-            <img src="img/LumuzIA.png" alt="LumuzIA">
+        <div class="sidebar-brand" style="display:flex; align-items:center; justify-content:center; margin-bottom:10px;">
+            <img src="img/LumuzIA.png" alt="LumuzIA" style="width:80px; height:80px; border-radius:50%; object-fit:cover;">
         </div>
         <a href="como-usar.html">Como Usar</a>
         <a href="dashboard.html">Informações Gerais</a>
@@ -91,53 +27,801 @@
     </aside>
 
     <main>
-        <h1>Como Usar e Educação Financeira</h1>
-
-        <div class="educacao-container">
+        <div class="guia-container">
             
-            <section class="educacao-section">
-                <h2>O que é a Lumuz IA e para que serve?</h2>
-                <p>A <strong>Lumuz IA</strong> é uma plataforma inteligente desenvolvida para ajudar você a gerenciar suas finanças de forma simples e eficiente. Com o poder da Inteligência Artificial, o sistema permite que você acompanhe suas <strong>receitas</strong>, controle seus <strong>gastos</strong> e monitore <strong>investimentos</strong> em um só lugar.</p>
-                <p>O objetivo é transformar a maneira como você interage com o seu dinheiro: em vez de planilhas complexas, você tem um dashboard visual, relatórios automáticos e um assistente (Chat) para ajudar no planejamento e metas financeiras.</p>
-            </section>
+            <!-- Hero Header -->
+            <header class="guia-hero">
+                <div class="hero-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                    <span>Central de Conhecimento & Guia da Plataforma</span>
+                </div>
+                <h1>Como Usar a LumuzIA & Educação Financeira</h1>
+                <p class="hero-desc">
+                    Aprenda a utilizar cada recurso inteligente da plataforma LumuzIA e aprofunde seus conhecimentos práticos em gestão orçamentária, planejamento de metas, mercado de ações, fundos imobiliários e criptoativos com respaldo nas diretrizes do Banco Central e da CVM.
+                </p>
 
-            <section class="educacao-section">
-                <h2>Como Usar a Plataforma?</h2>
-                <ul class="passo-a-passo">
-                    <li><strong>1. Registre suas Movimentações:</strong> Vá até as abas de <a href="receitas.html">Receitas</a> e <a href="gastos.html">Gastos</a> para inserir as entradas e saídas do mês. É fundamental registrar tudo para um controle eficaz.</li>
-                    <li><strong>2. Acompanhe o Dashboard:</strong> No <a href="como-usar.html">Como Usar</a> <a href="dashboard.html">Informações Gerais</a>, você visualiza o resumo do seu mês: saldo, total de receitas, total de gastos e evolução de patrimônio através de gráficos intuitivos.</li>
-                    <li><strong>3. Defina Metas:</strong> Na seção de <a href="metas.html">Metas</a>, estabeleça objetivos (como uma viagem ou reserva de emergência) e deixe a plataforma te ajudar a poupar.</li>
-                    <li><strong>4. Use o Chat IA:</strong> Sempre que tiver dúvidas ou precisar de uma análise do seu perfil de consumo, acesse o <a href="chat.html">Chat</a> e converse com a inteligência artificial para receber dicas personalizadas.</li>
-                </ul>
-            </section>
+                <div class="hero-controls">
+                    <div class="search-box-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" id="buscaGuia" placeholder="Filtrar tópicos, conceitos ou tutoriais em vídeo..." oninput="filtrarGuia(this.value)">
+                    </div>
 
-            <section class="educacao-section">
-                <h2>Entendendo seus Números (Conceitos Financeiros)</h2>
-                <p>Para um bom planejamento, é essencial compreender alguns conceitos básicos. Separamos as definições com base nas orientações oficiais de educação financeira do Governo Federal.</p>
+                    <div class="quick-nav">
+                        <span class="quick-nav-label">Atalhos:</span>
+                        <a href="#funcionalidades" class="nav-pill">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                            Como Usar o Site
+                        </a>
+                        <a href="#orcamento" class="nav-pill">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            Orçamento & Finanças
+                        </a>
+                        <a href="#investimentos" class="nav-pill">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                            Investimentos & B3
+                        </a>
+                        <a href="#preco-medio" class="nav-pill">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 20V10"></path><path d="M12 20V4"></path><path d="M6 20v-6"></path></svg>
+                            Preço Médio na Prática
+                        </a>
+                        <a href="#tutoriais-video" class="nav-pill">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            Central de Vídeos
+                        </a>
+                        <a href="#orgaos-oficiais" class="nav-pill">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                            Fontes Oficiais
+                        </a>
+                    </div>
+                </div>
+            </header>
 
-                <h3>1. Receita Bruta</h3>
-                <p>A Receita Bruta é o <strong>valor total</strong> que você recebe antes de qualquer desconto, imposto ou dedução. No contexto pessoal, é o valor integral do seu salário (o que está no contrato) ou o total faturado por serviços prestados, sem subtrair taxas.</p>
-                <div class="fonte-gov">
-                    <strong>Fonte:</strong> Baseado em conceitos da Receita Federal e Legislação Tributária. 
-                    <a href="https://www.gov.br/receitafederal" target="_blank">Acesse gov.br/receitafederal para mais detalhes</a>.
+            <!-- SEÇÃO 1: COMO USAR A PLATAFORMA -->
+            <section id="funcionalidades" class="content-section">
+                <div class="section-header">
+                    <div class="section-header-info">
+                        <div class="section-tag">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            Módulo Prático
+                        </div>
+                        <h2>Guia Completo: Como Usar a Plataforma LumuzIA</h2>
+                        <p>Descubra como aproveitar cada funcionalidade para ter clareza total sobre suas finanças, automatizar registros e acelerar a conquista de suas metas.</p>
+                    </div>
                 </div>
 
-                <h3>2. Receita Líquida</h3>
-                <p>A Receita Líquida é o dinheiro que <strong>realmente chega ao seu bolso</strong>. É o resultado da Receita Bruta subtraindo os impostos, contribuições (como INSS e IR retido na fonte) e outras deduções. Este é o valor que você deve considerar ao planejar seu orçamento.</p>
-                <div class="fonte-gov">
-                    <strong>Fonte:</strong> Portal Gov.br (Conforme definições legais de deduções).
+                <div class="cards-grid-3">
+                    <div class="guia-card">
+                        <div class="card-icon-title">
+                            <div class="card-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                            </div>
+                            <h3>1. Informações Gerais</h3>
+                        </div>
+                        <p>O centro de comando da sua saúde financeira com métricas em tempo real e gráficos dinâmicos.</p>
+                        <ul>
+                            <li>Cartões de Saldo Atual, Total de Receitas e Total de Gastos no mês.</li>
+                            <li>Gráfico de composição de gastos por categoria para identificar excessos.</li>
+                            <li>Comparativo histórico de receitas versus saídas ao longo dos meses.</li>
+                            <li>Visão consolidada do patrimônio em contas e investimentos.</li>
+                        </ul>
+                        <a href="dashboard.html" class="card-link">
+                            Acessar Dashboard
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                    </div>
+
+                    <div class="guia-card">
+                        <div class="card-icon-title">
+                            <div class="card-icon green">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+                            </div>
+                            <h3>2. Gestão de Receitas</h3>
+                        </div>
+                        <p>Registre todas as suas entradas monetárias com precisão para manter o fluxo positivo.</p>
+                        <ul>
+                            <li>Separação entre receitas fixas (salário, pró-labore) e variáveis (bônus, vendas).</li>
+                            <li>Filtragem rápida por período, descrição e valores recebidos.</li>
+                            <li>Lançamento imediato com atualização instantânea do saldo líquido.</li>
+                            <li>Controle de histórico financeiro para planejamento anual.</li>
+                        </ul>
+                        <a href="receitas.html" class="card-link">
+                            Acessar Receitas
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                    </div>
+
+                    <div class="guia-card">
+                        <div class="card-icon-title">
+                            <div class="card-icon gold">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
+                            </div>
+                            <h3>3. Controle de Gastos</h3>
+                        </div>
+                        <p>Monitore despesas operacionais e agendamentos futuros para evitar multas por atraso.</p>
+                        <ul>
+                            <li>Classificação por categoria: Moradia, Alimentação, Transporte, Lazer, etc.</li>
+                            <li>Agendamento com data de vencimento e status (Pendente ou Pago).</li>
+                            <li>Alertas visuais automáticos para contas que vencem hoje ou estão em atraso.</li>
+                            <li>Cálculo automático do montante total gasto no período selecionado.</li>
+                        </ul>
+                        <a href="gastos.html" class="card-link">
+                            Acessar Gastos
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                    </div>
+
+                    <div class="guia-card">
+                        <div class="card-icon-title">
+                            <div class="card-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                            </div>
+                            <h3>4. Metas Financeiras</h3>
+                        </div>
+                        <p>Transforme planos em realidade com acompanhamento visual e previsão inteligente de aportes.</p>
+                        <ul>
+                            <li>Criação de metas com valor alvo, data limite e categoria específica.</li>
+                            <li>Aporte e resgate rápido com modal dedicado (Guardar e Retirar).</li>
+                            <li>Cálculo automatizado do valor mensal necessário para atingir o objetivo no prazo.</li>
+                            <li>Indicador preditivo de alcance com base no seu padrão médio de economia.</li>
+                        </ul>
+                        <a href="metas.html" class="card-link">
+                            Acessar Metas
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                    </div>
+
+                    <div class="guia-card">
+                        <div class="card-icon-title">
+                            <div class="card-icon gold">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M23 6l-9.5 9.5-5-5L1 18"></path><polyline points="17 6 23 6 23 12"></polyline></svg>
+                            </div>
+                            <h3>5. Investimentos & Carteira</h3>
+                        </div>
+                        <p>Acompanhe o crescimento patrimonial em ações, fundos imobiliários e criptomoedas.</p>
+                        <ul>
+                            <li>Cotações em tempo real integradas à API do Yahoo Finance para ativos da B3.</li>
+                            <li>Cálculo automático de Preço Médio Ponderado por ativo custodiado.</li>
+                            <li>Visualização de lucro/prejuízo nominal e variação percentual da carteira.</li>
+                            <li>Divisão clara entre Renda Variável, FIIs e Criptoativos.</li>
+                        </ul>
+                        <a href="investimentos.html" class="card-link">
+                            Acessar Investimentos
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                    </div>
+
+                    <div class="guia-card">
+                        <div class="card-icon-title">
+                            <div class="card-icon green">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                            </div>
+                            <h3>6. Assistente de IA</h3>
+                        </div>
+                        <p>Converse com nossa inteligência artificial para obter orientações financeiras personalizadas.</p>
+                        <ul>
+                            <li>Diagnóstico da sua capacidade mensal de poupança baseado em dados reais.</li>
+                            <li>Tira-dúvidas sobre tributação, inflação e conceitos do mercado de capitais.</li>
+                            <li>Dicas para negociação de contas e redução de despesas fixas.</li>
+                            <li>Histórico de conversas salvo para consultas futuras contínuas.</li>
+                        </ul>
+                        <a href="chat.html" class="card-link">
+                            Acessar Chat com IA
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                    </div>
                 </div>
 
-                <h3>3. Gastos e Despesas</h3>
-                <p>Despesas representam todo o dinheiro que sai para cobrir o custo de vida. Segundo o Banco Central do Brasil, a regra de ouro da educação financeira é que <strong>suas receitas devem ser maiores que suas despesas</strong>. Os gastos costumam ser divididos em:</p>
-                <ul>
-                    <li><strong>Fixos:</strong> Valores que não mudam muito e ocorrem todo mês (ex: aluguel, prestação da casa).</li>
-                    <li><strong>Variáveis:</strong> Gastos que oscilam e dependem do seu consumo (ex: conta de luz, alimentação, lazer).</li>
-                </ul>
-                <p>O segredo é registrar tudo para saber exatamente para onde o dinheiro está indo e identificar onde é possível economizar.</p>
-                <div class="fonte-gov">
-                    <strong>Fonte:</strong> Cadernos de Educação Financeira do Banco Central do Brasil. 
-                    <a href="https://www.bcb.gov.br/cidadaniafinanceira" target="_blank">Acesse bcb.gov.br/cidadaniafinanceira</a>.
+                <!-- Video Card Principal: Como Usar o Site -->
+                <div class="video-section-block featured">
+                    <div class="video-header-bar">
+                        <div class="video-topic-badge">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            Vídeo Tutorial Oficial #01
+                        </div>
+                        <span class="video-duration">Duração Estimada: 09:30</span>
+                    </div>
+
+                    <div class="video-container" id="video-container-plataforma" data-video-title="Tour Completo pela Plataforma LumuzIA" data-video-id="dQw4w9WgXcQ">
+                        <div class="video-placeholder" onclick="abrirVideoModal('Tour Completo pela Plataforma LumuzIA', 'Visão geral passo a passo de como cadastrar receitas, gerenciar despesas agendadas, criar metas e consultar investimentos com cotações em tempo real.')">
+                            <div class="video-play-btn">
+                                <svg viewBox="0 0 24 24"><polygon points="6 4 19 12 6 20 6 4"></polygon></svg>
+                            </div>
+                            <div class="video-placeholder-title">Tour Completo pela LumuzIA: Do Cadastro aos Investimentos</div>
+                            <div class="video-placeholder-meta">
+                                <span>Aprenda a navegar e explorar 100% dos recursos</span>
+                                <span class="video-duration">09:30</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="video-info-footer">
+                        <div class="video-helper-text">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                            Para substituir este vídeo por uma aula do YouTube/Vimeo, clique no botão ao lado ou edite o atributo no código.
+                        </div>
+                        <button class="btn-video-config" onclick="configurarUrlVideo('video-container-plataforma')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                            Inserir Link do YouTube
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 2: ORÇAMENTO & EDUCAÇÃO FINANCEIRA -->
+            <section id="orcamento" class="content-section">
+                <div class="section-header">
+                    <div class="section-header-info">
+                        <div class="section-tag">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            Fundamentos Técnicos
+                        </div>
+                        <h2>Educação Financeira: Conceitos Essenciais para o Sucesso</h2>
+                        <p>Aprenda a estruturar seu fluxo financeiro com base nas diretrizes do Banco Central do Brasil (BCB) e nas normas tributárias nacionais.</p>
+                    </div>
+                </div>
+
+                <div class="cards-grid-2">
+                    <div class="guia-card">
+                        <div class="card-icon-title">
+                            <div class="card-icon gold">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                            </div>
+                            <h3>Receita Bruta versus Receita Líquida</h3>
+                        </div>
+                        <p>Entender a diferença entre o que você ganha no contrato e o que realmente entra na sua conta é o passo número um para não se endividar:</p>
+                        <ul>
+                            <li><strong>Receita Bruta:</strong> Valor integral dos seus ganhos contratuais antes de qualquer incidência tributária, retenção previdenciária ou encargo (salário nominal CLT, faturamento bruto de serviços MEI/PJ).</li>
+                            <li><strong>Deduções Obrigatórias:</strong> Retenção de INSS (Previdência), IRPF (Imposto de Renda Retido na Fonte), eventuais coparticipações de convênio, vale-transporte e pensão alimentícia.</li>
+                            <li><strong>Receita Líquida:</strong> O montante real que é creditado na conta corrente após todos os descontos legais. É estritamente este valor que deve ser considerado para montar o orçamento do mês.</li>
+                        </ul>
+                        <div class="callout tip">
+                            <div class="callout-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                            </div>
+                            <div class="callout-content">
+                                <h4>Regra Prática</h4>
+                                <p>Nunca assuma compromissos financeiros futuros balizados pela Receita Bruta. Todas as suas despesas e investimentos devem caber dentro da Receita Líquida.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="guia-card">
+                        <div class="card-icon-title">
+                            <div class="card-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+                            </div>
+                            <h3>Gastos Fixos, Variáveis & A Regra 50/30/20</h3>
+                        </div>
+                        <p>O Banco Central do Brasil recomenda manter equilíbrio saudável dividindo a renda líquida em três pilares orçamentários:</p>
+                        
+                        <div class="regra-box">
+                            <div class="regra-item p50">
+                                <div class="regra-percent">50%</div>
+                                <div class="regra-title">Necessidades</div>
+                                <div class="regra-desc">Aluguel, contas básicas, alimentação, transporte e saúde.</div>
+                            </div>
+                            <div class="regra-item p30">
+                                <div class="regra-percent">30%</div>
+                                <div class="regra-title">Desejos</div>
+                                <div class="regra-desc">Lazer, restaurantes, viagens, assinaturas e compras pessoais.</div>
+                            </div>
+                            <div class="regra-item p20">
+                                <div class="regra-percent">20%</div>
+                                <div class="regra-title">Investimentos</div>
+                                <div class="regra-desc">Reserva de emergência, aposentadoria e metas futuras.</div>
+                            </div>
+                        </div>
+
+                        <p><strong>Gastos Fixos:</strong> Valores previsíveis que ocorrem mensalmente sem grande oscilação (mensalidade escolar, aluguel, plano de internet).<br>
+                        <strong>Gastos Variáveis:</strong> Despesas dependentes do consumo e hábitos do mês (alimentação fora de casa, combustível, energia elétrica, presentes).</p>
+                    </div>
+                </div>
+
+                <div class="cards-grid-2" style="margin-top: 20px;">
+                    <div class="guia-card">
+                        <div class="card-icon-title">
+                            <div class="card-icon green">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                            </div>
+                            <h3>Reserva de Emergência: O Pilar Inegociável</h3>
+                        </div>
+                        <p>A reserva de emergência é a quantia guardada exclusivamente para proteger você e sua família contra imprevistos (demissão, emergências médicas, reparos urgentes na moradia).</p>
+                        <ul>
+                            <li><strong>Tamanho Ideal:</strong> De 3 a 6 meses do seu custo de vida para trabalhadores CLT estáveis; de 6 a 12 meses para autônomos, freelancers ou empresários.</li>
+                            <li><strong>Critérios de Aplicação:</strong> Deve ter <em>Liquidez Imediata (D+0 ou D+1)</em> e <em>Baixíssimo Risco de Crédito</em>.</li>
+                            <li><strong>Onde Alocar:</strong> Tesouro Selic (título público federal), CDBs de liquidez diária pagando no mínimo 100% do CDI com cobertura do FGC (Fundo Garantidor de Créditos) ou contas remuneradas seguras.</li>
+                            <li><strong>Atenção:</strong> Jamais aplique a reserva em ativos voláteis (ações, FIIs ou cripto), pois você pode ser forçado a resgatar no momento de baixa.</li>
+                        </ul>
+                    </div>
+
+                    <div class="guia-card">
+                        <div class="card-icon-title">
+                            <div class="card-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            </div>
+                            <h3>O Efeito dos Juros Compostos no Tempo</h3>
+                        </div>
+                        <p>Os juros compostos são calculados sobre o valor principal acrescido dos juros acumulados nos períodos anteriores. É o clássico efeito "bola de neve" a favor do investidor constante.</p>
+                        <ul>
+                            <li><strong>Fórmula:</strong> M = C x (1 + i)<sup>t</sup>, onde M é o montante final, C o capital inicial, i a taxa de rendimento por período e t o tempo decorrido.</li>
+                            <li><strong>Fator Multiplicador:</strong> O elemento mais decisivo na fórmula não é a taxa mirabolante, mas sim o expoente <strong>tempo</strong> e a <strong>regularidade dos aportes</strong> mensais.</li>
+                            <li><strong>Exemplo:</strong> Poupar R$ 300,00 todos os meses durante 25 anos com rendimento real conservador gera um patrimônio final expressivo, onde mais de 60% do saldo total corresponde exclusivamente aos juros gerados pelo próprio dinheiro.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Vídeos da Seção de Orçamento -->
+                <div class="video-grid-2">
+                    <div class="video-section-block">
+                        <div class="video-header-bar">
+                            <div class="video-topic-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                Vídeo #02: Orçamento & Regra 50/30/20
+                            </div>
+                            <span class="video-duration">08:15</span>
+                        </div>
+                        <div class="video-container" id="video-container-orcamento" data-video-title="Como Organizar o Orçamento e Aplicar a Regra 50/30/20" data-video-id="">
+                            <div class="video-placeholder" onclick="abrirVideoModal('Como Organizar o Orçamento e Aplicar a Regra 50/30/20', 'Tutorial detalhado demonstrando como classificar despesas fixas e variáveis e distribuir os percentuais orçamentários recomendados pelo Banco Central.')">
+                                <div class="video-play-btn">
+                                    <svg viewBox="0 0 24 24"><polygon points="6 4 19 12 6 20 6 4"></polygon></svg>
+                                </div>
+                                <div class="video-placeholder-title">Receita Bruta x Líquida & A Regra 50/30/20</div>
+                                <div class="video-placeholder-meta">
+                                    <span>Domine a divisão do seu salário</span>
+                                    <span class="video-duration">08:15</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="video-info-footer">
+                            <div class="video-helper-text">Vídeo sobre separação orçamentária</div>
+                            <button class="btn-video-config" onclick="configurarUrlVideo('video-container-orcamento')">Configurar Link</button>
+                        </div>
+                    </div>
+
+                    <div class="video-section-block">
+                        <div class="video-header-bar">
+                            <div class="video-topic-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                Vídeo #03: Reserva de Emergência
+                            </div>
+                            <span class="video-duration">07:50</span>
+                        </div>
+                        <div class="video-container" id="video-container-reserva" data-video-title="Como Montar sua Reserva de Emergência Passo a Passo" data-video-id="">
+                            <div class="video-placeholder" onclick="abrirVideoModal('Como Montar sua Reserva de Emergência Passo a Passo', 'Entenda como calcular o valor ideal da sua reserva, escolher títulos de liquidez diária (Tesouro Selic e CDBs 100% CDI) e evitar armadilhas.')">
+                                <div class="video-play-btn">
+                                    <svg viewBox="0 0 24 24"><polygon points="6 4 19 12 6 20 6 4"></polygon></svg>
+                                </div>
+                                <div class="video-placeholder-title">Construindo sua Reserva de Emergência</div>
+                                <div class="video-placeholder-meta">
+                                    <span>Segurança antes de investir em risco</span>
+                                    <span class="video-duration">07:50</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="video-info-footer">
+                            <div class="video-helper-text">Vídeo sobre liquidez diária e segurança</div>
+                            <button class="btn-video-config" onclick="configurarUrlVideo('video-container-reserva')">Configurar Link</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 3: INVESTIMENTOS & MERCADO DE CAPITAIS -->
+            <section id="investimentos" class="content-section">
+                <div class="section-header">
+                    <div class="section-header-info">
+                        <div class="section-tag">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 6l-9.5 9.5-5-5L1 18"></path><polyline points="17 6 23 6 23 12"></polyline></svg>
+                            Mercado de Capitais
+                        </div>
+                        <h2>Guia Completo de Investimentos: Ações, FIIs e Criptomoedas</h2>
+                        <p>Conheça os fundamentos, mecanismos de geração de renda passiva e principais regras fiscais de cada classe de ativo suportada pelo LumuzIA.</p>
+                    </div>
+                </div>
+
+                <div class="cards-grid-3">
+                    <div class="guia-card">
+                        <div class="card-icon-title">
+                            <div class="card-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                            </div>
+                            <h3>Ações na B3 (Bolsa de Valores)</h3>
+                        </div>
+                        <p>Uma ação representa a menor fração do capital social de uma empresa aberta listada na bolsa brasileira (B3).</p>
+                        <ul>
+                            <li><strong>Sociedade:</strong> Ao comprar ações, você se torna sócio de grandes companhias como Vale, Petrobras, Itaú ou WEG, participando dos resultados do negócio.</li>
+                            <li><strong>Formas de Ganho:</strong> Ganho de capital (valorização do preço da ação ao longo dos anos) e recebimento de proventos periódicos (Dividendos e JCP - Juros sobre Capital Próprio).</li>
+                            <li><strong>Horizonte de Tempo:</strong> Ações devem ser vistas como aplicações de médio a longo prazo (5+ anos) para diluir a volatilidade dos ciclos econômicos.</li>
+                            <li><strong>Tributação:</strong> Pessoas físicas contam com isenção de IR sobre ganho de capital em vendas de ações de até R$ 20.000,00 no mês (em operações comuns de Swing Trade).</li>
+                        </ul>
+                    </div>
+
+                    <div class="guia-card highlight">
+                        <div class="card-icon-title">
+                            <div class="card-icon gold">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="9" y1="22" x2="9" y2="2"></line><line x1="15" y1="22" x2="15" y2="2"></line></svg>
+                            </div>
+                            <h3>Fundos Imobiliários (FIIs)</h3>
+                        </div>
+                        <p>Condomínios fechados de investidores que aplicam recursos coletivos no mercado imobiliário com gestão profissional.</p>
+                        <ul>
+                            <li><strong>Segmentos Principais:</strong> Fundos de Tijolo (galpões logísticos, lajes corporativas, shopping centers), Fundos de Papel (Certificados de Recebíveis Imobiliários - CRIs) e Fundos de Fundos (FOFs).</li>
+                            <li><strong>Renda Passiva Mensal:</strong> A lei exige a distribuição de no mínimo 95% do lucro líquido apurado em regime de caixa, gerando fluxo financeiro mensal na conta da corretora.</li>
+                            <li><strong>Isenção Fiscal de IR:</strong> Os rendimentos mensais distribuídos por FIIs são <strong>isentos de Imposto de Renda</strong> para pessoas físicas (conforme Lei nº 11.033/2004 e Lei nº 8.668/93, respeitadas as condições legais).</li>
+                            <li><strong>Liquidez:</strong> Possibilidade de investir em imóveis de alto padrão a partir de cotas acessíveis (na faixa de R$ 10 a R$ 100), sem a burocracia de escrituras ou inquilinos.</li>
+                        </ul>
+                    </div>
+
+                    <div class="guia-card">
+                        <div class="card-icon-title">
+                            <div class="card-icon green">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                            </div>
+                            <h3>Criptoativos & Blockchain</h3>
+                        </div>
+                        <p>Ativos digitais descentralizados protegidos por algoritmos criptográficos sobre a infraestrutura da Blockchain.</p>
+                        <ul>
+                            <li><strong>Bitcoin (BTC):</strong> A primeira e mais valiosa moeda digital descentralizada, com política de emissão finita limitada a 21 milhões de unidades, reconhecido como "ouro digital".</li>
+                            <li><strong>Ethereum (ETH):</strong> Rede global programável que viabiliza contratos inteligentes (Smart Contracts), finanças descentralizadas (DeFi) e tokenização de ativos reais.</li>
+                            <li><strong>Gestão de Volatilidade:</strong> Possui oscilações de preço muito superiores aos mercados convencionais; recomenda-se alocação percentual prudente (1% a 5% do patrimônio).</li>
+                            <li><strong>Custódia Própria:</strong> Segurança de chaves privadas (Hard Wallets vs Corretoras) é de inteira responsabilidade do detentor.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Vídeos de Investimentos -->
+                <div class="video-grid-2">
+                    <div class="video-section-block">
+                        <div class="video-header-bar">
+                            <div class="video-topic-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                Vídeo #04: Investindo em Ações na B3
+                            </div>
+                            <span class="video-duration">11:20</span>
+                        </div>
+                        <div class="video-container" id="video-container-acoes" data-video-title="Como Escolher e Investir em Ações na Bolsa com Foco em Dividendos" data-video-id="">
+                            <div class="video-placeholder" onclick="abrirVideoModal('Como Escolher e Investir em Ações na Bolsa com Foco em Dividendos', 'Conheça os principais indicadores fundamentalistas (P/L, P/VP, Dividend Yield, ROE) e saiba como escolher boas empresas para sócio.')">
+                                <div class="video-play-btn">
+                                    <svg viewBox="0 0 24 24"><polygon points="6 4 19 12 6 20 6 4"></polygon></svg>
+                                </div>
+                                <div class="video-placeholder-title">Ações na B3: Do Zero aos Dividendos</div>
+                                <div class="video-placeholder-meta">
+                                    <span>Fundamentos e estratégia de longo prazo</span>
+                                    <span class="video-duration">11:20</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="video-info-footer">
+                            <div class="video-helper-text">Vídeo sobre ações, dividendos e valuation</div>
+                            <button class="btn-video-config" onclick="configurarUrlVideo('video-container-acoes')">Configurar Link</button>
+                        </div>
+                    </div>
+
+                    <div class="video-section-block">
+                        <div class="video-header-bar">
+                            <div class="video-topic-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                Vídeo #05: Fundos Imobiliários (FIIs)
+                            </div>
+                            <span class="video-duration">10:45</span>
+                        </div>
+                        <div class="video-container" id="video-container-fiis" data-video-title="Guia Prático de FIIs: Vivendo de Renda Passiva Isenta de IR" data-video-id="">
+                            <div class="video-placeholder" onclick="abrirVideoModal('Guia Prático de FIIs: Vivendo de Renda Passiva Isenta de IR', 'Aprenda a analisar relatórios gerenciais de fundos imobiliários, taxas de vacância física/financeira e calcular a rentabilidade dos proventos.')">
+                                <div class="video-play-btn">
+                                    <svg viewBox="0 0 24 24"><polygon points="6 4 19 12 6 20 6 4"></polygon></svg>
+                                </div>
+                                <div class="video-placeholder-title">Fundos Imobiliários: Renda Mensal Isenta de IR</div>
+                                <div class="video-placeholder-meta">
+                                    <span>Aluguel sem inquilinos e sem burocracia</span>
+                                    <span class="video-duration">10:45</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="video-info-footer">
+                            <div class="video-helper-text">Vídeo sobre carteira e análise de FIIs</div>
+                            <button class="btn-video-config" onclick="configurarUrlVideo('video-container-fiis')">Configurar Link</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 4: PREÇO MÉDIO & RENDIMENTO NA PRÁTICA -->
+            <section id="preco-medio" class="content-section">
+                <div class="section-header">
+                    <div class="section-header-info">
+                        <div class="section-tag">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 14 15 20 9"></polyline><polyline points="14 9 20 9 20 15"></polyline></svg>
+                            Metodologia & Cálculos
+                        </div>
+                        <h2>Cálculo de Preço Médio e Rentabilidade na Prática</h2>
+                        <p>Entenda exatamente como a LumuzIA calcula seu Preço Médio Ponderado e como apurar o retorno real dos seus investimentos.</p>
+                    </div>
+                </div>
+
+                <div class="calc-card">
+                    <div class="card-icon-title">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><line x1="4" y1="9" x2="20" y2="9"></line><line x1="4" y1="15" x2="20" y2="15"></line><line x1="10" y1="3" x2="8" y2="21"></line><line x1="16" y1="3" x2="14" y2="21"></line></svg>
+                        </div>
+                        <h3>O que é o Preço Médio Ponderado (PM)?</h3>
+                    </div>
+                    <p>
+                        O Preço Médio é o indicador fundamental que reflete a média ponderada do custo de aquisição de cada cota ou ação em carteira, considerando os diferentes valores pagos em compras sucessivas ao longo do tempo. É o critério oficial exigido pela <strong>Receita Federal</strong> para a apuração de lucros e cálculo de IR.
+                    </p>
+
+                    <div class="calc-formula-box">
+                        <span class="calc-formula-title">Fórmula do Preço Médio Ponderado:</span>
+                        <span>PM = (Custo Total Investido em Todas as Compras) ÷ (Quantidade Total de Cotas Adquiridas)</span>
+                        <span style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">PM = (Qtd₁ × Preço₁ + Qtd₂ × Preço₂ + ... + Qtdₙ × Preçoₙ) ÷ (Qtd₁ + Qtd₂ + ... + Qtdₙ)</span>
+                    </div>
+
+                    <h4 style="margin: 20px 0 10px 0; font-size: 16px; color: var(--text);">Exemplo Prático Passo a Passo:</h4>
+                    <p>Imagine que você comprou cotas de um mesmo ativo (ex.: PETR4 ou MXRF11) em três momentos diferentes:</p>
+
+                    <div class="simulacao-table-wrapper">
+                        <table class="simulacao-table">
+                            <thead>
+                                <tr>
+                                    <th>Operação</th>
+                                    <th>Data / Momento</th>
+                                    <th>Quantidade</th>
+                                    <th>Preço Unitário</th>
+                                    <th>Total Investido</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1ª Compra</td>
+                                    <td>Mês 01</td>
+                                    <td>100 cotas</td>
+                                    <td>R$ 10,00</td>
+                                    <td>R$ 1.000,00</td>
+                                </tr>
+                                <tr>
+                                    <td>2ª Compra</td>
+                                    <td>Mês 02 (alta)</td>
+                                    <td>50 cotas</td>
+                                    <td>R$ 12,00</td>
+                                    <td>R$ 600,00</td>
+                                </tr>
+                                <tr>
+                                    <td>3ª Compra</td>
+                                    <td>Mês 03 (baixa)</td>
+                                    <td>50 cotas</td>
+                                    <td>R$ 8,00</td>
+                                    <td>R$ 400,00</td>
+                                </tr>
+                                <tr class="total-row">
+                                    <td colspan="2">Totais Acumulados</td>
+                                    <td><strong>200 cotas</strong></td>
+                                    <td><strong>Preço Médio = R$ 10,00</strong></td>
+                                    <td><strong>R$ 2.000,00</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="calc-steps">
+                        <div class="calc-step-item">
+                            <span class="calc-step-num">PASSO 01</span>
+                            <h4>Soma dos Custos</h4>
+                            <p>Multiplica-se a quantidade de cotas pelo valor pago em cada compra: R$ 1.000 + R$ 600 + R$ 400 = <strong>R$ 2.000,00</strong>.</p>
+                        </div>
+                        <div class="calc-step-item">
+                            <span class="calc-step-num">PASSO 02</span>
+                            <h4>Soma das Cotas</h4>
+                            <p>Soma-se a quantidade total de ações ou cotas adquiridas: 100 + 50 + 50 = <strong>200 cotas</strong>.</p>
+                        </div>
+                        <div class="calc-step-item">
+                            <span class="calc-step-num">PASSO 03</span>
+                            <h4>Divisão Ponderada</h4>
+                            <p>Divide-se o custo total pelo número de cotas: R$ 2.000,00 ÷ 200 = <strong>R$ 10,00 por cota</strong>.</p>
+                        </div>
+                    </div>
+
+                    <div class="callout info" style="margin-top: 24px;">
+                        <div class="callout-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                        </div>
+                        <div class="callout-content">
+                            <h4>Rendimento Nominal vs Rentabilidade Real</h4>
+                            <p>
+                                O <strong>Rendimento Nominal</strong> é o percentual bruto de valorização: ((Preço Atual - Preço Médio) ÷ Preço Médio) × 100.<br>
+                                Já a <strong>Rentabilidade Real</strong> desconta o impacto da inflação oficial (IPCA) do período. Se sua carteira valorizou 10% no ano e a inflação foi de 4%, seu ganho real foi de aproximadamente 5,76% segundo a Equação de Fisher: (1 + r<sub>real</sub>) = (1 + r<sub>nominal</sub>) ÷ (1 + inflação).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vídeo de Preço Médio e Cálculos -->
+                <div class="video-section-block">
+                    <div class="video-header-bar">
+                        <div class="video-topic-badge">
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            Vídeo #06: Preço Médio e Rentabilidade na Prática
+                        </div>
+                        <span class="video-duration">12:05</span>
+                    </div>
+                    <div class="video-container" id="video-container-calculos" data-video-title="Como Calcular Preço Médio, Dividend Yield e Ganho Real na Prática" data-video-id="">
+                        <div class="video-placeholder" onclick="abrirVideoModal('Como Calcular Preço Médio, Dividend Yield e Ganho Real na Prática', 'Aprenda na tela como o preço médio se move a cada nova compra, como rebalancear seus ativos e como apurar seus ganhos reais.')">
+                            <div class="video-play-btn">
+                                <svg viewBox="0 0 24 24"><polygon points="6 4 19 12 6 20 6 4"></polygon></svg>
+                            </div>
+                            <div class="video-placeholder-title">Preço Médio, Rentabilidade e Ganho de Capital</div>
+                            <div class="video-placeholder-meta">
+                                <span>Cálculos fáceis sem complicação</span>
+                                <span class="video-duration">12:05</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="video-info-footer">
+                        <div class="video-helper-text">Vídeo sobre apuração de impostos e preço médio ponderado</div>
+                        <button class="btn-video-config" onclick="configurarUrlVideo('video-container-calculos')">Configurar Link</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 5: CENTRAL DE VÍDEOS & TUTORIAIS -->
+            <section id="tutoriais-video" class="content-section">
+                <div class="section-header">
+                    <div class="section-header-info">
+                        <div class="section-tag">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            Biblioteca Multimídia
+                        </div>
+                        <h2>Central de Aulas & Tutoriais em Vídeo</h2>
+                        <p>Assista às aulas preparadas para cada tema do portal. Você também pode personalizar os vídeos inserindo os links da sua preferência.</p>
+                    </div>
+                </div>
+
+                <div class="cards-grid-3">
+                    <div class="guia-card">
+                        <div class="card-icon-title">
+                            <div class="card-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            </div>
+                            <h3>Aula 01: Tour LumuzIA</h3>
+                        </div>
+                        <p>Domine o painel, cadastro de transações, filtros e métricas principais da plataforma.</p>
+                        <a href="javascript:void(0)" onclick="abrirVideoModal('Aula 01: Tour pela Plataforma LumuzIA', 'Aprenda a cadastrar receitas, despesas, agendamentos e interagir com o Chat IA.')" class="card-link">
+                            Assistir Aula
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                    </div>
+
+                    <div class="guia-card">
+                        <div class="card-icon-title">
+                            <div class="card-icon gold">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            </div>
+                            <h3>Aula 02: Orçamento 50/30/20</h3>
+                        </div>
+                        <p>Como distribuir seus rendimentos líquidos entre necessidades, desejos e investimentos.</p>
+                        <a href="javascript:void(0)" onclick="abrirVideoModal('Aula 02: Orçamento e Regra 50/30/20', 'Separação prática de gastos fixos, supérfluos e aportes para o futuro.')" class="card-link">
+                            Assistir Aula
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                    </div>
+
+                    <div class="guia-card">
+                        <div class="card-icon-title">
+                            <div class="card-icon green">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            </div>
+                            <h3>Aula 03: Reserva de Emergência</h3>
+                        </div>
+                        <p>Como escolher ativos com liquidez diária e proteção do FGC sem correr riscos desnecessários.</p>
+                        <a href="javascript:void(0)" onclick="abrirVideoModal('Aula 03: Reserva de Emergência', 'Passo a passo para alocar 3 a 12 meses de custo de vida com segurança total.')" class="card-link">
+                            Assistir Aula
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                    </div>
+
+                    <div class="guia-card">
+                        <div class="card-icon-title">
+                            <div class="card-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            </div>
+                            <h3>Aula 04: Ações e Dividendos</h3>
+                        </div>
+                        <p>Como iniciar na B3, selecionar empresas lucrativas e acompanhar o fluxo de dividendos.</p>
+                        <a href="javascript:void(0)" onclick="abrirVideoModal('Aula 04: Investimento em Ações na B3', 'Estratégia de investimento de longo prazo e análise de fundamentos.')" class="card-link">
+                            Assistir Aula
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                    </div>
+
+                    <div class="guia-card highlight">
+                        <div class="card-icon-title">
+                            <div class="card-icon gold">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            </div>
+                            <h3>Aula 05: Fundos Imobiliários</h3>
+                        </div>
+                        <p>Guia detalhado de FIIs de tijolo e papel com rendimentos mensais isentos de IR na fonte.</p>
+                        <a href="javascript:void(0)" onclick="abrirVideoModal('Aula 05: Fundos Imobiliários na Prática', 'Como viver de renda com aluguéis de galpões e shoppings sem ter imóveis físicos.')" class="card-link">
+                            Assistir Aula
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                    </div>
+
+                    <div class="guia-card">
+                        <div class="card-icon-title">
+                            <div class="card-icon green">
+                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            </div>
+                            <h3>Aula 06: Preço Médio e Cálculos</h3>
+                        </div>
+                        <p>Fórmula matemática, planilha de cálculo e exemplo de apuração de rentabilidade real.</p>
+                        <a href="javascript:void(0)" onclick="abrirVideoModal('Aula 06: Preço Médio e Rentabilidade Real', 'Demonstração prática de como calcular o preço médio ponderado e o ganho real.')" class="card-link">
+                            Assistir Aula
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 6: FONTES OFICIAIS & ÓRGÃOS REGULADORES -->
+            <section id="orgaos-oficiais" class="content-section">
+                <div class="section-header">
+                    <div class="section-header-info">
+                        <div class="section-tag">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                            Transparência & Legislação
+                        </div>
+                        <h2>Fontes Oficiais e Órgãos Reguladores Brasileiros</h2>
+                        <p>Todo o conteúdo educativo e premissas financeiras da plataforma LumuzIA são fundamentados nas normas oficiais das entidades reguladoras.</p>
+                    </div>
+                </div>
+
+                <div class="sources-grid">
+                    <div class="source-card">
+                        <div class="source-acronym">BCB</div>
+                        <div class="source-name">Banco Central do Brasil</div>
+                        <div class="source-desc">
+                            Autarquia responsável pela estabilidade da moeda, fixação da taxa básica Selic, supervisão bancária e programas de cidadania financeira.
+                        </div>
+                        <a href="https://www.bcb.gov.br/cidadaniafinanceira" target="_blank" rel="noopener noreferrer" class="source-link">
+                            Portal Cidadania Financeira
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        </a>
+                    </div>
+
+                    <div class="source-card">
+                        <div class="source-acronym">CVM</div>
+                        <div class="source-name">Comissão de Valores Mobiliários</div>
+                        <div class="source-desc">
+                            Órgão fiscalizador do mercado de capitais no Brasil, assegurando proteção aos investidores, lisura e transparência na negociação de títulos.
+                        </div>
+                        <a href="https://www.gov.br/cvm/pt-br" target="_blank" rel="noopener noreferrer" class="source-link">
+                            Acessar Portal da CVM
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        </a>
+                    </div>
+
+                    <div class="source-card">
+                        <div class="source-acronym">B3</div>
+                        <div class="source-name">Brasil, Bolsa, Balcão</div>
+                        <div class="source-desc">
+                            Bolsa de valores oficial do Brasil, integrando os sistemas de negociação, compensação e custódia de ações, FIIs, ETFs e BDRs.
+                        </div>
+                        <a href="https://www.b3.com.br/pt_br/educacao/" target="_blank" rel="noopener noreferrer" class="source-link">
+                            B3 Hub de Educação
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        </a>
+                    </div>
+
+                    <div class="source-card">
+                        <div class="source-acronym">RFB</div>
+                        <div class="source-name">Receita Federal do Brasil</div>
+                        <div class="source-desc">
+                            Órgão federal que regulamenta a apuração tributária de rendimentos, regras de isenção de proventos de FIIs e apuração do IRPF.
+                        </div>
+                        <a href="https://www.gov.br/receitafederal" target="_blank" rel="noopener noreferrer" class="source-link">
+                            Acessar Portal da Receita
+                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        </a>
+                    </div>
                 </div>
             </section>
 
@@ -145,7 +829,144 @@
     </main>
 </div>
 
+<!-- Modal Interativo de Vídeo -->
+<div class="video-modal-backdrop" id="videoModal">
+    <div class="video-modal-content">
+        <div class="video-modal-header">
+            <h3 id="modalVideoTitulo">Assistir Tutorial</h3>
+            <button class="video-modal-close" onclick="fecharVideoModal()" aria-label="Fechar">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="video-modal-body">
+            <p id="modalVideoDesc">Descrição do vídeo selecionado.</p>
+            <div class="video-container" style="margin-bottom: 16px;">
+                <iframe id="modalVideoIframe" src="" title="Vídeo Tutorial LumuzIA" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            <div class="callout tip" style="margin: 0;">
+                <div class="callout-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                </div>
+                <div class="callout-content">
+                    <h4>Personalização de Aulas</h4>
+                    <p>Você pode colar qualquer link do YouTube no player acima para assistir aulas personalizadas diretamente dentro do LumuzIA.</p>
+                </div>
+            </div>
+        </div>
+        <div class="video-modal-actions" style="margin-top: 16px;">
+            <button class="btn-secondary" onclick="fecharVideoModal()">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Configuração de URL de Vídeo -->
+<div class="video-modal-backdrop" id="configUrlModal">
+    <div class="video-modal-content">
+        <div class="video-modal-header">
+            <h3>Configurar Link do Vídeo</h3>
+            <button class="video-modal-close" onclick="fecharConfigModal()" aria-label="Fechar">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+        <div class="video-modal-body">
+            <p>Insira a URL completa do YouTube ou o ID do vídeo (ex.: <code>https://www.youtube.com/watch?v=dQw4w9WgXcQ</code> ou <code>dQw4w9WgXcQ</code>):</p>
+            <label for="inputVideoUrl">URL ou ID do Vídeo:</label>
+            <input type="text" id="inputVideoUrl" placeholder="https://www.youtube.com/watch?v=...">
+            <input type="hidden" id="targetContainerId">
+        </div>
+        <div class="video-modal-actions">
+            <button class="btn-secondary" onclick="fecharConfigModal()">Cancelar</button>
+            <button class="btn-primary" onclick="salvarConfigUrl()">Salvar Vídeo</button>
+        </div>
+    </div>
+</div>
+
 <script src="./js/sidebar.js"></script>
+<script>
+// Filtro Dinâmico de Conteúdo e Tópicos
+function filtrarGuia(termo) {
+    var query = (termo || '').toLowerCase().trim();
+    var cards = document.querySelectorAll('.guia-card, .source-card, .video-section-block');
+    
+    cards.forEach(function(card) {
+        var texto = card.innerText.toLowerCase();
+        if (!query || texto.indexOf(query) !== -1) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+// Modal de Visualização de Vídeo
+function abrirVideoModal(titulo, desc, videoUrl) {
+    document.getElementById('modalVideoTitulo').textContent = titulo || 'Assistir Tutorial';
+    document.getElementById('modalVideoDesc').textContent = desc || '';
+    
+    var iframe = document.getElementById('modalVideoIframe');
+    var embedUrl = videoUrl;
+    
+    // Se não for fornecido link específico, utiliza um link ilustrativo de finanças ou o placeholder oficial
+    if (!embedUrl) {
+        embedUrl = 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1';
+    } else if (embedUrl.indexOf('watch?v=') !== -1) {
+        embedUrl = embedUrl.replace('watch?v=', 'embed/');
+    }
+    
+    iframe.src = embedUrl;
+    document.getElementById('videoModal').classList.add('active');
+}
+
+function fecharVideoModal() {
+    var modal = document.getElementById('videoModal');
+    modal.classList.remove('active');
+    document.getElementById('modalVideoIframe').src = '';
+}
+
+// Configuração Rápida de URL do Vídeo
+function configurarUrlVideo(containerId) {
+    document.getElementById('targetContainerId').value = containerId;
+    document.getElementById('inputVideoUrl').value = '';
+    document.getElementById('configUrlModal').classList.add('active');
+}
+
+function fecharConfigModal() {
+    document.getElementById('configUrlModal').classList.remove('active');
+}
+
+function salvarConfigUrl() {
+    var containerId = document.getElementById('targetContainerId').value;
+    var rawUrl = document.getElementById('inputVideoUrl').value.trim();
+    if (!rawUrl) {
+        fecharConfigModal();
+        return;
+    }
+    
+    var embedUrl = rawUrl;
+    if (rawUrl.indexOf('youtube.com/watch?v=') !== -1) {
+        var videoId = rawUrl.split('watch?v=')[1].split('&')[0];
+        embedUrl = 'https://www.youtube-nocookie.com/embed/' + videoId;
+    } else if (rawUrl.indexOf('youtu.be/') !== -1) {
+        var videoId = rawUrl.split('youtu.be/')[1].split('?')[0];
+        embedUrl = 'https://www.youtube-nocookie.com/embed/' + videoId;
+    } else if (!rawUrl.startsWith('http')) {
+        embedUrl = 'https://www.youtube-nocookie.com/embed/' + rawUrl;
+    }
+    
+    var container = document.getElementById(containerId);
+    if (container) {
+        container.innerHTML = '<iframe src="' + embedUrl + '" title="Vídeo Tutorial LumuzIA" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';
+    }
+    fecharConfigModal();
+}
+
+// Fechar modais ao clicar fora
+window.addEventListener('click', function(e) {
+    var vModal = document.getElementById('videoModal');
+    var cModal = document.getElementById('configUrlModal');
+    if (e.target === vModal) fecharVideoModal();
+    if (e.target === cModal) fecharConfigModal();
+});
+</script>
 </body>
 </html>
-
