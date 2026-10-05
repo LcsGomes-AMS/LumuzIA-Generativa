@@ -1,98 +1,120 @@
-# LumuzIA — Plataforma de Inteligência Financeira e Gestão Pessoal
+# LumuzIA — Plataforma Inteligente de Gestão Financeira e Investimentos
 
-O **LumuzIA** é uma aplicação completa de gestão financeira pessoal e investimentos integrada a um assistente de Inteligência Artificial generativa (**Llama 3.2** via Ollama), autenticação segura com Firebase e persistência em nuvem.
-
----
-
-## 🛡️ Relatório de Cybersegurança e Testes Defensivos (AppSec / DAST)
-
-A segurança da plataforma é auditada por uma suíte automatizada de testes defensivos baseada nas diretrizes do **OWASP Top 10**.
-
-### 1. Resumo da Auditoria Automatizada
-- **Total de Verificações Executadas:** 21
-- **Aprovadas (Seguro):** 21 (100% de cobertura defensiva)
-- **Falhas / Vulnerabilidades em Aberto:** 0
-
-### 2. Vetores de Segurança Auditados
-| Categoria OWASP | Teste Realizado | Resultado |
-|---|---|---|
-| **A01: Broken Access Control** | Bloqueio de rotas privadas sem token JWT (`/receitas`, `/gastos`, `/metas`, `/dashboard`, etc.) | **HTTP 401 Unauthorized** (Acesso negado) |
-| **A01: Broken Access Control (IDOR)** | Tentativa de invasor ler ou excluir transações e metas de outro usuário | **HTTP 403 Forbidden** na leitura / **HTTP 404** na deleção |
-| **A02: Cryptographic Failures** | Conexões com banco de dados em nuvem (Neon) exigem SSL obrigatório | **SSL Ativo** (`rejectUnauthorized: false`) |
-| **A03: Injection (SQL Injection)** | Envio de payloads maliciosos (`' OR '1'='1 --`, `'; DROP TABLE`) em queries e corpos | **Neutralizado** (Consultas parametrizadas `$1, $2` e `?`) |
-| **A04: Security Misconfiguration** | Omissão de cabeçalhos de identificação do servidor e injeção de headers seguros | **Ativo via Helmet** (`X-Content-Type-Options: nosniff`, sem `X-Powered-By`) |
-| **A06: DoS / Esgotamento de Memória** | Envio proposital de payload JSON gigante (> 250 KB) | **HTTP 413 Payload Too Large** (Cortado antes da memória) |
-| **A06: Força Bruta / Flood** | Disparo de 16 requisições sucessivas para o endpoint de IA (`/api/ia/chat`) | **HTTP 429 Too Many Requests** na 16ª requisição |
-| **A07: Identification & Auth Failures** | Envio de JWT forjado ou com assinatura adulterada | **HTTP 401 Unauthorized** com rejeição imediata |
-
-### 3. Vulnerabilidade Detectada nos Testes e Corrigida
-Durante a execução inicial da suíte de segurança, o teste identificou que valores maliciosos como `"100; DROP TABLE receitas;"` eram convertidos parcialmente por `parseFloat()` para o número `100`, aceitando a requisição.
-- **Correção Implementada:** Foi criada validação estrita via Expressão Regular em `parseNumeroPositivo()` (`/^\d+(\.\d+)?$/`). Qualquer caracter não-numérico ou payload anômalo agora é sumariamente rejeitado com **HTTP 400 Bad Request**.
-
-### 4. Como Executar os Testes de Segurança
-```bash
-npm run test:security
-```
-*O script inicia um servidor de testes em porta livre, executa todas as 21 checagens e, no final, limpa automaticamente todos os dados de teste do banco de dados.*
+O **LumuzIA** é um ecossistema completo de controle financeiro pessoal, gestão de patrimônio e investimentos, integrado a um assistente de Inteligência Artificial generativa projetado para orientar você a alcançar a liberdade financeira.
 
 ---
 
-## 💾 Diagnóstico de Persistência do Banco de Dados (Por que os dados sumiam após o commit?)
+## 🌟 O que é o LumuzIA e para que serve?
 
-### O Diagnóstico
-1. **Ambiente Local (Seu Computador):**
-   - O banco local SQLite (`backend/lumuzia.db`) **não é apagado pelo Git**. Ele está listado no `.gitignore`, portanto o comando `git commit` nunca toca no arquivo local.
-2. **Ambiente de Produção (Hospedagem no Render):**
-   - O Render opera com **containers em disco efêmero**. Toda vez que você faz um `git commit` e `git push`, o Render destrói o container anterior e cria um novo do zero.
-   - **Causa da Perda de Dados:** Se a variável `DATABASE_URL` não estiver configurada no painel do Render, o servidor em produção cai no fallback do SQLite local (que é recriado vazio a cada deploy).
+A maioria das pessoas enfrenta dificuldades para entender para onde o seu dinheiro vai todo mês. Planilhas manuais são trabalhosas e esquecidas rapidamente. 
 
-### Como Resolver Definitivamente (Persistência em Nuvem com Neon PostgreSQL)
-1. Acesse o [Dashboard do Render](https://dashboard.render.com).
-2. Selecione o serviço web **LumuzIA-Generativa**.
-3. Acesse a aba **Environment** (Variáveis de Ambiente).
-4. Adicione a variável:
-   - **Key:** `DATABASE_URL`
-   - **Value:** `postgresql://usuario:senha@ep-...neon.tech/neondb?sslmode=require`
-5. Clique em **Save Changes**. O Render reiniciará conectado diretamente ao Neon. A partir desse momento, **nenhum commit ou deploy apagará seus dados**.
-
-### Como Checar a Persistência ao Vivo
-Você pode verificar a qualquer momento se o seu servidor em produção está conectado ao Neon ou ao SQLite acessando:
-- **No navegador:** `https://lumuzia-generativa.onrender.com/api/db-status`
-- **Ou via terminal:**
-  ```bash
-  npm run test:db
-  ```
-
-### Como Migrar seus Dados Locais para o Neon
-Se você tiver dados no seu SQLite local que deseja transferir para o banco Neon na nuvem, rode:
-```bash
-DATABASE_URL="sua_string_de_conexao_do_neon" node backend/migrateToNeon.js
-```
+O **LumuzIA** foi criado para transformar a sua relação com o dinheiro, unindo:
+1. **Organização Centralizada:** Receitas, despesas diárias, despesas agendadas e investimentos em um único ambiente moderno e intuitivo.
+2. **Educação Financeira Integrada:** Conceitos explicados de forma simples, permitindo que você tome decisões embasadas.
+3. **Inteligência Artificial Generativa:** Uma assistente financeira pessoal que compreende a sua realidade de receitas e gastos, oferecendo dicas práticas de economia e projeções para suas metas.
 
 ---
 
-## 🤖 Agentes Especializados do Projeto
+## 🧭 Como Funciona a Plataforma
 
-O projeto conta com agentes de inteligência especializados, mantidos na pasta oculta `.agents/` (com atributo oculto no sistema operacional e no Git):
+### 1. Dashboard e Informações Gerais
+O **Dashboard** é a central de comando da sua vida financeira. Nele você tem:
+- **Resumo Mensal Imediato:** Saldo em conta, total de entradas (receitas) e total de saídas (gastos) consolidados no período.
+- **Gráficos Visuais por Categoria:** Visualize com clareza a distribuição percentual do seu orçamento (ex.: Moradia, Alimentação, Transporte, Lazer, Saúde), facilitando a identificação imediata de onde cortar excessos.
+- **Filtros Temporais Inteligentes:** Consulte seu histórico por mês específico, por ano completo ou por intervalos personalizados de meses.
 
-- **Agente UX/UI:** Localizado em `.agents/agents/ux-ui/agente.md`. Responsável pelo padrão visual, consistência de layout, responsividade mobile e empty-states.
-- **Agente de Cybersegurança (AppSec):** Localizado em `.agents/agents/cybersecurity/agente.md`. Responsável pela auditoria estática e dinâmica (SAST/DAST), conformidade OWASP, middlewares de proteção e blindagem de dados.
+### 2. Gestão de Receitas e Entradas
+Permite cadastrar todos os valores que entram no seu patrimônio:
+- **Salário Principal:** Seu ganho mensal fixo.
+- **Rendas Extras e Freelances:** Valores complementares recebidos ao longo do mês.
+- **Dividendos e Rendimentos:** Ganhos passivos gerados pela sua carteira de investimentos.
+- **Conceito Chave — Receita Bruta vs. Receita Líquida:**
+  - *Receita Bruta:* É o total anunciado do seu ganho ou faturamento antes de descontos tributários e taxas.
+  - *Receita Líquida:* É o valor real que efetivamente entra na sua conta bancária após os descontos legais (como INSS, Imposto de Renda e encargos). **O LumuzIA recomenda que todo o seu planejamento seja sempre baseado na sua Receita Líquida.**
+
+### 3. Gestão de Gastos e Despesas
+O registro contínuo dos gastos é o coração do controle financeiro. A plataforma organiza suas saídas em:
+- **Gastos Fixos:** Despesas indispensáveis que ocorrem todo mês com valores previsíveis (aluguel, condomínio, internet, mensalidades escolares).
+- **Gastos Variáveis:** Custos que oscilam conforme seu consumo diário (alimentação, energia elétrica, transporte por aplicativo, lazer e compras eventuais).
+- **A Regra de Ouro:** Suas receitas devem ser consistentemente maiores do que os seus gastos totais. O excedente é o capital que constrói sua reserva e seus investimentos.
+
+### 4. Agendamentos Financeiros
+Nunca mais esqueça uma conta a pagar ou um valor a receber:
+- Cadastre contas com data futura de vencimento (boletos, faturas, assinaturas).
+- Acompanhe o status de cada lançamento (**Pendente** ou **Pago/Lançado**).
+- Quando a data do agendamento chega, o sistema integra a despesa ou receita ao seu fluxo financeiro, garantindo que o seu saldo futuro esteja sempre projetado com exatidão.
+
+### 5. Metas Financeiras e Planejamento de Futuro
+Ter objetivos claros é o que motiva a economizar:
+- **Criação de Metas:** Defina o que você deseja conquistar (ex.: Reserva de Emergência, Viagem de Férias, Compra de um Imóvel ou Troca de Carro).
+- **Acompanhamento de Progresso:** Insira o valor total objetivo, o montante já poupado e o prazo em meses.
+- **Cálculo de Aporte Mensal:** A plataforma calcula automaticamente quanto você precisa poupar mensalmente para atingir cada sonho dentro do prazo planejado, indicando a viabilidade com base no seu saldo médio mensal.
+
+### 6. Relatórios e Histórico
+- Acompanhe a evolução do seu patrimônio ao longo do tempo.
+- Compare meses anteriores para analisar se os seus hábitos de consumo estão melhorando ou se certas despesas estão saindo do controle.
+
+### 7. Assistente Virtual de IA (Chat Inteligente)
+- Converse em linguagem natural diretamente com a **LumuzIA**.
+- A assistente tem acesso contextualizado ao seu saldo, total de receitas e histórico de despesas, oferecendo recomendações sob medida para o seu orçamento, simulação de cortes de gastos e respostas para dúvidas financeiras do dia a dia.
 
 ---
 
-## 📦 Política e Retenção de Backups
+## 📈 Guia Completo de Investimentos e Conceitos do Mercado
 
-O diretório `backup/` armazena backups completos periódicos:
-1. **Frequência:** 1 backup compactado `.zip` gerado a cada 5 modificações/versões.
-2. **Limite de Retenção:** São mantidas até **5 versões ativas**. Ao atingir a 6ª versão, a mais antiga é automaticamente excluída.
-3. **Destaque:** Versões marcadas com `[DESTAQUE]` são permanentemente preservadas e imunes à rotação de limpeza.
+O módulo de **Investimentos** do LumuzIA permite monitorar sua carteira de ativos com cotações em tempo real e gráficos de rentabilidade. Abaixo explicamos os principais ativos suportados pela plataforma:
+
+### 1. Ações (Mercado de Renda Variável)
+- **O que são:** Uma ação representa a menor fração do capital social de uma empresa. Ao comprar uma ação (como Petrobras `PETR4` ou Vale `VALE3`), você se torna sócio daquela companhia e participa dos seus resultados.
+- **Como geram ganhos:**
+  - *Valorização da Cota:* Quando a empresa cresce e seus lucros aumentam, o valor de mercado de cada ação tende a subir.
+  - *Proventos (Dividendos e JCP):* As empresas listadas em bolsa são obrigadas por lei a distribuir parte dos seus lucros líquidos diretamente na conta dos acionistas.
+
+### 2. Fundos Imobiliários — FIIs
+- **O que são:** Fundos de Investimento Imobiliário reúnem recursos de milhares de investidores para aplicar em empreendimentos do setor imobiliário. Em vez de comprar um imóvel físico inteiro, você adquire cotas negociadas na Bolsa de Valores.
+- **Tipos de FIIs:**
+  - *Fundos de Tijolo:* Investem em imóveis físicos reais, como shoppings centers, galpões logísticos de grandes redes varejistas e lajes corporativas.
+  - *Fundos de Papel:* Investem em títulos de dívida e recebíveis do setor imobiliário (como CRIs e LCIs), que rendem juros atrelados à inflação (IPCA) ou ao CDI.
+- **Vantagem Principal (Renda Passiva Mensal):** A grande maioria dos FIIs distribui rendimentos mensais (equivalentes aos aluguéis dos imóveis) diretamente na conta dos cotistas, e esses proventos são atualmente **isentos de Imposto de Renda** para pessoas físicas.
+
+### 3. Criptomoedas
+- **O que são:** Moedas digitais descentralizadas e globais que utilizam criptografia e a tecnologia **Blockchain** para garantir transações seguras, imutáveis e sem a intermediação de governos ou bancos centrais (exemplos: Bitcoin `BTC`, Ethereum `ETH`, Solana `SOL`).
+- **Características Principais:**
+  - *Descentralização e Escassez:* O Bitcoin, por exemplo, possui uma emissão limitada matematicamente a 21 milhões de unidades, tornando-o uma reserva de valor digital contra a inflação das moedas fiduciárias.
+  - *Alta Volatilidade:* Os preços das criptomoedas oscilam de forma expressiva em curtos períodos de tempo, impulsionados pela oferta e demanda global.
+  - *Diversificação:* Por sua natureza independente dos sistemas financeiros tradicionais, uma pequena alocação percentual em criptomoedas pode agregar potencial de crescimento exponencial a uma carteira de investimentos.
+
+### 4. O que é Preço Médio (PM)?
+O **Preço Médio** é o valor médio unitário que você pagou por cada cota ou ativo em carteira, ponderado pelas diferentes compras realizadas ao longo do tempo.
+
+> **Exemplo Prático:**
+> - Você comprou 10 cotas de um ativo a **R$ 10,00** (Investimento: R$ 100,00).
+> - Um mês depois, comprou mais 10 cotas do mesmo ativo a **R$ 12,00** (Investimento: R$ 120,00).
+> - **Total Investido:** R$ 220,00 por 20 cotas.
+> - **Preço Médio:** R$ 220,00 ÷ 20 = **R$ 11,00**.
+
+O Preço Médio é o indicador fundamental para saber a verdade sobre seu investimento: se a cotação de mercado atual estiver acima de R$ 11,00, você está lucrando; se estiver abaixo, sua posição está momentaneamente em prejuízo. O LumuzIA calcula e atualiza o Preço Médio de forma automática a cada nova compra registrada.
+
+### 5. O que é Rendimento e Lucro Total?
+- **Rendimento Nominal (em R$):** É a diferença em dinheiro entre o valor atual de mercado do seu patrimônio investido e o custo total de aquisição.
+- **Rendimento Percentual (%):** Demonstra o ganho ou perda proporcional da sua carteira, permitindo comparar o desempenho dos seus ativos com índices de referência (como o CDI, a Selic ou o Ibovespa).
+- **Efeito dos Juros Compostos:** Ao reinvestir os rendimentos e dividendos recebidos em novas cotas, você gera mais rendimentos no mês seguinte, criando o chamado "efeito bola de neve" que acelera a multiplicação do seu patrimônio.
 
 ---
 
-## 🚀 Comandos Rápidos
+## 🔒 Segurança, Privacidade e Integridade
 
-| Comando | Descrição |
-|---|---|
-| `npm start` | Inicia o servidor backend na porta 3000 |
-| `npm run test:security` | Executa a suíte completa de testes de invasão e segurança (DAST) |
-| `npm run test:db` | Executa o teste de persistência e diagnóstico de banco de dados |
+A proteção das suas informações financeiras é tratada como prioridade máxima:
+- **Autenticação Segura:** Acesso protegido por criptografia de ponta a ponta e tokens de autenticação via Firebase Auth.
+- **Isolamento de Dados (Multi-Tenancy):** Cada usuário possui seu ambiente exclusivo de dados. É rigorosamente impossível que um usuário visualize, acesse ou altere transações de outra conta.
+- **Comunicação Criptografada:** Todo o tráfego entre seu navegador e a plataforma trafega sob conexão segura HTTPS com certificados SSL válidos.
+- **Persistência em Nuvem:** Dados salvos com replicação contínua e backups regulares, garantindo que seu histórico financeiro esteja sempre disponível e protegido.
+
+---
+
+## 💡 Dicas de Educação Financeira para Começar Bem
+
+1. **Monte sua Reserva de Emergência:** Antes de investir em ações ou criptomoedas, acumule o equivalente a 3 a 6 meses do seu custo de vida em aplicações de alta liquidez e segurança (como Tesouro Selic ou CDB com liquidez diária).
+2. **Elimine Dívidas Caras:** Dívidas de cartão de crédito e cheque especial cobram juros muito mais altos do que qualquer investimento pode render. Priorize quitá-las primeiro.
+3. **Pague a Você Primeiro:** Assim que sua receita cair na conta, separe imediatamente a porcentagem destinada às suas metas e investimentos, vivendo com o valor restante.
+4. **Diversifique:** Nunca coloque todos os ovos na mesma cesta. Combine renda fixa (segurança), fundos imobiliários (renda mensal) e ações/cripto (crescimento de longo prazo).
