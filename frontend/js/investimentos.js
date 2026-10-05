@@ -173,7 +173,7 @@ window.filtrarInvestimentos = function() {
 
     if (ini && fim && ini > fim) {
         if (erroEl) {
-            erroEl.textContent = "⚠️ A data inicial não pode ser posterior à data final.";
+            erroEl.textContent = "A data inicial não pode ser posterior à data final.";
             erroEl.style.display = "block";
         }
         return;

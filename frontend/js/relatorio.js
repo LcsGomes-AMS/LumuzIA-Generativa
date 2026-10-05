@@ -69,7 +69,7 @@ function aplicarFiltro() {
 
     if (inicio && fim && inicio > fim) {
         if (status) {
-            status.textContent = "⚠️ A data inicial não pode ser posterior à data final.";
+            status.textContent = "A data inicial não pode ser posterior à data final.";
             status.classList.add("erro");
         }
         return;
@@ -337,7 +337,7 @@ async function gerarPdf() {
         status.classList.add("erro");
     } finally {
         btn.disabled = false;
-        btn.textContent = "📄 Gerar PDF";
+        btn.textContent = "Gerar PDF";
     }
 }
 

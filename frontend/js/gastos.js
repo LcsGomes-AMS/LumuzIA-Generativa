@@ -68,7 +68,7 @@ window.filtrarGastos = function() {
 
     if (ini && fim && ini > fim) {
         if (erroEl) {
-            erroEl.textContent = "⚠️ A data inicial não pode ser posterior à data final.";
+            erroEl.textContent = "A data inicial não pode ser posterior à data final.";
             erroEl.style.display = "block";
         }
         return;
@@ -346,9 +346,9 @@ function formatarDataISO(ano, mes, dia) {
 }
 
 function rotuloTipo(tipo) {
-    if (tipo === "gasto") return "💸 Gasto";
-    if (tipo === "receita") return "💵 Receita";
-    if (tipo === "meta") return "🎯 Meta";
+    if (tipo === "gasto") return "Gasto";
+    if (tipo === "receita") return "Receita";
+    if (tipo === "meta") return "Meta";
     return tipo;
 }
 
@@ -442,7 +442,7 @@ function renderizarListaDoDia(dataISO) {
 
     lista.innerHTML = `<h4 style="margin-top:15px;">Agendado para este dia:</h4>` + itens.map(ag => `
         <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px 12px; border-radius:6px; margin-top:8px;">
-            <span>${rotuloTipo(ag.tipo)} — ${escapeHtml(ag.descricao)} — R$ ${Number(ag.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ${ag.status === 'lancado' ? '✅ lançado' : ''}</span>
+            <span>${rotuloTipo(ag.tipo)} — ${escapeHtml(ag.descricao)} — R$ ${Number(ag.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ${ag.status === 'lancado' ? '(Lançado)' : ''}</span>
             ${ag.status === 'pendente' ? `<button onclick="deletarAgendamento(${ag.id})" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:2px 8px;border-radius:4px;cursor:pointer;">Excluir</button>` : ''}
         </div>
     `).join("");

@@ -103,8 +103,8 @@ function criarToast({ titulo, mensagem, tipo = "proxima" }) {
     const container = garantirContainer();
 
     const estilosPorTipo = {
-        vencida: { borda: "#EF4444", icone: "⚠️" },
-        proxima: { borda: "#F59E0B", icone: "⏰" }
+        vencida: { borda: "#EF4444" },
+        proxima: { borda: "#F59E0B" }
     };
     const cor = estilosPorTipo[tipo] || estilosPorTipo.proxima;
 
@@ -114,7 +114,7 @@ function criarToast({ titulo, mensagem, tipo = "proxima" }) {
 
     toast.innerHTML = `
         <button class="lz-toast-close" aria-label="Fechar">✕</button>
-        <div class="lz-toast-title">${cor.icone} ${escapeHtml(titulo)}</div>
+        <div class="lz-toast-title">${escapeHtml(titulo)}</div>
         <div class="lz-toast-body">${escapeHtml(mensagem)}</div>
     `;
 

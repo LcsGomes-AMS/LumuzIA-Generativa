@@ -49,7 +49,7 @@ function calcularPrevisao(meta) {
     const faltante = Number(meta.valor_objetivo) - Number(meta.valor_atual || 0);
 
     if (faltante <= 0) {
-        return { texto: "🎉 Meta alcançada!", classe: "ok" };
+        return { texto: "Meta alcançada!", classe: "ok" };
     }
     if (mediaMensalDisponivel <= 0) {
         return { texto: "Sem dados suficientes para estimar", classe: "alerta" };
@@ -69,7 +69,7 @@ function calcularMetaMensalNecessaria(meta) {
     const faltante = Number(meta.valor_objetivo) - Number(meta.valor_atual || 0);
 
     if (faltante <= 0) {
-        return { texto: "Concluída 🎉", classe: "ok" };
+        return { texto: "Concluída", classe: "ok" };
     }
     if (!meta.prazo || Number(meta.prazo) <= 0) {
         return { texto: "-", classe: "" };
@@ -94,9 +94,9 @@ async function carregarMediaMensal() {
         if (avisoEl) {
             avisoEl.style.display = "block";
             if (mediaMensalDisponivel > 0) {
-                avisoEl.innerText = `📈 Com base no seu histórico (últimos ${data.baseMeses} mês(es) com movimentação), você guarda em média R$ ${mediaMensalDisponivel.toFixed(2)} por mês.`;
+                avisoEl.innerText = `Com base no seu histórico (últimos ${data.baseMeses} mês(es) com movimentação), você guarda em média R$ ${mediaMensalDisponivel.toFixed(2)} por mês.`;
             } else {
-                avisoEl.innerText = `⚠️ No seu histórico atual, os gastos igualam ou superam as receitas — ainda não é possível estimar quando as metas serão alcançadas.`;
+                avisoEl.innerText = `No seu histórico atual, os gastos igualam ou superam as receitas — ainda não é possível estimar quando as metas serão alcançadas.`;
             }
         }
     } catch (err) {
@@ -153,18 +153,21 @@ function renderizarMetas(metas) {
 
         tabela.innerHTML += `
             <tr>
-                <td>${escapeHtml(meta.nome)}</td>
-                <td>R$ ${Number(meta.valor_objetivo).toFixed(2)}</td>
-                <td>R$ ${Number(meta.valor_atual || 0).toFixed(2)}</td>
+                <td><strong>${escapeHtml(meta.nome)}</strong></td>
+                <td>R$ ${Number(meta.valor_objetivo).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td style="color:#10B981;font-weight:600;">R$ ${Number(meta.valor_atual || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 <td>${meta.prazo} meses</td>
-                <td>${progresso}%</td>
+                <td>
+                    <div class="progress-bar-container"><div class="progress-bar-fill" style="width:${Math.min(progresso, 100)}%;"></div></div>
+                    <span style="font-size:12px;font-weight:600;color:var(--accent-2);margin-left:6px;">${progresso}%</span>
+                </td>
                 <td class="meta-previsao ${previsao.classe}">${previsao.texto}</td>
                 <td class="${metaMensal.classe}">${metaMensal.texto}</td>
                 <td>${meta.created_at ? new Date(String(meta.created_at).slice(0,10)+"T00:00:00").toLocaleDateString("pt-BR") : "--"}</td>
-                <td>
-                    <button onclick="abrirModalMeta(${meta.id}, '${nomeEscapado}', ${meta.valor_objetivo}, ${meta.valor_atual || 0}, ${meta.prazo}, 'guardar')" style="background:transparent;border:1px solid #10B981;color:#10B981;padding:4px 8px;border-radius:4px;cursor:pointer;">Guardar</button>
-                    <button onclick="abrirModalMeta(${meta.id}, '${nomeEscapado}', ${meta.valor_objetivo}, ${meta.valor_atual || 0}, ${meta.prazo}, 'retirar')" style="background:transparent;border:1px solid #FBBF24;color:#FBBF24;padding:4px 8px;border-radius:4px;cursor:pointer; margin-left:6px;">Retirar</button>
-                    <button onclick="excluirMeta(${meta.id})" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer; margin-left:6px;">Excluir</button>
+                <td style="white-space:nowrap;">
+                    <button class="btn-acao-meta btn-guardar" onclick="abrirModalMeta(${meta.id}, '${nomeEscapado}', ${meta.valor_objetivo}, ${meta.valor_atual || 0}, ${meta.prazo}, 'guardar')">Guardar</button>
+                    <button class="btn-acao-meta btn-retirar" onclick="abrirModalMeta(${meta.id}, '${nomeEscapado}', ${meta.valor_objetivo}, ${meta.valor_atual || 0}, ${meta.prazo}, 'retirar')">Retirar</button>
+                    <button class="btn-acao-meta btn-excluir" onclick="excluirMeta(${meta.id})">Excluir</button>
                 </td>
             </tr>
         `;
@@ -183,7 +186,7 @@ window.filtrarMetas = function() {
 
     if (ini && fim && ini > fim) {
         if (erroEl) {
-            erroEl.textContent = "⚠️ A data inicial não pode ser posterior à data final.";
+            erroEl.textContent = "A data inicial não pode ser posterior à data final.";
             erroEl.style.display = "block";
         }
         return;
@@ -398,7 +401,7 @@ async function deletarMeta(id) {
         const data = await res.json();
 
         if (data.success) {
-            alert("Meta excluída com sucesso! 🗑️");
+            alert("Meta excluída com sucesso!");
             carregarMetas();
         } else {
             alert(data.message || "Não foi possível excluir a meta.");
