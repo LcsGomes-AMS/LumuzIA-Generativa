@@ -4,7 +4,7 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const axios = require("axios");
-const db = require("./database");
+const { db, dbRun, dbGet, dbAll, isPostgres } = require("./database");
 const { verificarAutenticacao } = require("./firebaseAdmin");
 
 const app = express();
@@ -49,25 +49,10 @@ app.use(express.urlencoded({ extended: true, limit: "200kb" }));
 // Servir arquivos estáticos do frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
 
-// Helper: Promisify para consultas SQLite
-const dbRun = (sql, params = []) => new Promise((resolve, reject) => {
-    db.run(sql, params, function (err) {
-        if (err) reject(err); else resolve(this);
-    });
-});
-
-const dbGet = (sql, params = []) => new Promise((resolve, reject) => {
-    db.get(sql, params, (err, row) => err ? reject(err) : resolve(row));
-});
-
-const dbAll = (sql, params = []) => new Promise((resolve, reject) => {
-    db.all(sql, params, (err, rows) => err ? reject(err) : resolve(rows));
-});
-
 // Helper para evitar violações de chave estrangeira ao cadastrar dados
 async function garantirUsuarioExiste(userId) {
     if (!userId) return;
-    await dbRun(`INSERT OR IGNORE INTO users (id) VALUES (?)`, [userId]);
+    await dbRun(`INSERT INTO users (id) VALUES (?) ON CONFLICT (id) DO NOTHING`, [userId]);
 }
 
 // Lança automaticamente na tabela certa (gastos/receitas/metas) todo

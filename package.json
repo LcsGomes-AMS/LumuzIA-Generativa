@@ -7,6 +7,7 @@
     "express-rate-limit": "^8.6.2",
     "firebase-admin": "^14.3.0",
     "helmet": "^8.3.0",
+    "pg": "^8.23.1",
     "sqlite3": "^6.0.1",
     "yahoo-finance2": "^4.0.2"
   },
