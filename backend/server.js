@@ -19,7 +19,17 @@ const PORT = process.env.PORT || 3000;
 // Proteção de Cabeçalhos HTTP com Helmet (mitiga Clickjacking, MIME sniffing, etc.)
 app.use(
     helmet({
-        contentSecurityPolicy: false, // Mantém compatibilidade com assets e CDNs do Firebase e Google Fonts
+        contentSecurityPolicy: {
+            directives: {
+                defaultSrc: ["'self'"],
+                scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://www.gstatic.com", "https://apis.google.com"],
+                styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
+                fontSrc: ["'self'", "https://fonts.gstatic.com"],
+                imgSrc: ["'self'", "data:", "https:"],
+                connectSrc: ["'self'", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://api.coingecko.com"],
+                frameAncestors: ["'none'"]
+            }
+        },
         crossOriginEmbedderPolicy: false
     })
 );
@@ -77,6 +87,25 @@ app.use(cors({
 
 app.use(express.json({ limit: "200kb" }));
 app.use(express.urlencoded({ extended: true, limit: "200kb" }));
+
+// Middleware defensivo: intercepta JSON malformado e payload excessivo sem expor stack trace
+app.use((err, req, res, next) => {
+    if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
+        return res.status(400).json({ success: false, error: "JSON malformado ou inválido no corpo da requisição." });
+    }
+    if (err.type === "entity.too.large" || err.status === 413) {
+        return res.status(413).json({ success: false, error: "Tamanho de carga útil excede o limite permitido (200KB)." });
+    }
+    next(err);
+});
+
+// Garante que req.body seja sempre um objeto mesmo com Content-Type alternativo (ex: text/plain)
+app.use((req, res, next) => {
+    if (req.body === undefined || req.body === null) {
+        req.body = {};
+    }
+    next();
+});
 
 // Servir arquivos estáticos do frontend
 app.use(express.static(path.join(__dirname, "../frontend")));
@@ -1248,6 +1277,19 @@ app.get("/dashboard/:userId", async (req, res) => {
         res.status(500).json({ error: "Erro interno no servidor." });
     }
 });
+// =====================
+// HANDLER GLOBAL DE ERROS (Tratamento seguro sem vazamento de stack trace)
+// =====================
+app.use((err, req, res, next) => {
+    console.error("[SEGURANÇA / ERRO TRATADO]:", err.message);
+    if (res.headersSent) return next(err);
+    const status = err.status || 500;
+    res.status(status).json({
+        success: false,
+        error: status === 400 ? "Requisição inválida." : "Erro interno no servidor."
+    });
+});
+
 // =====================
 // INICIALIZAÇÃO
 // =====================
