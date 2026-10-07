@@ -1,14 +1,31 @@
 const { initializeApp, cert, getApps } = require("firebase-admin/app");
 const { getAuth } = require("firebase-admin/auth");
 
-const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_JSON
-    ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
-    : require(require("path").join(__dirname, "serviceAccountKey.json"));
+let serviceAccount = null;
+if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    try {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+    } catch (e) {
+        console.warn("[FirebaseAdmin] FIREBASE_SERVICE_ACCOUNT_JSON inválido:", e.message);
+    }
+} else {
+    const fs = require("fs");
+    const keyPath = require("path").join(__dirname, "serviceAccountKey.json");
+    if (fs.existsSync(keyPath)) {
+        try {
+            serviceAccount = require(keyPath);
+        } catch (e) {
+            console.warn("[FirebaseAdmin] Erro ao ler serviceAccountKey.json:", e.message);
+        }
+    }
+}
 
 if (!getApps().length) {
-    initializeApp({
-        credential: cert(serviceAccount)
-    });
+    if (serviceAccount) {
+        initializeApp({ credential: cert(serviceAccount) });
+    } else {
+        initializeApp();
+    }
 }
 
 const authAdmin = getAuth();

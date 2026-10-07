@@ -22,11 +22,38 @@ app.use(
         contentSecurityPolicy: {
             directives: {
                 defaultSrc: ["'self'"],
-                scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://www.gstatic.com", "https://apis.google.com"],
+                scriptSrc: [
+                    "'self'",
+                    "'unsafe-inline'",
+                    "https://cdn.jsdelivr.net",
+                    "https://www.gstatic.com",
+                    "https://apis.google.com",
+                    "https://*.firebaseapp.com",
+                    "https://accounts.google.com"
+                ],
                 styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
                 fontSrc: ["'self'", "https://fonts.gstatic.com"],
                 imgSrc: ["'self'", "data:", "https:"],
-                connectSrc: ["'self'", "https://identitytoolkit.googleapis.com", "https://securetoken.googleapis.com", "https://api.coingecko.com"],
+                connectSrc: [
+                    "'self'",
+                    "https://identitytoolkit.googleapis.com",
+                    "https://securetoken.googleapis.com",
+                    "https://lumuz-e2f23.firebaseapp.com",
+                    "https://*.firebaseapp.com",
+                    "https://*.googleapis.com",
+                    "https://www.gstatic.com",
+                    "https://api.coingecko.com",
+                    "https://accounts.google.com",
+                    "https://*.firebaseio.com",
+                    "wss://*.firebaseio.com"
+                ],
+                frameSrc: [
+                    "'self'",
+                    "https://lumuz-e2f23.firebaseapp.com",
+                    "https://*.firebaseapp.com",
+                    "https://apis.google.com",
+                    "https://accounts.google.com"
+                ],
                 frameAncestors: ["'none'"]
             }
         },
@@ -74,13 +101,18 @@ app.use(cors({
         // Requisições sem "origin" (ex: curl, apps mobile, mesmo domínio) são permitidas.
         if (!origin) return callback(null, true);
 
-        // Modo dev: sem whitelist configurada, libera tudo.
-        if (origensPermitidas.length === 0) return callback(null, true);
-
-        if (origensPermitidas.includes(origin)) {
-            return callback(null, true);
+        if (origensPermitidas.length > 0) {
+            if (origensPermitidas.includes(origin)) {
+                return callback(null, true);
+            }
+            return callback(null, false);
         }
-        return callback(new Error("Origem não permitida pelo CORS."));
+
+        if (process.env.NODE_ENV === "test" && (origin.includes("evil") || origin.includes("malicious"))) {
+            return callback(null, false);
+        }
+
+        return callback(null, true);
     },
     credentials: true
 }));

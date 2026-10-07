@@ -56,7 +56,8 @@ function traduzirErroFirebase(err) {
         "auth/email-already-in-use": "Este e-mail já está cadastrado.",
         "auth/weak-password": "A senha deve ter pelo menos 6 caracteres.",
         "auth/too-many-requests": "Muitas tentativas. Tente novamente mais tarde.",
-        "auth/popup-closed-by-user": "Login com Google cancelado."
+        "auth/popup-closed-by-user": "Login com Google cancelado.",
+        "auth/popup-blocked": "Pop-up bloqueado pelo navegador. Por favor, permita pop-ups para fazer login com o Google."
     };
     return mapa[codigo] || "Ocorreu um erro. Tente novamente.";
 }

@@ -1,6 +1,6 @@
 {
   "name": "lumuzia",
-  "version": "0.94.0",
+  "version": "0.96.0",
   "scripts": {
     "start": "node backend/server.js",
     "test:security": "node backend/test-security.js",
@@ -12,8 +12,9 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.6.2",
-    "firebase-admin": "^14.3.0",
+    "firebase-admin": "^12.7.0",
     "helmet": "^8.3.0",
+    "jwks-rsa": "^3.1.0",
     "pg": "^8.23.1",
     "sqlite3": "^6.0.1",
     "yahoo-finance2": "^4.0.2"
