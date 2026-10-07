@@ -2,6 +2,7 @@ import { auth } from "./config.js";
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
+    signInWithPopup,
     signInWithRedirect,
     getRedirectResult,
     GoogleAuthProvider,
@@ -58,7 +59,9 @@ function traduzirErroFirebase(err) {
         "auth/weak-password": "A senha deve ter pelo menos 6 caracteres.",
         "auth/too-many-requests": "Muitas tentativas. Tente novamente mais tarde.",
         "auth/popup-closed-by-user": "Login com Google cancelado.",
-        "auth/popup-blocked": "Pop-up bloqueado pelo navegador. Por favor, permita pop-ups para fazer login com o Google."
+        "auth/popup-blocked": "Pop-up bloqueado. Redirecionando...",
+        "auth/cancelled-popup-request": "Login com Google cancelado.",
+        "auth/network-request-failed": "Erro de rede. Verifique sua conexão."
     };
     return mapa[codigo] || "Ocorreu um erro. Tente novamente.";
 }
@@ -120,16 +123,42 @@ authForm.addEventListener("submit", async (e) => {
 });
 
 // =====================
-// Login com Google (via redirect - mais confiável que popup)
+// Login com Google
+// Tenta popup primeiro; se falhar (bloqueado), usa redirect como fallback.
 // =====================
+const googleProvider = new GoogleAuthProvider();
+
 if (googleBtn) {
-    googleBtn.addEventListener("click", () => {
+    googleBtn.addEventListener("click", async () => {
         limparMensagem();
         googleBtn.disabled = true;
-        mostrarMensagem("Redirecionando para o Google...", "info");
 
-        const provider = new GoogleAuthProvider();
-        signInWithRedirect(auth, provider);
+        try {
+            // Tenta abrir o popup do Google
+            const result = await signInWithPopup(auth, googleProvider);
+            if (result.user) {
+                window.location.href = "./como-usar.html";
+            }
+        } catch (err) {
+            console.error("Erro no login Google:", err);
+
+            // Se o popup foi bloqueado ou fechado, tenta via redirect
+            if (err.code === "auth/popup-blocked" ||
+                err.code === "auth/popup-closed-by-user" ||
+                err.code === "auth/cancelled-popup-request") {
+                mostrarMensagem("Redirecionando para login com Google...", "info");
+                try {
+                    await signInWithRedirect(auth, googleProvider);
+                } catch (redirectErr) {
+                    console.error("Erro no redirect:", redirectErr);
+                    mostrarMensagem(traduzirErroFirebase(redirectErr), "error");
+                    googleBtn.disabled = false;
+                }
+            } else {
+                mostrarMensagem(traduzirErroFirebase(err), "error");
+                googleBtn.disabled = false;
+            }
+        }
     });
 }
 
@@ -183,7 +212,7 @@ if (forgotForm) {
 }
 
 // =====================
-// Captura o resultado do login com Google após o redirect
+// Captura o resultado do login com Google após redirect (fallback)
 // =====================
 getRedirectResult(auth)
     .then((result) => {
@@ -192,8 +221,10 @@ getRedirectResult(auth)
         }
     })
     .catch((err) => {
-        console.error("Erro no redirect do Google:", err);
-        mostrarMensagem(traduzirErroFirebase(err), "error");
+        if (err.code) {
+            console.error("Erro no redirect do Google:", err);
+            mostrarMensagem(traduzirErroFirebase(err), "error");
+        }
     });
 
 // =====================

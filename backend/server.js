@@ -57,7 +57,8 @@ app.use(
                 frameAncestors: ["'none'"]
             }
         },
-        crossOriginEmbedderPolicy: false
+        crossOriginEmbedderPolicy: false,
+        crossOriginOpenerPolicy: false
     })
 );
 
