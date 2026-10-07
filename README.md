@@ -112,7 +112,7 @@ A proteção das suas informações financeiras é tratada como prioridade máxi
 
 ---
 
-## 💡 Dicas de Educação Financeira para Começar Bem
+## Dicas de Educação Financeira para Começar Bem
 
 1. **Monte sua Reserva de Emergência:** Antes de investir em ações ou criptomoedas, acumule o equivalente a 3 a 6 meses do seu custo de vida em aplicações de alta liquidez e segurança (como Tesouro Selic ou CDB com liquidez diária).
 2. **Elimine Dívidas Caras:** Dívidas de cartão de crédito e cheque especial cobram juros muito mais altos do que qualquer investimento pode render. Priorize quitá-las primeiro.
