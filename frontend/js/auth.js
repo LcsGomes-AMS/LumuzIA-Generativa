@@ -2,7 +2,8 @@ import { auth } from "./config.js";
 import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
-    signInWithPopup,
+    signInWithRedirect,
+    getRedirectResult,
     GoogleAuthProvider,
     sendPasswordResetEmail,
     updateProfile,
@@ -119,23 +120,16 @@ authForm.addEventListener("submit", async (e) => {
 });
 
 // =====================
-// Login com Google
+// Login com Google (via redirect - mais confiável que popup)
 // =====================
 if (googleBtn) {
-    googleBtn.addEventListener("click", async () => {
+    googleBtn.addEventListener("click", () => {
         limparMensagem();
         googleBtn.disabled = true;
+        mostrarMensagem("Redirecionando para o Google...", "info");
 
-        try {
-            const provider = new GoogleAuthProvider();
-            await signInWithPopup(auth, provider);
-            window.location.href = "./como-usar.html";
-        } catch (err) {
-            console.error(err);
-            mostrarMensagem(traduzirErroFirebase(err), "error");
-        } finally {
-            googleBtn.disabled = false;
-        }
+        const provider = new GoogleAuthProvider();
+        signInWithRedirect(auth, provider);
     });
 }
 
@@ -187,6 +181,20 @@ if (forgotForm) {
         }
     });
 }
+
+// =====================
+// Captura o resultado do login com Google após o redirect
+// =====================
+getRedirectResult(auth)
+    .then((result) => {
+        if (result && result.user) {
+            window.location.href = "./como-usar.html";
+        }
+    })
+    .catch((err) => {
+        console.error("Erro no redirect do Google:", err);
+        mostrarMensagem(traduzirErroFirebase(err), "error");
+    });
 
 // =====================
 // Se já estiver logado, pula direto pro dashboard
