@@ -20,10 +20,7 @@ let nextId = 1000;
 const requests = [];
 const app = express();
 app.use(express.json());
-const source = fs.readFileSync(path.join(__dirname, "server.js"), "utf8");
-const match = source.match(/helmet\((\{[\s\S]*?\})\)\s*\);/);
-assert.ok(match, "Configuração Helmet não encontrada");
-app.use(helmet(new Function(`return (${match[1]});`)()));
+app.use(helmet(require("./security-headers")));
 app.get("/favicon.ico", (_req, res) => res.status(204).end());
 app.use((req, res, next) => {
     const route = req.path, collection = route.split("/")[1], body = req.body || {};
@@ -59,6 +56,12 @@ app.use((req, res, next) => {
     }
     if (route.startsWith("/dashboard/")) return res.json({ receitas: 1500, gastos: 90, saldo: 1410 });
     if (route.startsWith("/estatisticas/")) return res.json([{ categoria: "Alimentação", total: 90 }]);
+    if (req.method === "PATCH" && collection === "agendamentos") {
+        const item = state.agendamentos.find(item => item.id === Number(route.split("/")[2]));
+        if (!item) return res.status(404).json({ success: false });
+        item.status = route.endsWith("/pago") ? "lancado" : "pendente";
+        return res.json({ success: true });
+    }
     if (!Object.hasOwn(state, collection)) return res.status(404).json({ error: "API sem mock: " + route });
     if (req.method === "GET") return res.json(state[collection]);
     const mapped = collection === "metas" ? {
@@ -163,7 +166,7 @@ async function startBrowser() {
             const waiter = pending.get(m.id); if (!waiter) return;
             clearTimeout(waiter.timer); pending.delete(m.id);
             if (m.error) waiter.reject(new Error(m.error.message)); else waiter.resolve(m.result);
-        } else if (m.method === "Fetch.requestPaused") intercept(m.params, m.sessionId).catch(e => errors.push(e.message));
+        } else if (m.method === "Fetch.requestPaused") intercept(m.params, m.sessionId).catch(e => { if (!e.message.includes("Invalid InterceptionId")) errors.push(e.message); });
         else if (m.method === "Runtime.exceptionThrown") errors.push(m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text);
         else if (m.method === "Runtime.consoleAPICalled" && m.params.type === "error") {
             const text = m.params.args.map(a => a.description || a.value).join(" ");
@@ -178,6 +181,20 @@ async function startBrowser() {
     await command("Page.addScriptToEvaluateOnNewDocument", { source: 'window.__uiDocumentReady=1;window.__uiAlerts=[];window.alert=m=>__uiAlerts.push(String(m));window.confirm=()=>true;' });
 }
 const cases = [
+    ["Segurança: CSP estrita e nenhum evento inline nas páginas", async () => {
+        const response = await fetch(origin + "/receitas.html");
+        const policy = response.headers.get("content-security-policy");
+        assert.match(policy, /script-src-attr 'none'/);
+        assert.ok(!policy.match(/script-src\s[^;]*'unsafe-inline'/));
+        const frontend = path.join(__dirname, "../frontend");
+        for (const name of fs.readdirSync(frontend).filter(name => name.endsWith(".html"))) {
+            const html = fs.readFileSync(path.join(frontend, name), "utf8");
+            assert.ok(!/\son[a-z]+\s*=/i.test(html), name + ": evento inline");
+            assert.ok(!/href\s*=\s*["']\s*javascript:/i.test(html), name + ": URL executável");
+            assert.ok(!/<script\b(?![^>]*\bsrc=)[^>]*>\s*[^<]/i.test(html), name + ": script inline");
+            if (html.includes("js/auth-guard.js")) assert.match(html, /<html[^>]*data-auth-pending/);
+        }
+    }],
     ["Receitas: editar, cancelar, salvar e filtrar com aspas", async () => {
         await goto("receitas.html", "document.querySelector('#linha-receita-201 button')");
         await click("#linha-receita-201 button");
@@ -215,7 +232,7 @@ const cases = [
         await click("#calMesProximo"); await click("#calHoje");
         assert.equal(await evaluate("document.querySelector('#calSelectMes').value"), await evaluate("String(new Date().getMonth())"));
         await click("#calendarioGrid [data-data]"); await waitDOM("getComputedStyle(document.querySelector('#calFormAgendamento')).display!=='none'", "selecionar dia");
-        await fill("#descricao", "Gasto de teste"); await fill("#valor", "25"); await click('button[onclick="salvarGasto()"]');
+        await fill("#descricao", "Gasto de teste"); await fill("#valor", "25"); await click('button[data-action="salvarGasto"]');
         await poll(() => state.gastos.length === 2, "salvar gasto");
         await fill("#filtroGastoDescricao", "inexistente"); await button("Filtrar");
         await waitDOM("document.querySelector('#contagemGastos').textContent.startsWith('0 de')", "filtrar gasto");
@@ -265,16 +282,75 @@ const cases = [
         await click("#btnOpenHistory"); await click(".conversa-item-delete"); await poll(() => state.conversas.length === 0, "excluir conversa");
     }],
     ["Como Usar: configurar, salvar, assistir, fechar e persistir vídeo", async () => {
-        await goto("como-usar.html", "typeof configurarUrlVideo==='function'");
+        await goto("como-usar.html", "document.querySelector('.btn-video-config')");
         await click(".btn-video-config"); await waitDOM("document.querySelector('#configUrlModal').classList.contains('active')", "configurar vídeo");
         await fill("#inputVideoUrl", "https://youtu.be/aqz-KE-bpKQ"); await button("Salvar Vídeo", "#configUrlModal");
         await waitDOM("document.querySelector('#video-container-plataforma iframe')", "salvar vídeo");
-        await click(".card-link[onclick*='abrirVideoModal']");
+        await click('.card-link[data-action="abrirVideoModal"]');
         await waitDOM("document.querySelector('#videoModal').classList.contains('active')", "assistir vídeo");
         assert.ok((await evaluate("document.querySelector('#modalVideoIframe').src")).includes("youtube-nocookie.com/embed/aqz-KE-bpKQ"));
         await button("Fechar", "#videoModal"); await goto("como-usar.html", "document.querySelector('#video-container-plataforma iframe')");
         await click(".btn-video-config"); await button("Cancelar", "#configUrlModal");
         assert.equal(await evaluate("document.querySelector('#configUrlModal').classList.contains('active')"), false);
+    }],
+    ["Ações delegadas: salvar, agendar, pagar, desmarcar e excluir", async () => {
+        const saved = structuredClone(state);
+        try {
+            await goto("receitas.html", "document.querySelector('#tabelaReceitas button')");
+            await fill("#descricao", "sec_test_Receita"); await fill("#valor", "70");
+            await click('[data-action="salvarReceita"]');
+            await poll(() => state.receitas.some(item => item.descricao === "sec_test_Receita"), "salvar receita");
+            const receitaId = state.receitas.find(item => item.descricao === "sec_test_Receita").id;
+            const excluirReceita = '[data-action="excluirReceita"][data-id="' + receitaId + '"]';
+            await waitDOM("document.querySelector(" + JSON.stringify(excluirReceita) + ")", "render receita");
+            await click(excluirReceita); await poll(() => !state.receitas.some(item => item.id === receitaId), "excluir receita");
+            await fill("#arDescricao", "sec_test_A receber"); await fill("#arValor", "50"); await fill("#arDias", "3");
+            await click('[data-action="salvarAReceber"]');
+            await waitDOM("document.querySelector('#tabelaAReceber button')", "agendar recebimento");
+            await click('#tabelaAReceber [data-action="excluirAReceber"]');
+            await poll(() => !state.agendamentos.some(item => item.descricao === "sec_test_A receber"), "cancelar recebimento");
+            await goto("metas.html", "document.querySelector('.btn-guardar')");
+            await fill("#nome", "sec_test_Meta"); await fill("#valorObjetivo", "300"); await fill("#prazo", "5");
+            await click('[data-action="salvarMeta"]');
+            await poll(() => state.metas.some(item => item.nome === "sec_test_Meta"), "criar meta");
+            const metaId = state.metas.find(item => item.nome === "sec_test_Meta").id;
+            const excluirMeta = '[data-action="excluirMeta"][data-id="' + metaId + '"]';
+            await waitDOM("document.querySelector(" + JSON.stringify(excluirMeta) + ")", "render meta");
+            await click(excluirMeta); await poll(() => !state.metas.some(item => item.id === metaId), "excluir meta");
+            state.agendamentos.push({ id: 777, tipo: "gasto", descricao: "sec_test_Parcela (1/2)", valor: 10, status: "pendente", data_agendada: "2030-01-01" });
+            await goto("gastos.html", "document.querySelector('#tabelaParcelas button[data-id=\"777\"]')");
+            await click('#tabelaParcelas [data-action="marcarPago"][data-id="777"]');
+            await waitDOM("document.querySelector('#tabelaParcelas [data-action=\"desmarcarPago\"][data-id=\"777\"]')", "marcar pago");
+            await click('#tabelaParcelas [data-action="desmarcarPago"][data-id="777"]');
+            await waitDOM("document.querySelector('#tabelaParcelas [data-action=\"excluirParcela\"][data-id=\"777\"]')", "desmarcar pago");
+            await click('#tabelaParcelas [data-action="excluirParcela"][data-id="777"]');
+            await poll(() => !state.agendamentos.some(item => item.id === 777), "excluir parcela");
+            await click("#calendarioGrid [data-data]"); await fill("#calDescricao", "sec_test_Agendamento"); await fill("#calValor", "15");
+            await click('[data-action="salvarAgendamento"]');
+            await waitDOM("document.querySelector('#listaAgendamentosDia button')", "agendar dia");
+            await click('#listaAgendamentosDia [data-action="deletarAgendamento"]');
+            await poll(() => !state.agendamentos.some(item => item.descricao === "sec_test_Agendamento"), "excluir agendamento");
+            const gastoId = state.gastos[0].id;
+            await click('#tabelaGastos [data-action="excluirGasto"][data-id="' + gastoId + '"]');
+            await poll(() => !state.gastos.some(item => item.id === gastoId), "excluir gasto");
+        } finally { Object.assign(state, saved); }
+    }],
+    ["Perfil: upload raster e remoção preservados; SVG rejeitado", async () => {
+        await goto("perfil.html", "getComputedStyle(document.querySelector('#lzProfile')).display!=='none'");
+        await evaluate(`(async()=>{
+            const canvas=document.createElement('canvas');canvas.width=canvas.height=2;
+            const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/png'));
+            const files=new DataTransfer();files.items.add(new File([blob],'sec_test_avatar.png',{type:'image/png'}));
+            const input=document.querySelector('#lzAvatarInput');input.files=files.files;input.dispatchEvent(new Event('change',{bubbles:true}));
+        })()`);
+        await waitDOM("document.querySelector('#lzAvatar img')?.src.startsWith('data:image/jpeg;base64,')", "upload perfil");
+        await click("#lzAvatarRemoveBtn"); await waitDOM("!document.querySelector('#lzAvatar img')", "remover foto");
+        await evaluate(`(()=>{
+            const files=new DataTransfer();files.items.add(new File(['<svg xmlns="http://www.w3.org/2000/svg"/>'],'sec_test_avatar.svg',{type:'image/svg+xml'}));
+            const input=document.querySelector('#lzAvatarInput');input.files=files.files;input.dispatchEvent(new Event('change',{bubbles:true}));
+        })()`);
+        assert.equal(await evaluate("document.querySelector('#lzAvatar img')===null"), true);
+        assert.ok(await evaluate("document.querySelector('#lzMsg').classList.contains('error')"));
     }],
     ["Perfil e perfil antigo: salvar e sair", async () => {
         await goto("prof.html", "getComputedStyle(document.querySelector('#profileContent')).display!=='none'");
@@ -304,6 +380,56 @@ const cases = [
         await fill("#newPassword", "senha123"); await fill("#confirmPassword", "senha123"); await click("#resetBtn");
         await waitDOM("window.__uiPasswordReset===true", "redefinir senha");
     }],
+    ["Segurança: texto, atributos, datas, IDs e foto com payload XSS", async () => {
+        const payload = '\" autofocus onfocus=\"window.__xss=true\"><img src=x onerror=\"window.__xss=true\">';
+        const saved = structuredClone(state);
+        try {
+            state.receitas = [{ id: '201\" data-payload=\"injetado', descricao: payload, valor: 50, created_at: today }];
+            await goto("receitas.html", "document.querySelector('#tabelaReceitas button')");
+            assert.equal(await evaluate("document.querySelectorAll('#tabelaReceitas img,#tabelaReceitas [data-payload]').length"), 0);
+            const before = requests.length;
+            await click("#tabelaReceitas button");
+            await delay(80);
+            assert.equal(requests.length, before, "ID malformado não pode acionar a API");
+            assert.ok(await evaluate("document.querySelector('#tabelaReceitas').textContent.includes(" + JSON.stringify(payload) + ")"));
+            state.agendamentos = [{ id: 501, tipo: payload, descricao: payload, valor: 5, status: "pendente", data_agendada: '2099-12-' + payload }];
+            await goto("gastos.html", "document.querySelector('#tabelaAgendamentosFuturos button')");
+            assert.equal(await evaluate("document.querySelectorAll('#tabelaAgendamentosFuturos img').length"), 0);
+            state.conversas = [{ id: 601, titulo: payload, created_at: today }];
+            state.mensagens[601] = [{ role: "assistant", conteudo: payload }];
+            await goto("chat.html", "document.querySelector('.conversa-item')");
+            assert.equal(await evaluate("document.querySelector('.conversa-titulo').title"), payload);
+            assert.equal(await evaluate("document.querySelectorAll('.conversa-item img,.conversa-item [autofocus]').length"), 0);
+            await click(".conversa-item");
+            await waitDOM("document.querySelector('#chatContainer .message')", "resposta IA escapada");
+            assert.equal(await evaluate("document.querySelectorAll('#chatContainer img').length"), 0);
+            await evaluate("localStorage.setItem('ui-doc-usuarios/ui-user'," + JSON.stringify(JSON.stringify({ photoURL: payload })) + ")");
+            await goto("perfil.html", "getComputedStyle(document.querySelector('#lzProfile')).display!=='none'");
+            await delay(50);
+            assert.equal(await evaluate("document.querySelector('#lzAvatar').childElementCount"), 0);
+            assert.equal(await evaluate("window.__xss === true"), false);
+        } finally {
+            Object.assign(state, saved);
+            await evaluate("localStorage.removeItem('ui-doc-usuarios/ui-user')");
+        }
+    }],
+    ["Segurança: tokens ficam na origem local e respostas respeitam troca de conta", async () => {
+        await goto("receitas.html", "document.querySelector('#tabelaReceitas button')");
+        const result = await evaluate(`(async()=>{
+            const {apiFetch}=await import('./js/apiClient.js');
+            const {auth}=await import('./js/session.js');
+            let blocked=0;
+            for(const path of ['https://example.com/collect','//example.com/collect','/\\\\example.com/collect']){
+                try{await apiFetch(path)}catch{blocked++}
+            }
+            const previous=auth.currentUser;
+            const getToken=previous.getIdToken;
+            previous.getIdToken=async()=>{auth.currentUser={...previous,uid:'sec_test_other'};return 'ui-test-token'};
+            try{await apiFetch('/gastos/ui-user')}catch{blocked++}finally{auth.currentUser=previous;previous.getIdToken=getToken}
+            return blocked;
+        })()`);
+        assert.equal(result, 4);
+    }],
     ["Acesso sem sessão continua bloqueado", async () => {
         await evaluate("localStorage.setItem('ui-auth','off')");
         await command("Page.navigate", { url: origin + "/dashboard.html" });
@@ -315,8 +441,8 @@ const cases = [
     try {
         if (process.env.UI_REAL_PDF === "1") {
             for (const [key, url] of Object.entries({
-                jspdf: "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js",
-                autotable: "https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"
+                jspdf: "https://cdn.jsdelivr.net/npm/jspdf@4.2.1/dist/jspdf.umd.min.js",
+                autotable: "https://cdn.jsdelivr.net/npm/jspdf-autotable@5.0.8/dist/jspdf.plugin.autotable.min.js"
             })) { const response = await fetch(url); if (!response.ok) throw new Error("CDN PDF " + response.status); pdfSources[key] = await response.text(); }
         }
         await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));

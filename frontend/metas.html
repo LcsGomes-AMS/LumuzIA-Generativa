@@ -5,7 +5,7 @@
 
     <meta charset="UTF-8">
     <style>html[data-auth-pending] body { display: none !important; }</style>
-    <script src="./js/auth-guard.js" onerror="window.location.replace('./cad.html')"></script>
+    <script src="./js/auth-guard.js"></script>
     <noscript><meta http-equiv="refresh" content="0;url=./cad.html"></noscript>
 
     <meta
@@ -165,7 +165,7 @@
 
             <button
                 type="button"
-                onclick="salvarMeta()"
+                data-action="salvarMeta"
             >
              Salvar Meta
             </button>
@@ -210,8 +210,8 @@
             </div>
             <div id="filtroMetaErro" class="filtro-aviso-erro" style="margin-top: 10px;"></div>
             <div class="filtro-moderno-acoes">
-                <button class="filtro-moderno-btn-primario" type="button" onclick="filtrarMetas()">Filtrar</button>
-                <button class="filtro-moderno-btn-secundario" type="button" onclick="limparFiltroMetas()">Limpar filtros</button>
+                <button class="filtro-moderno-btn-primario" type="button" data-action="filtrarMetas">Filtrar</button>
+                <button class="filtro-moderno-btn-secundario" type="button" data-action="limparFiltroMetas">Limpar filtros</button>
                 <span id="contagemMetas" class="filtro-moderno-contagem"></span>
             </div>
         </section>
@@ -280,14 +280,13 @@
                 min="0.01"
                 step="0.01"
                 placeholder="Valor (R$)"
-                onkeydown="if(event.key==='Enter'){confirmarModalMeta();}"
             >
 
             <div id="modalMetaErro" class="modal-erro"></div>
 
             <div class="modal-actions">
-                <button type="button" onclick="fecharModalMeta()">Cancelar</button>
-                <button id="modalMetaConfirmar" type="button" onclick="confirmarModalMeta()">Guardar</button>
+                <button type="button" data-action="fecharModalMeta">Cancelar</button>
+                <button id="modalMetaConfirmar" type="button" data-action="confirmarModalMeta">Guardar</button>
             </div>
         </div>
     </div>

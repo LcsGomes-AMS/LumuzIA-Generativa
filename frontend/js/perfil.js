@@ -1,6 +1,7 @@
+import { safePhotoUrl } from "./security.js";
 import { auth, db } from "./config.js";
-import { onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js";
 import { verificarParcelasPendentes } from "./notifications.js";
 import { endSession } from "./session.js";
 
@@ -37,8 +38,13 @@ function providerLabel(id) {
 }
 
 function renderAvatar(photoBase64, name, email) {
-  if (photoBase64) {
-    avatar.innerHTML = `<img src="${photoBase64}" alt="Foto de perfil">`;
+  const photoUrl = safePhotoUrl(photoBase64);
+  if (photoUrl) {
+    const image = document.createElement("img");
+    image.src = photoUrl;
+    image.alt = "Foto de perfil";
+    image.referrerPolicy = "no-referrer";
+    avatar.replaceChildren(image);
     avatarRemoveBtn.style.display = "flex";
   } else {
     avatar.textContent = initialsOf(name, email);
@@ -86,7 +92,7 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  localStorage.setItem("userId", user.uid);
+  currentUserData = {};
 
   verificarParcelasPendentes();
 
@@ -112,6 +118,7 @@ onAuthStateChanged(auth, async (user) => {
   try {
     const userRef = doc(db, "usuarios", user.uid);
     const userSnap = await getDoc(userRef);
+    if (auth.currentUser?.uid !== user.uid) return;
     if (userSnap.exists()) {
       currentUserData = userSnap.data();
       if (Object.hasOwn(currentUserData, "photoURL")) {
@@ -129,7 +136,7 @@ avatarInput.addEventListener("change", async () => {
   const file = avatarInput.files[0];
   if (!file) return;
 
-  if (!file.type.startsWith("image/")) {
+  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
     showMsg("Selecione um arquivo de imagem válido.", "error");
     avatarInput.value = "";
     return;

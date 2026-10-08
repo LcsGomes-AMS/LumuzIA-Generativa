@@ -1,12 +1,9 @@
+import { escapeHtml } from "./security.js";
 import { auth } from "./config.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
 import { apiFetch } from "./apiClient.js";
 
-function escapeHtml(str) {
-    const div = document.createElement("div");
-    div.textContent = str ?? "";
-    return div.innerHTML;
-}
+
 
 function fmtMoeda(v) {
     return Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -128,7 +125,7 @@ function renderizarRelatorio() {
     );
     corpoReceitas.innerHTML = receitasOrdenadas.length
         ? receitasOrdenadas.map(r =>
-            `<tr><td>${fmtData(r.created_at)}</td><td>${escapeHtml(r.descricao)}</td><td class="valor-receita">${fmtMoeda(r.valor)}</td></tr>`
+            `<tr><td>${escapeHtml(fmtData(r.created_at))}</td><td>${escapeHtml(r.descricao)}</td><td class="valor-receita">${fmtMoeda(r.valor)}</td></tr>`
         ).join("")
         : `<tr><td colspan="3" style="text-align:center;color:var(--text-muted);">Nenhuma receita no período.</td></tr>`;
 
@@ -139,7 +136,7 @@ function renderizarRelatorio() {
     );
     corpoGastos.innerHTML = gastosOrdenados.length
         ? gastosOrdenados.map(g =>
-            `<tr><td>${fmtData(g.created_at)}</td><td>${escapeHtml(g.descricao)}</td><td>${escapeHtml(g.categoria)}</td><td class="valor-gasto">${fmtMoeda(g.valor)}</td></tr>`
+            `<tr><td>${escapeHtml(fmtData(g.created_at))}</td><td>${escapeHtml(g.descricao)}</td><td>${escapeHtml(g.categoria)}</td><td class="valor-gasto">${fmtMoeda(g.valor)}</td></tr>`
         ).join("")
         : `<tr><td colspan="4" style="text-align:center;color:var(--text-muted);">Nenhum gasto no período.</td></tr>`;
 }

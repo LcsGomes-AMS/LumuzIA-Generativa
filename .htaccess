@@ -1,0 +1,13 @@
+# A raiz do repositório não é uma raiz pública. Este fallback serve só a ponte.
+# Requer Apache 2.4 com AllowOverride habilitado. Em Nginx configure allowlist equivalente.
+Options -Indexes
+DirectoryIndex index.php
+RewriteEngine On
+RewriteRule !^index\.php$ - [F,L]
+
+<FilesMatch "^(?!index\.php$).+">
+    Require all denied
+</FilesMatch>
+<Files "index.php">
+    Require all granted
+</Files>

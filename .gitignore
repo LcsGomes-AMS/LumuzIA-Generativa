@@ -27,3 +27,18 @@ Desktop.ini
 *.swp
 *.swo
 
+
+# Arquivos locais privados: backups podem conter credenciais e dados pessoais.
+backup/*.zip
+*.sqlite
+*.sqlite3
+*.db-wal
+*.db-shm
+*.db-journal
+*.pem
+*.key
+*-firebase-adminsdk-*.json
+security-report.json
+
+# Modelo público sem credenciais.
+!.env.example

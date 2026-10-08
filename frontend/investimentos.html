@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <style>html[data-auth-pending] body { display: none !important; }</style>
-    <script src="./js/auth-guard.js" onerror="window.location.replace('./cad.html')"></script>
+    <script src="./js/auth-guard.js"></script>
     <noscript><meta http-equiv="refresh" content="0;url=./cad.html"></noscript>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Investimentos - LumuzIA</title>
     <link rel="icon" type="image/png" href="img/LumuzIA.png">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
@@ -126,8 +126,8 @@
             </div>
             <div id="filtroInvErro" class="filtro-aviso-erro" style="margin-top: 10px;"></div>
             <div class="filtro-moderno-acoes">
-                <button class="filtro-moderno-btn-primario" type="button" onclick="filtrarInvestimentos()">Filtrar</button>
-                <button class="filtro-moderno-btn-secundario" type="button" onclick="limparFiltroInvestimentos()">Limpar filtros</button>
+                <button class="filtro-moderno-btn-primario" type="button" data-action="filtrarInvestimentos">Filtrar</button>
+                <button class="filtro-moderno-btn-secundario" type="button" data-action="limparFiltroInvestimentos">Limpar filtros</button>
                 <span id="contagemInvestimentos" class="filtro-moderno-contagem"></span>
             </div>
         </section>

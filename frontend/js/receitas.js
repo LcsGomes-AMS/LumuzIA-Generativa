@@ -1,13 +1,10 @@
+import { escapeHtml, bindActions } from "./security.js";
 import { auth } from "./config.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
 import { apiFetch } from "./apiClient.js";
 import { verificarParcelasPendentes } from "./notifications.js";
 
-function escapeHtml(str) {
-    const div = document.createElement("div");
-    div.textContent = str ?? "";
-    return div.innerHTML;
-}
+
 
 // =====================
 // RECEITAS (já recebidas)
@@ -149,13 +146,13 @@ function renderizarTabelaReceitas(receitas) {
     }
 
     tabela.innerHTML = receitas.map(receita => `
-        <tr id="linha-receita-${receita.id}">
+        <tr id="linha-receita-${escapeHtml(receita.id)}">
             <td>${escapeHtml(receita.descricao)}</td>
             <td>R$ ${Number(receita.valor).toFixed(2)}</td>
             <td>${receita.created_at ? new Date(String(receita.created_at).slice(0,10)+"T00:00:00").toLocaleDateString("pt-BR") : "--"}</td>
             <td>
-                <button onclick="editarReceita(${receita.id})" style="background:transparent;border:1px solid #6FE7DD;color:#6FE7DD;padding:4px 8px;border-radius:4px;cursor:pointer;">Editar</button>
-                <button onclick="excluirReceita(${receita.id})" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer; margin-left:6px;">Excluir</button>
+                <button data-action="editarReceita" data-id="${escapeHtml(receita.id)}" style="background:transparent;border:1px solid #6FE7DD;color:#6FE7DD;padding:4px 8px;border-radius:4px;cursor:pointer;">Editar</button>
+                <button data-action="excluirReceita" data-id="${escapeHtml(receita.id)}" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer; margin-left:6px;">Excluir</button>
             </td>
         </tr>
     `).join("");
@@ -169,11 +166,11 @@ window.editarReceita = function (id) {
     if (!linha) return;
 
     linha.innerHTML = `
-        <td><input class="receita-edit-input" id="editDesc-${id}"></td>
-        <td><input class="receita-edit-input" id="editValor-${id}" type="number" min="0.01" step="0.01"></td>
+        <td><input class="receita-edit-input" id="editDesc-${escapeHtml(id)}"></td>
+        <td><input class="receita-edit-input" id="editValor-${escapeHtml(id)}" type="number" min="0.01" step="0.01"></td>
         <td>
-            <button onclick="salvarEdicaoReceita(${id})" style="background:#10B981;border:none;color:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;">Salvar</button>
-            <button onclick="filtrarReceitas()" style="background:transparent;border:1px solid #8FA1A3;color:#8FA1A3;padding:4px 8px;border-radius:4px;cursor:pointer; margin-left:6px;">Cancelar</button>
+            <button data-action="salvarEdicaoReceita" data-id="${escapeHtml(id)}" style="background:#10B981;border:none;color:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;">Salvar</button>
+            <button data-action="filtrarReceitas" style="background:transparent;border:1px solid #8FA1A3;color:#8FA1A3;padding:4px 8px;border-radius:4px;cursor:pointer; margin-left:6px;">Cancelar</button>
         </td>
     `;
     document.getElementById(`editDesc-${id}`).value = receita.descricao;
@@ -292,12 +289,12 @@ async function carregarAReceber() {
                     ? `<span class="badge-recebido">recebido</span>`
                     : `<span class="badge-pendente">pendente</span>`;
                 const botaoExcluir = item.status === "pendente"
-                    ? `<button onclick="excluirAReceber(${item.id})" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer;">Excluir</button>`
+                    ? `<button data-action="excluirAReceber" data-id="${escapeHtml(item.id)}" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer;">Excluir</button>`
                     : "—";
 
                 return `
                     <tr>
-                        <td>${dia}/${mes}/${ano}</td>
+                        <td>${escapeHtml(dia)}/${escapeHtml(mes)}/${escapeHtml(ano)}</td>
                         <td>${escapeHtml(item.descricao)}</td>
                         <td>R$ ${Number(item.valor).toFixed(2)}</td>
                         <td>${badge}</td>
@@ -346,4 +343,15 @@ onAuthStateChanged(auth, (user) => {
     inicializarEventosFiltroReceitas();
     carregarAReceber();
     verificarParcelasPendentes();
+});
+
+bindActions({
+    salvarReceita: window.salvarReceita,
+    filtrarReceitas: window.filtrarReceitas,
+    limparFiltroReceitas: window.limparFiltroReceitas,
+    salvarAReceber: window.salvarAReceber,
+    editarReceita: window.editarReceita,
+    salvarEdicaoReceita: window.salvarEdicaoReceita,
+    excluirReceita: window.excluirReceita,
+    excluirAReceber: window.excluirAReceber
 });

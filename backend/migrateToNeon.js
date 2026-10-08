@@ -26,15 +26,12 @@ if (!databaseUrl) {
 const sqlitePath = path.join(__dirname, "lumuzia.db");
 const sqliteDb = new sqlite3.Database(sqlitePath, (err) => {
     if (err) {
-        console.error("❌ Erro ao abrir SQLite:", err.message);
+        console.error("❌ Não foi possível abrir o banco SQLite.");
         process.exit(1);
     }
 });
 
-const pool = new Pool({
-    connectionString: databaseUrl,
-    ssl: { rejectUnauthorized: false }
-});
+const pool = new Pool(require("./postgres-config")(databaseUrl));
 
 const getSqliteData = (table) => new Promise((resolve) => {
     sqliteDb.all(`SELECT * FROM ${table}`, (err, rows) => {
@@ -208,7 +205,8 @@ async function migrar() {
 
         console.log("\n🎉 MIGRAÇÃO CONCLUÍDA COM SUCESSO! Seus dados já estão salvos no Neon PostgreSQL.");
     } catch (error) {
-        console.error("❌ Erro durante a migração:", error);
+        console.error("❌ Falha na migração; verifique a conexão e o esquema do banco.");
+        process.exitCode = 1;
     } finally {
         sqliteDb.close();
         await pool.end();

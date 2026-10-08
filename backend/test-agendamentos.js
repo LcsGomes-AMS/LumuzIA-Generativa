@@ -1,99 +1,81 @@
+"use strict";
+process.env.NODE_ENV = "test";
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const { once } = require("node:events");
+require("./test-utils").installTestAuth();
+const database = require("./database");
+const app = require("./server");
 
-test("reversão de parcelas preserva o lançamento e o isolamento", async t => {
-    const uid = "sec_test_user";
-    const parcela = { id: 1, user_id: uid, tipo: "gasto", descricao: "Compra (1/2)",
-        valor: 100, categoria: "Geral", data_agendada: "2000-01-01", status: "lancado" };
-    let gastos = 1;
-    const reset = () => { parcela.status = "lancado"; gastos = 1; };
-    const owned = params => Number(params[0]) === parcela.id && (params.length === 1 || params[1] === uid);
-    const database = {
-        db: null, isPostgres: false,
-        async dbGet(sql, params) {
-            assert.match(sql, /SELECT \* FROM agendamentos WHERE id = \? AND user_id = \?/i);
-            return owned(params) ? { ...parcela } : undefined;
-        },
-        async dbAll(sql, params) {
-            assert.match(sql, /SELECT \* FROM agendamentos WHERE user_id = \?/i);
-            if (params[0] !== uid) return [];
-            if (/status\s*=\s*'pendente'/i.test(sql)) {
-                return parcela.status === "pendente" && parcela.data_agendada <= params[1] ? [{ ...parcela }] : [];
-            }
-            return [{ ...parcela }];
-        },
-        async dbRun(sql, params) {
-            if (/INSERT INTO gastos/i.test(sql)) {
-                assert.equal(params[0], uid);
-                return { changes: 1, lastID: ++gastos };
-            }
-            assert.match(sql, /UPDATE agendamentos SET status/i);
-            if (!owned(params)) return { changes: 0 };
-            if (/CASE\s+WHEN/i.test(sql)) {
-                if (parcela.status === "lancado") parcela.status = "pendente_manual";
-            } else parcela.status = sql.match(/SET\s+status\s*=\s*'([^']+)'/i)[1];
-            return { changes: 1 };
-        }
-    };
-    const entries = [["./database", database], ["./firebaseAdmin", {
-        verificarAutenticacao(req, _res, next) { req.uid = req.get("x-test-uid") || uid; next(); }
-    }]];
-    const saved = entries.map(([name]) => [require.resolve(name), require.cache[require.resolve(name)]]);
-    const serverPath = require.resolve("./server");
-    saved.push([serverPath, require.cache[serverPath]]);
-    let app;
-    try {
-        entries.forEach(([name, exports]) => {
-            const id = require.resolve(name);
-            require.cache[id] = { id, filename: id, loaded: true, exports };
-        });
-        delete require.cache[serverPath];
-        app = require("./server");
-    } finally {
-        for (const [id, cached] of saved) {
-            if (cached) require.cache[id] = cached; else delete require.cache[id];
-        }
-    }
+test("agendamentos: isolamento, idempotência concorrente e rollback", async t => {
+    const uid = "sec_test_agendamentos", other = "sec_test_agendamentos_other";
     const server = app.listen(0, "127.0.0.1");
-    t.after(() => new Promise(resolve => { server.closeAllConnections(); server.close(resolve); }));
     await once(server, "listening");
     const base = "http://127.0.0.1:" + server.address().port;
+    t.after(async () => {
+        await new Promise(resolve => { server.closeAllConnections(); server.close(resolve); });
+        await new Promise(resolve => database.db.close(resolve));
+    });
+    await database.dbRun("INSERT INTO users (id) VALUES (?)", [uid]);
     async function request(route, method = "GET", user = uid) {
-        const response = await fetch(base + route, { method, headers: { "x-test-uid": user }, signal: AbortSignal.timeout(5000) });
+        const response = await fetch(base + route, { method, headers: { "x-test-uid": user }, signal: AbortSignal.timeout(10000) });
         return { status: response.status, data: await response.json() };
     }
+    async function create(description, status = "pendente") {
+        const result = await database.dbRun("INSERT INTO agendamentos (user_id, tipo, descricao, valor, categoria, data_agendada, status) VALUES (?, 'gasto', ?, 100, 'Geral', '2000-01-01', ?)", [uid, description, status]);
+        return result.lastID;
+    }
+    async function count(description) {
+        return (await database.dbGet("SELECT COUNT(*) AS total FROM gastos WHERE user_id = ? AND descricao = ?", [uid, description])).total;
+    }
     await t.test("desmarcar, listar e remarcar não duplica parcela vencida", async () => {
-        reset();
-        assert.equal((await request("/agendamentos/1/pendente", "PATCH")).status, 200);
-        assert.equal(parcela.status, "pendente_manual");
+        const description = "sec_test_manual";
+        const id = await create(description, "lancado");
+        await database.dbRun("INSERT INTO gastos (user_id, descricao, valor, categoria) VALUES (?, ?, 100, 'Geral')", [uid, description]);
+        assert.equal((await request("/agendamentos/" + id + "/pendente", "PATCH")).status, 200);
+        assert.equal((await database.dbGet("SELECT status FROM agendamentos WHERE id = ?", [id])).status, "pendente_manual");
         const list = await request("/agendamentos/" + uid);
-        assert.equal(list.data[0].status, "pendente");
-        assert.equal(parcela.status, "pendente_manual");
-        assert.equal(gastos, 1);
+        assert.equal(list.data.find(row => row.id === id).status, "pendente");
         assert.deepEqual((await request("/agendamentos/processar/" + uid)).data.lancados, []);
-        await request("/agendamentos/1/pendente", "PATCH");
-        assert.equal(parcela.status, "pendente_manual");
-        await request("/agendamentos/1/pago", "PATCH");
-        assert.equal(parcela.status, "lancado");
-        await request("/agendamentos/1/pago", "PATCH");
-        assert.equal(gastos, 1);
+        await request("/agendamentos/" + id + "/pago", "PATCH");
+        await request("/agendamentos/" + id + "/pago", "PATCH");
+        assert.equal(await count(description), 1);
     });
-    await t.test("pendentes comuns continuam sendo lançadas automaticamente", async () => {
-        reset(); parcela.status = "pendente";
-        const list = await request("/agendamentos/" + uid);
-        assert.equal(list.data[0].status, "lancado");
-        assert.equal(gastos, 2);
+    await t.test("pendentes comuns são lançadas uma única vez", async () => {
+        const description = "sec_test_auto";
+        const id = await create(description);
+        const result = await request("/agendamentos/" + uid);
+        assert.equal(result.data.find(row => row.id === id).status, "lancado");
         await request("/agendamentos/" + uid);
-        assert.equal(gastos, 2);
+        assert.equal(await count(description), 1);
     });
     await t.test("outra conta não pode consultar nem alterar parcela", async () => {
-        reset();
-        assert.equal((await request("/agendamentos/" + uid, "GET", "sec_test_other")).status, 403);
-        for (const status of ["pendente", "pago"]) {
-            assert.equal((await request("/agendamentos/1/" + status, "PATCH", "sec_test_other")).status, 404);
-        }
-        assert.equal(parcela.status, "lancado");
-        assert.equal(gastos, 1);
+        const id = await create("sec_test_private");
+        assert.equal((await request("/agendamentos/" + uid, "GET", other)).status, 403);
+        for (const state of ["pendente", "pago"]) assert.equal((await request("/agendamentos/" + id + "/" + state, "PATCH", other)).status, 404);
+        assert.equal((await database.dbGet("SELECT status FROM agendamentos WHERE id = ?", [id])).status, "pendente");
+    });
+    await t.test("listar, processar e pagar simultaneamente não duplicam lançamentos", async () => {
+        const description = "sec_test_concurrent";
+        const id = await create(description);
+        const replies = await Promise.all(Array.from({ length: 24 }, (_, index) => index % 3 === 0
+            ? request("/agendamentos/" + id + "/pago", "PATCH")
+            : request(index % 3 === 1 ? "/agendamentos/" + uid : "/agendamentos/processar/" + uid)));
+        assert.ok(replies.every(result => result.status === 200));
+        assert.equal(await count(description), 1);
+        assert.equal((await database.dbGet("SELECT status FROM agendamentos WHERE id = ?", [id])).status, "lancado");
+    });
+    await t.test("falha no lançamento reverte a mudança de estado e não vaza erro SQL", async () => {
+        const description = "sec_test_rollback";
+        const id = await create(description);
+        await database.dbRun("CREATE TEMP TRIGGER sec_test_fail BEFORE INSERT ON gastos WHEN NEW.descricao = 'sec_test_rollback' BEGIN SELECT RAISE(ABORT, 'sec_test_private_sql_path'); END");
+        const failed = await request("/agendamentos/" + id + "/pago", "PATCH");
+        assert.equal(failed.status, 500);
+        assert.doesNotMatch(JSON.stringify(failed.data), /private_sql|SQLITE|TRIGGER/);
+        assert.equal((await database.dbGet("SELECT status FROM agendamentos WHERE id = ?", [id])).status, "pendente");
+        assert.equal(await count(description), 0);
+        await database.dbRun("DROP TRIGGER sec_test_fail");
+        assert.equal((await request("/agendamentos/" + id + "/pago", "PATCH")).status, 200);
+        assert.equal(await count(description), 1);
     });
 });

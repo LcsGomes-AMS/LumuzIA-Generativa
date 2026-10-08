@@ -8,6 +8,7 @@
         window.location.replace("./cad.html");
     };
 
+    let activeUid = null;
     lock();
     window.addEventListener("pagehide", lock);
 
@@ -19,7 +20,11 @@
                 } else if (user.isAnonymous) {
                     lock();
                     void endSession();
+                } else if (activeUid && activeUid !== user.uid) {
+                    lock();
+                    window.location.reload();
                 } else {
+                    activeUid = user.uid;
                     unlock();
                 }
             }, redirect);

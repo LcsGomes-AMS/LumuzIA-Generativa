@@ -1,13 +1,10 @@
+import { escapeHtml, bindActions } from "./security.js";
 import { auth } from "./config.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
 import { apiFetch } from "./apiClient.js";
 import { verificarParcelasPendentes } from "./notifications.js";
 
-function escapeHtml(str) {
-    const div = document.createElement("div");
-    div.textContent = str ?? "";
-    return div.innerHTML;
-}
+
 
 // GRÁFICO 1: Evolução do rendimento total ao longo do tempo
 async function carregarGraficoEvolucaoTotal(uid) {
@@ -152,9 +149,9 @@ function renderizarInvestimentosFiltrados() {
                 <td style="padding: 12px; color: ${corLucro}; font-weight: bold;">
                     ${lucro >= 0 ? '+' : ''}R$ ${lucro.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </td>
-                <td style="padding: 12px; color: #8FA1A3;">${dataFormatada}</td>
+                <td style="padding: 12px; color: #8FA1A3;">${escapeHtml(dataFormatada)}</td>
                 <td style="padding: 12px;">
-                    <button onclick="deletarInvestimento(${item.id})" style="background: transparent; border: 1px solid #EF4444; color: #EF4444; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
+                    <button data-action="deletarInvestimento" data-id="${escapeHtml(item.id)}" style="background: transparent; border: 1px solid #EF4444; color: #EF4444; padding: 4px 8px; border-radius: 4px; cursor: pointer;">
                         Excluir
                     </button>
                 </td>
@@ -389,4 +386,10 @@ onAuthStateChanged(auth, (user) => {
     inicializarEventosFiltroInvestimentos();
     carregarGraficoEvolucaoTotal(user.uid);
     verificarParcelasPendentes();
+});
+
+bindActions({
+    filtrarInvestimentos: window.filtrarInvestimentos,
+    limparFiltroInvestimentos: window.limparFiltroInvestimentos,
+    deletarInvestimento: window.deletarInvestimento
 });

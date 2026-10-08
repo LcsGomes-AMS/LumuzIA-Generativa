@@ -1,3 +1,4 @@
+import { bindActions } from "./security.js";
 function filtrarGuia(termo) {
     const query = (termo || "").toLowerCase().trim();
     document.querySelectorAll(".guia-card, .source-card, .video-section-block").forEach(card => {
@@ -12,7 +13,7 @@ const videosProntos = import("./session.js").then(async ({ requireUser }) => {
     chaveVideos = "lumuzia-videos:" + user.uid;
     try { videosSalvos = JSON.parse(localStorage.getItem(chaveVideos) || "{}"); }
     catch { videosSalvos = {}; }
-    if (!videosSalvos || typeof videosSalvos !== "object") videosSalvos = {};
+    if (!videosSalvos || Array.isArray(videosSalvos) || typeof videosSalvos !== "object") videosSalvos = {};
     for (const [id, url] of Object.entries(videosSalvos)) {
         try { mostrarVideo(id, normalizarVideo(url)); }
         catch { delete videosSalvos[id]; }
@@ -24,6 +25,7 @@ function normalizarVideo(raw) {
     let id = value;
     if (!/^[\w-]{11}$/.test(value)) {
         const url = new URL(value);
+        if (url.protocol !== "https:" || url.username || url.password) throw new Error("Use um link HTTPS do YouTube.");
         const host = url.hostname.replace(/^www\./, "");
         if (host === "youtu.be") id = url.pathname.slice(1).split("/")[0];
         else if (["youtube.com", "m.youtube.com", "youtube-nocookie.com"].includes(host)) {
@@ -36,7 +38,7 @@ function normalizarVideo(raw) {
 
 function mostrarVideo(containerId, url) {
     const container = document.getElementById(containerId);
-    if (!container) return;
+    if (!container || !/^video-container-[a-z]+$/.test(containerId)) return;
     container.dataset.videoUrl = url;
     const iframe = document.createElement("iframe");
     iframe.src = url;
@@ -98,3 +100,7 @@ window.addEventListener("click", event => {
 window.addEventListener("keydown", event => {
     if (event.key === "Escape") { fecharVideoModal(); fecharConfigModal(); }
 });
+
+
+document.getElementById("buscaGuia")?.addEventListener("input", event => filtrarGuia(event.target.value));
+bindActions({ abrirVideoModal, configurarUrlVideo, fecharVideoModal, fecharConfigModal, salvarConfigUrl });

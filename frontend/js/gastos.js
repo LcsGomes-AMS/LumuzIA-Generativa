@@ -1,13 +1,10 @@
+import { escapeHtml, bindActions } from "./security.js";
 import { auth } from "./config.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
 import { apiFetch } from "./apiClient.js";
 import { verificarParcelasPendentes } from "./notifications.js";
 
-function escapeHtml(str) {
-    const div = document.createElement("div");
-    div.textContent = str ?? "";
-    return div.innerHTML;
-}
+
 
 // =====================
 // GASTOS
@@ -20,7 +17,7 @@ async function salvarGasto() {
         alert("Preencha descrição e um valor maior que zero.");
         return;
     }
-    const button = document.querySelector('button[onclick="salvarGasto()"]');
+    const button = document.querySelector('button[data-action="salvarGasto"]');
     if (button?.disabled) return;
     if (button) button.disabled = true;
     try {
@@ -49,7 +46,7 @@ async function carregarGastos() {
     const uid = auth.currentUser.uid;
     const res = await apiFetch(`/gastos/${uid}`);
     gastosAtuais = await res.json();
-    renderizarGastos(gastosAtuais);
+    window.filtrarGastos();
 }
 
 function renderizarGastos(gastos) {
@@ -60,7 +57,7 @@ function renderizarGastos(gastos) {
     gastos.forEach(gasto => {
         const data = dataRegistro(gasto.created_at);
         const fmt = data ? new Date(data + "T00:00:00").toLocaleDateString("pt-BR") : "--";
-        tabela.innerHTML += `<tr><td>${escapeHtml(gasto.descricao)}</td><td>R$ ${Number(gasto.valor).toFixed(2)}</td><td>${escapeHtml(gasto.categoria)}</td><td>${fmt}</td><td><button onclick="excluirGasto(${gasto.id})" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer;">Excluir</button></td></tr>`;
+        tabela.innerHTML += `<tr><td>${escapeHtml(gasto.descricao)}</td><td>R$ ${Number(gasto.valor).toFixed(2)}</td><td>${escapeHtml(gasto.categoria)}</td><td>${fmt}</td><td><button data-action="excluirGasto" data-id="${escapeHtml(gasto.id)}" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer;">Excluir</button></td></tr>`;
     });
 }
 
@@ -209,7 +206,7 @@ async function salvarParcelamento() {
         tentativaParcelamento = { assinatura, proxima: 0 };
     }
     const valorUltimaParcela = Math.round((valorTotal - valorParcela * (numParcelas - 1)) * 100) / 100;
-    const button = document.querySelector('button[onclick="salvarParcelamento()"]');
+    const button = document.querySelector('button[data-action="salvarParcelamento"]');
     parcelamentoEmAndamento = true;
     if (button) button.disabled = true;
 
@@ -271,16 +268,16 @@ async function carregarParcelas() {
                     : `<span style="color:#FBBF24;">pendente</span>`;
 
                 const botaoStatus = item.status === "pendente"
-                    ? `<button onclick="marcarPago(${item.id})" style="background:transparent;border:1px solid #10B981;color:#10B981;padding:4px 8px;border-radius:4px;cursor:pointer;">Marcar pago</button>`
-                    : `<button onclick="desmarcarPago(${item.id})" style="background:transparent;border:1px solid #F59E0B;color:#F59E0B;padding:4px 8px;border-radius:4px;cursor:pointer;">Desmarcar</button>`;
+                    ? `<button data-action="marcarPago" data-id="${escapeHtml(item.id)}" style="background:transparent;border:1px solid #10B981;color:#10B981;padding:4px 8px;border-radius:4px;cursor:pointer;">Marcar pago</button>`
+                    : `<button data-action="desmarcarPago" data-id="${escapeHtml(item.id)}" style="background:transparent;border:1px solid #F59E0B;color:#F59E0B;padding:4px 8px;border-radius:4px;cursor:pointer;">Desmarcar</button>`;
 
                 const botaoExcluir = item.status === "pendente"
-                    ? `<button onclick="excluirParcela(${item.id})" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer;">Excluir</button>`
+                    ? `<button data-action="excluirParcela" data-id="${escapeHtml(item.id)}" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer;">Excluir</button>`
                     : "";
 
                 return `
                     <tr>
-                        <td>${dia}/${mes}/${ano}</td>
+                        <td>${escapeHtml(dia)}/${escapeHtml(mes)}/${escapeHtml(ano)}</td>
                         <td>${escapeHtml(item.descricao)}</td>
                         <td>R$ ${Number(item.valor).toFixed(2)}</td>
                         <td>${badge}</td>
@@ -455,8 +452,8 @@ function renderizarListaDoDia(dataISO) {
 
     lista.innerHTML = `<h4 style="margin-top:15px;">Agendado para este dia:</h4>` + itens.map(ag => `
         <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.03); padding:8px 12px; border-radius:6px; margin-top:8px;">
-            <span>${rotuloTipo(ag.tipo)} — ${escapeHtml(ag.descricao)} — R$ ${Number(ag.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ${ag.status === 'lancado' ? '(Lançado)' : ''}</span>
-            ${ag.status === 'pendente' ? `<button onclick="deletarAgendamento(${ag.id})" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:2px 8px;border-radius:4px;cursor:pointer;">Excluir</button>` : ''}
+            <span>${escapeHtml(rotuloTipo(ag.tipo))} — ${escapeHtml(ag.descricao)} — R$ ${Number(ag.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ${ag.status === 'lancado' ? '(Lançado)' : ''}</span>
+            ${ag.status === 'pendente' ? `<button data-action="deletarAgendamento" data-id="${escapeHtml(ag.id)}" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:2px 8px;border-radius:4px;cursor:pointer;">Excluir</button>` : ''}
         </div>
     `).join("");
 }
@@ -479,11 +476,11 @@ function renderizarTabelaFuturos() {
         const [ano, mes, dia] = ag.data_agendada.split("-");
         return `
             <tr>
-                <td>${dia}/${mes}/${ano}</td>
-                <td>${rotuloTipo(ag.tipo)}</td>
+                <td>${escapeHtml(dia)}/${escapeHtml(mes)}/${escapeHtml(ano)}</td>
+                <td>${escapeHtml(rotuloTipo(ag.tipo))}</td>
                 <td>${escapeHtml(ag.descricao)}</td>
                 <td>R$ ${Number(ag.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                <td><button onclick="deletarAgendamento(${ag.id})" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer;">Excluir</button></td>
+                <td><button data-action="deletarAgendamento" data-id="${escapeHtml(ag.id)}" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer;">Excluir</button></td>
             </tr>
         `;
     }).join("");
@@ -632,4 +629,17 @@ onAuthStateChanged(auth, (user) => {
     carregarAgendamentos();
     carregarParcelas();
     verificarParcelasPendentes();
+});
+
+bindActions({
+    salvarGasto: window.salvarGasto,
+    filtrarGastos: window.filtrarGastos,
+    limparFiltroGastos: window.limparFiltroGastos,
+    salvarParcelamento: window.salvarParcelamento,
+    salvarAgendamento: window.salvarAgendamento,
+    excluirGasto: window.excluirGasto,
+    marcarPago: window.marcarPago,
+    desmarcarPago: window.desmarcarPago,
+    excluirParcela: window.excluirParcela,
+    deletarAgendamento: window.deletarAgendamento
 });

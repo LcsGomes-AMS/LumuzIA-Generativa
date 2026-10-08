@@ -1,13 +1,10 @@
+import { escapeHtml, bindActions } from "./security.js";
 import { auth } from "./config.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
 import { apiFetch } from "./apiClient.js";
 import { verificarParcelasPendentes } from "./notifications.js";
 
-function escapeHtml(str) {
-    const div = document.createElement("div");
-    div.textContent = str ?? "";
-    return div.innerHTML;
-}
+
 
 let mediaMensalDisponivel = 0;
 
@@ -23,7 +20,7 @@ async function salvarMeta() {
         alert("Preencha nome, valor maior que zero e prazo em meses.");
         return;
     }
-    const button = document.querySelector('button[onclick="salvarMeta()"]');
+    const button = document.querySelector('button[data-action="salvarMeta"]');
     if (button?.disabled) return;
     if (button) button.disabled = true;
     try {
@@ -161,7 +158,7 @@ function renderizarMetas(metas) {
                 <td><strong>${escapeHtml(meta.nome)}</strong></td>
                 <td>R$ ${Number(meta.valor_objetivo).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                 <td style="color:#10B981;font-weight:600;">R$ ${Number(meta.valor_atual || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                <td>${meta.prazo} meses</td>
+                <td>${Number(meta.prazo)} meses</td>
                 <td>
                     <div class="progress-bar-container"><div class="progress-bar-fill" style="width:${Math.min(progresso, 100)}%;"></div></div>
                     <span style="font-size:12px;font-weight:600;color:var(--accent-2);margin-left:6px;">${progresso}%</span>
@@ -170,9 +167,9 @@ function renderizarMetas(metas) {
                 <td class="${metaMensal.classe}">${metaMensal.texto}</td>
                 <td>${meta.created_at ? new Date(String(meta.created_at).slice(0,10)+"T00:00:00").toLocaleDateString("pt-BR") : "--"}</td>
                 <td style="white-space:nowrap;">
-                    <button class="btn-acao-meta btn-guardar" onclick="abrirModalMeta(${meta.id}, 'guardar')">Guardar</button>
-                    <button class="btn-acao-meta btn-retirar" onclick="abrirModalMeta(${meta.id}, 'retirar')">Retirar</button>
-                    <button class="btn-acao-meta btn-excluir" onclick="excluirMeta(${meta.id})">Excluir</button>
+                    <button class="btn-acao-meta btn-guardar" data-action="abrirModalMeta" data-id="${escapeHtml(meta.id)}" data-mode="guardar">Guardar</button>
+                    <button class="btn-acao-meta btn-retirar" data-action="abrirModalMeta" data-id="${escapeHtml(meta.id)}" data-mode="retirar">Retirar</button>
+                    <button class="btn-acao-meta btn-excluir" data-action="excluirMeta" data-id="${escapeHtml(meta.id)}">Excluir</button>
                 </td>
             </tr>
         `;
@@ -447,4 +444,18 @@ onAuthStateChanged(auth, (user) => {
     inicializarEventosFiltroMetas();
     carregarMediaMensal().then(carregarMetas);
     verificarParcelasPendentes();
+});
+
+bindActions({
+    salvarMeta: window.salvarMeta,
+    filtrarMetas: window.filtrarMetas,
+    limparFiltroMetas: window.limparFiltroMetas,
+    abrirModalMeta: window.abrirModalMeta,
+    excluirMeta: window.excluirMeta,
+    fecharModalMeta: window.fecharModalMeta,
+    confirmarModalMeta: window.confirmarModalMeta
+});
+
+document.getElementById("modalMetaValor")?.addEventListener("keydown", event => {
+    if (event.key === "Enter") { event.preventDefault(); void window.confirmarModalMeta(); }
 });

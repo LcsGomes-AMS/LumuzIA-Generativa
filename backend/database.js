@@ -1,11 +1,17 @@
 const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, "../.env") });
-require("dotenv").config(); // fallback caso esteja na pasta raiz
-
-const isPostgres = Boolean(process.env.DATABASE_URL);
+const { AsyncLocalStorage } = require("node:async_hooks");
+const postgresConfig = require("./postgres-config");
+// Testes nunca carregam credenciais nem conectam ao banco persistente.
+const isTest = process.env.NODE_ENV === "test";
+if (!isTest) {
+    require("dotenv").config({ path: path.join(__dirname, "../.env") });
+    require("dotenv").config();
+}
+const isPostgres = !isTest && Boolean(process.env.DATABASE_URL);
+const transactionScope = new AsyncLocalStorage();
 
 let dbInstance = null;
-let dbRun, dbGet, dbAll;
+let dbRun, dbGet, dbAll, dbTransaction;
 
 function toPgSql(sql) {
     let i = 1;
@@ -20,11 +26,16 @@ function toPgSql(sql) {
     // Compatibilidade IFNULL do SQLite para PostgreSQL
     converted = converted.replace(/IFNULL\s*\(/gi, "COALESCE(");
 
-    // Compatibilidade INSERT OR IGNORE do SQLite para PostgreSQL
-    converted = converted.replace(/INSERT\s+OR\s+IGNORE\s+INTO\s+([a-zA-Z0-9_]+)\s*\(([^)]+)\)/gi, (match, table, cols) => {
-        const firstCol = cols.split(",")[0].trim();
-        return `INSERT INTO ${table} (${cols}) ON CONFLICT (${firstCol}) DO NOTHING`;
-    });
+    // ON CONFLICT vem depois de VALUES, antes de RETURNING.
+    const ignore = /INSERT\s+OR\s+IGNORE\s+INTO\s+([a-zA-Z0-9_]+)\s*\(([^)]+)\)/i.exec(converted);
+    if (ignore) {
+        converted = converted.replace(/INSERT\s+OR\s+IGNORE\s+INTO/i, "INSERT INTO").replace(/;\s*$/, "");
+        const conflict = ` ON CONFLICT (${ignore[2].split(",")[0].trim()}) DO NOTHING`;
+        const returning = /\s+RETURNING\b/i.exec(converted);
+        converted = returning
+            ? converted.slice(0, returning.index) + conflict + converted.slice(returning.index)
+            : converted + conflict;
+    }
 
     return converted;
 }
@@ -40,33 +51,43 @@ if (isPostgres) {
 
     console.log("[DATABASE] Conectando ao PostgreSQL (Neon)...");
 
-    const pool = new Pool({
-        connectionString: process.env.DATABASE_URL,
-        ssl: {
-            rejectUnauthorized: false
-        }
-    });
+    const pool = new Pool(postgresConfig(process.env.DATABASE_URL));
+    pool.on("error", () => console.error("[DATABASE] Falha inesperada na conexão PostgreSQL."));
 
-    pool.on("error", (err) => {
-        console.error("[DATABASE PG ERRO INESPERADO]", err);
-    });
-
-    dbRun = async (sql, params = []) => {
-        const res = await pool.query(toPgSql(sql), params);
+    function accessFor(client) {
         return {
-            changes: res.rowCount,
-            rowCount: res.rowCount
+            async dbRun(sql, params = []) {
+                let statement = toPgSql(sql).replace(/;\s*$/, "");
+                if (/^\s*INSERT\s+INTO\b/i.test(statement) && !/\bRETURNING\b/i.test(statement)) {
+                    statement += " RETURNING id";
+                }
+                const res = await client.query(statement, params);
+                return { changes: res.rowCount, rowCount: res.rowCount, lastID: res.rows[0]?.id };
+            },
+            async dbGet(sql, params = []) {
+                return (await client.query(toPgSql(sql), params)).rows[0];
+            },
+            async dbAll(sql, params = []) {
+                return (await client.query(toPgSql(sql), params)).rows;
+            }
         };
-    };
-
-    dbGet = async (sql, params = []) => {
-        const res = await pool.query(toPgSql(sql), params);
-        return res.rows[0];
-    };
-
-    dbAll = async (sql, params = []) => {
-        const res = await pool.query(toPgSql(sql), params);
-        return res.rows;
+    }
+    ({ dbRun, dbGet, dbAll } = accessFor(pool));
+    dbTransaction = async (callback) => {
+        if (transactionScope.getStore()) throw new Error("Transação aninhada não permitida.");
+        const client = await pool.connect();
+        try {
+            await client.query("BEGIN");
+            const tx = accessFor(client);
+            const result = await transactionScope.run(tx, () => callback(tx));
+            await client.query("COMMIT");
+            return result;
+        } catch (error) {
+            await client.query("ROLLBACK").catch(() => {});
+            throw error;
+        } finally {
+            client.release();
+        }
     };
 
     // Inicialização assíncrona das tabelas no PostgreSQL (Neon)
@@ -209,20 +230,20 @@ if (isPostgres) {
 
             console.log("[DATABASE] Tabelas e funções no PostgreSQL (Neon) inicializadas com sucesso!");
         } catch (err) {
-            console.error("[DATABASE ERRO PG INIT]", err);
+            console.error("[DATABASE] Não foi possível inicializar o PostgreSQL.");
         }
     })();
 
     dbInstance = pool;
 } else {
     const sqlite3 = require("sqlite3").verbose();
-    console.log("[DATABASE] DATABASE_URL não configurada. Usando SQLite local (lumuzia.db)...");
+    console.log(isTest ? "[DATABASE] Teste isolado: SQLite em memória." : "[DATABASE] Usando SQLite local (lumuzia.db).");
 
-    const sqliteDb = new sqlite3.Database(path.join(__dirname, "lumuzia.db"));
+    const sqliteDb = new sqlite3.Database(isTest ? ":memory:" : path.join(__dirname, "lumuzia.db"));
 
     function run(sql, label) {
         sqliteDb.run(sql, (err) => {
-            if (err) console.error(`Erro ao executar [${label}]:`, err.message);
+            if (err) console.error(`[DATABASE] Falha na inicialização: ${label}.`);
         });
     }
 
@@ -378,28 +399,54 @@ if (isPostgres) {
         });
     });
 
-    dbRun = (sql, params = []) => new Promise((resolve, reject) => {
-        sqliteDb.run(sql, params, function (err) {
-            if (err) reject(err); else resolve(this);
+    const raw = {
+        dbRun: (sql, params = []) => new Promise((resolve, reject) => {
+            sqliteDb.run(sql, params, function (err) {
+                if (err) reject(err); else resolve({ changes: this.changes, lastID: this.lastID });
+            });
+        }),
+        dbGet: (sql, params = []) => new Promise((resolve, reject) => {
+            sqliteDb.get(sql, params, (err, row) => err ? reject(err) : resolve(row));
+        }),
+        dbAll: (sql, params = []) => new Promise((resolve, reject) => {
+            sqliteDb.all(sql, params, (err, rows) => err ? reject(err) : resolve(rows));
+        })
+    };
+    // Uma única conexão SQLite: até consultas fora da transação aguardam o COMMIT.
+    let pending = Promise.resolve();
+    function enqueue(operation) {
+        const result = pending.then(operation);
+        pending = result.catch(() => {});
+        return result;
+    }
+    dbRun = (...args) => enqueue(() => raw.dbRun(...args));
+    dbGet = (...args) => enqueue(() => raw.dbGet(...args));
+    dbAll = (...args) => enqueue(() => raw.dbAll(...args));
+    dbTransaction = (callback) => {
+        if (transactionScope.getStore()) return Promise.reject(new Error("Transação aninhada não permitida."));
+        return enqueue(async () => {
+            await raw.dbRun("BEGIN IMMEDIATE");
+            try {
+                const result = await transactionScope.run(raw, () => callback(raw));
+                await raw.dbRun("COMMIT");
+                return result;
+            } catch (error) {
+                await raw.dbRun("ROLLBACK").catch(() => {});
+                throw error;
+            }
         });
-    });
-
-    dbGet = (sql, params = []) => new Promise((resolve, reject) => {
-        sqliteDb.get(sql, params, (err, row) => err ? reject(err) : resolve(row));
-    });
-
-    dbAll = (sql, params = []) => new Promise((resolve, reject) => {
-        sqliteDb.all(sql, params, (err, rows) => err ? reject(err) : resolve(rows));
-    });
+    };
 
     dbInstance = sqliteDb;
 }
 
 const exported = dbInstance;
 exported.db = dbInstance;
-exported.dbRun = dbRun;
-exported.dbGet = dbGet;
-exported.dbAll = dbAll;
+const directAccess = { dbRun, dbGet, dbAll };
+for (const method of Object.keys(directAccess)) {
+    exported[method] = (...args) => (transactionScope.getStore() || directAccess)[method](...args);
+}
+exported.dbTransaction = dbTransaction;
 exported.isPostgres = isPostgres;
 
 module.exports = exported;

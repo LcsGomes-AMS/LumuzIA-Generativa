@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function ownsProfile(userId) {
+      return request.auth != null &&
+        request.auth.uid == userId &&
+        request.auth.token.get('firebase', {}).get('sign_in_provider', 'anonymous') != 'anonymous';
+    }
+
+    function validProfile(data) {
+      return data.keys().hasOnly(['name', 'displayName', 'email', 'photoURL']) &&
+        (!('name' in data) || (data.name is string && data.name.size() <= 120)) &&
+        (!('displayName' in data) || (data.displayName is string && data.displayName.size() <= 120)) &&
+        (!('email' in data) || (data.email == request.auth.token.get('email', null) &&
+          (data.email == null || (data.email is string && data.email.size() <= 254)))) &&
+        (!('photoURL' in data) || data.photoURL == null ||
+          (data.photoURL is string && data.photoURL.size() <= 200000 &&
+           data.photoURL.matches('^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$')));
+    }
+
+    match /users/{userId} {
+      allow get: if ownsProfile(userId);
+      allow create, update: if ownsProfile(userId) && validProfile(request.resource.data);
+      allow delete: if ownsProfile(userId);
+      allow list: if false;
+    }
+    match /usuarios/{userId} {
+      allow get: if ownsProfile(userId);
+      allow create, update: if ownsProfile(userId) && validProfile(request.resource.data);
+      allow delete: if ownsProfile(userId);
+      allow list: if false;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

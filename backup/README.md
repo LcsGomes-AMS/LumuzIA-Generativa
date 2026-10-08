@@ -1,6 +1,10 @@
 # Política e Registro de Backups — LumuzIA
 
-Este diretório armazena os backups periódicos da aplicação.
+Este diretório contém backups **locais e privados**. Os ZIPs foram retirados do rastreamento do Git e permanecem no computador.
+
+Os backups v0.88 e v0.93 contêm arquivos de credenciais e bancos de dados. Não os publique nem envie para o repositório. As credenciais já presentes no histórico precisam ser revogadas conforme [SECURITY.md](../SECURITY.md). Nenhuma limpeza ou exclusão dos arquivos locais foi executada.
+
+Para cópias de código compartilháveis, exclua `.env*`, chaves administrativas, arquivos de banco, logs e metadados `.git`. Cópias de dados e configurações devem ficar em armazenamento privado com controle de acesso e proteção adequada.
 
 ## Regras de Backup
 1. **Frequência:** Um backup completo é gerado a cada 5 modificações/versões.

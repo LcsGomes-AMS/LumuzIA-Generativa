@@ -104,11 +104,11 @@ O Preço Médio é o indicador fundamental para saber a verdade sobre seu invest
 
 ## 🔒 Segurança, Privacidade e Integridade
 
-A proteção das suas informações financeiras é tratada como prioridade máxima:
-- **Autenticação Segura:** Acesso protegido por criptografia de ponta a ponta e tokens de autenticação via Firebase Auth.
-- **Isolamento de Dados (Multi-Tenancy):** Cada usuário possui seu ambiente exclusivo de dados. É rigorosamente impossível que um usuário visualize, acesse ou altere transações de outra conta.
-- **Comunicação Criptografada:** Todo o tráfego entre seu navegador e a plataforma trafega sob conexão segura HTTPS com certificados SSL válidos.
-- **Persistência em Nuvem:** Dados salvos com replicação contínua e backups regulares, garantindo que seu histórico financeiro esteja sempre disponível e protegido.
+O acesso às funcionalidades exige uma conta Firebase autenticada. A API verifica assinatura, expiração, revogação e proprietário dos dados; contas anônimas não são aceitas. Os dados financeiros usam consultas parametrizadas e transações para os lançamentos concorrentes.
+
+Em produção, configure HTTPS, credenciais administrativas válidas, origens autorizadas, armazenamento persistente e regras do Firestore. Backups e configurações do provedor devem ser verificados separadamente.
+
+Consulte [SECURITY.md](SECURITY.md) para as correções, os testes, as variáveis de ambiente e a ação necessária sobre as credenciais dos backups antigos. O modelo público está em [.env.example](.env.example).
 
 ---
 

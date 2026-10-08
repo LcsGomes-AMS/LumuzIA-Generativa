@@ -4,7 +4,7 @@
 
 <meta charset="UTF-8">
     <style>html[data-auth-pending] body { display: none !important; }</style>
-    <script src="./js/auth-guard.js" onerror="window.location.replace('./cad.html')"></script>
+    <script src="./js/auth-guard.js"></script>
     <noscript><meta http-equiv="refresh" content="0;url=./cad.html"></noscript>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -41,7 +41,7 @@
                         <div class="lz-avatar" id="lzAvatar">U</div>
                         <button type="button" class="lz-avatar-edit" id="lzAvatarEditBtn" title="Alterar foto"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></button>
                         <button type="button" class="lz-avatar-remove" id="lzAvatarRemoveBtn" title="Remover foto" style="display:none;">×</button>
-                        <input type="file" id="lzAvatarInput" accept="image/*" hidden>
+                        <input type="file" id="lzAvatarInput" accept="image/jpeg,image/png,image/webp" hidden>
                     </div>
                     <div>
                         <p class="lz-name" id="lzName">Usuário</p>

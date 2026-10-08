@@ -1,19 +1,29 @@
-import { requireUser, endSession } from "./session.js";
-
-const API_BASE = "";
+import { auth, requireUser, endSession } from "./session.js";
 
 export async function apiFetch(path, options = {}) {
+    if (typeof path !== "string" || !path.startsWith("/") || path.startsWith("//") || path.includes("\\")) {
+        throw new Error("Caminho de API inválido.");
+    }
+    const url = new URL(path, window.location.origin);
+    if (url.origin !== window.location.origin) throw new Error("Caminho de API inválido.");
     const user = await requireUser();
+    const sameUser = () => {
+        if (auth.currentUser?.uid !== user.uid) throw new Error("A conta mudou. Recarregue a página.");
+    };
 
     const request = async (forceRefresh = false) => {
+        sameUser();
         const token = await user.getIdToken(forceRefresh);
+        sameUser();
         const headers = new Headers(options.headers);
         if (!headers.has("Content-Type")) {
             headers.set("Content-Type", "application/json");
         }
         headers.set("Authorization", `Bearer ${token}`);
 
-        return fetch(`${API_BASE}${path}`, { ...options, headers });
+        const response = await fetch(url.href, { ...options, headers, cache: "no-store", redirect: "error" });
+        sameUser();
+        return response;
     };
 
     try {

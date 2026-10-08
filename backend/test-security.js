@@ -30,6 +30,7 @@ const path = require("path");
 const http = require("http");
 const crypto = require("crypto");
 const { execSync } = require("child_process");
+require("./test-utils").installTestAuth();
 const app = require("./server");
 const { dbRun, dbGet, dbAll } = require("./database");
 
@@ -796,15 +797,12 @@ async function blocoEstatico() {
         return { ok: achados.length === 0, detalhe: achados.slice(0, 5).join(", ") }; // mostra só local, nunca o valor
     });
 
-    await teste("Backdoor de teste 'x-test-uid' só existe protegido por NODE_ENV === 'test'", "critica", () => {
+    await teste("Código de produção não contém bypass x-test-uid", "critica", () => {
         const arquivosComBackdoor = arquivos.filter((a) => fs.readFileSync(a, "utf8").includes("x-test-uid"));
-        const desprotegidos = arquivosComBackdoor.filter((a) => {
-            const src = fs.readFileSync(a, "utf8");
-            return !/NODE_ENV\s*===?\s*["']test["']/.test(src);
-        });
+
         return {
-            ok: desprotegidos.length === 0,
-            detalhe: desprotegidos.map((a) => path.relative(__dirname, a)).join(", ")
+            ok: arquivosComBackdoor.length === 0,
+            detalhe: arquivosComBackdoor.map((a) => path.relative(__dirname, a)).join(", ")
         };
     });
 

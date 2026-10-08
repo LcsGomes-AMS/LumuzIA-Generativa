@@ -1,3 +1,4 @@
+import { escapeHtml } from "./security.js";
 // notifications.js
 // Módulo reutilizável: mostra popups (toasts) avisando sobre parcelas
 // pendentes (compras parceladas cadastradas em /agendamentos com tipo "gasto")
@@ -18,11 +19,7 @@ const DIAS_AVISO_ANTECEDENCIA = 3;
 // Tempo que o toast fica visível antes de sumir sozinho (ms)
 const DURACAO_TOAST = 12000;
 
-function escapeHtml(str) {
-    const div = document.createElement("div");
-    div.textContent = str ?? "";
-    return div.innerHTML;
-}
+
 
 function injetarEstilos() {
     if (document.getElementById("lzNotifStyles")) return;
@@ -142,7 +139,7 @@ function diasAteVencimento(dataISO) {
 function jaAvisadoHoje(chave) {
     const hojeISO = new Date().toISOString().split("T")[0];
     try {
-        const registro = JSON.parse(localStorage.getItem("lzParcelasAvisadas") || "{}");
+        const registro = JSON.parse(localStorage.getItem("lzParcelasAvisadas:" + auth.currentUser.uid) || "{}");
         return registro[chave] === hojeISO;
     } catch {
         return false;
@@ -152,9 +149,9 @@ function jaAvisadoHoje(chave) {
 function marcarAvisadoHoje(chave) {
     const hojeISO = new Date().toISOString().split("T")[0];
     try {
-        const registro = JSON.parse(localStorage.getItem("lzParcelasAvisadas") || "{}");
+        const registro = JSON.parse(localStorage.getItem("lzParcelasAvisadas:" + auth.currentUser.uid) || "{}");
         registro[chave] = hojeISO;
-        localStorage.setItem("lzParcelasAvisadas", JSON.stringify(registro));
+        localStorage.setItem("lzParcelasAvisadas:" + auth.currentUser.uid, JSON.stringify(registro));
     } catch {
         // localStorage indisponível — apenas não deduplica, sem quebrar o app
     }

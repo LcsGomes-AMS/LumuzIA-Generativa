@@ -4,7 +4,7 @@
 
 <meta charset="UTF-8">
     <style>html[data-auth-pending] body { display: none !important; }</style>
-    <script src="./js/auth-guard.js" onerror="window.location.replace('./cad.html')"></script>
+    <script src="./js/auth-guard.js"></script>
     <noscript><meta http-equiv="refresh" content="0;url=./cad.html"></noscript>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="./img/png" href="img/LumuzIA.png">
@@ -61,7 +61,7 @@
 
             </select>
 
-            <button onclick="salvarGasto()">
+            <button data-action="salvarGasto">
                 Salvar
             </button>
 
@@ -109,8 +109,8 @@
             </div>
             <div id="filtroGastoErro" class="filtro-aviso-erro" style="margin-top: 10px;"></div>
             <div class="filtro-moderno-acoes">
-                <button class="filtro-moderno-btn-primario" type="button" onclick="filtrarGastos()">Filtrar</button>
-                <button class="filtro-moderno-btn-secundario" type="button" onclick="limparFiltroGastos()">Limpar filtros</button>
+                <button class="filtro-moderno-btn-primario" type="button" data-action="filtrarGastos">Filtrar</button>
+                <button class="filtro-moderno-btn-secundario" type="button" data-action="limparFiltroGastos">Limpar filtros</button>
                 <span id="contagemGastos" class="filtro-moderno-contagem"></span>
             </div>
         </section>
@@ -153,7 +153,7 @@
             <option>Outros</option>
         </select>
         <input id="pcDataPrimeira" type="date">
-        <button type="button" onclick="salvarParcelamento()">Parcelar</button>
+        <button type="button" data-action="salvarParcelamento">Parcelar</button>
     </div>
 
     <table style="margin-top:15px;">
@@ -204,7 +204,7 @@
                         <option>Outros</option>
                     </select>
                     <input id="calPrazo" type="number" placeholder="Prazo (meses)" style="display:none;">
-                    <button type="button" onclick="salvarAgendamento()">Agendar</button>
+                    <button type="button" data-action="salvarAgendamento">Agendar</button>
                 </div>
 
                 <div id="listaAgendamentosDia"></div>

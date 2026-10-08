@@ -1,3 +1,4 @@
+process.env.NODE_ENV = "test";
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -21,10 +22,10 @@ function harness({ signOutError, importError } = {}) {
         hasAttribute: name => attributes.has(name)
     };
     const context = vm.createContext({
-        Headers, console: { error() {} },
+        Headers, URL, console: { error() {} },
         document: { documentElement: root },
         window: {
-            location: { replace: url => redirects.push(url), reload: () => { reloadCalls++; } },
+            location: { origin: "http://127.0.0.1", replace: url => redirects.push(url), reload: () => { reloadCalls++; } },
             addEventListener: (name, callback) => events.set(name, callback)
         },
         fetch: async (url, options) => {
@@ -256,14 +257,15 @@ test("o guard recusa sessão anônima e encerra o acesso", async () => {
 function middleware() {
     const module = { exports: {} };
     vm.runInNewContext(fs.readFileSync(path.join(__dirname, "firebaseAdmin.js"), "utf8"), {
-        module, __dirname, console: { error() {}, warn() {} },
+        module, __dirname, assert, console: { error() {}, warn() {} },
         process: { env: { NODE_ENV: "production" }, cwd: () => __dirname },
         require(name) {
             if (name === "firebase-admin/app") return { getApps: () => [{}] };
             if (name === "firebase-admin/auth") return { getAuth: () => ({
-                async verifyIdToken(token) {
-                    if (token === "registered") return { uid: "sec_test_user", firebase: { sign_in_provider: "password" } };
-                    if (token === "anonymous") return { uid: "sec_test_guest", firebase: { sign_in_provider: "anonymous" } };
+                async verifyIdToken(token, checkRevoked) {
+                    assert.equal(checkRevoked, true);
+                    if (token === "e30.cmVnaXN0ZXJlZA.c2ln") return { uid: "sec_test_user", firebase: { sign_in_provider: "password" } };
+                    if (token === "e30.YW5vbnltb3Vz.c2ln") return { uid: "sec_test_guest", firebase: { sign_in_provider: "anonymous" } };
                     throw new Error("invalid token");
                 }
             }) };
@@ -280,9 +282,10 @@ test("servidor exige conta em todas as funcionalidades sem acessar banco real", 
     const authPath = require.resolve("./firebaseAdmin");
     const savedDb = require.cache[dbPath], savedAuth = require.cache[authPath];
     let queries = 0;
+    const queriedUsers = [];
     const db = {
         db: null, isPostgres: false,
-        dbGet: async () => { queries++; return { total: 0 }; },
+        dbGet: async (sql, params) => { queries++; queriedUsers.push({ sql, params }); return { total: 0 }; },
         dbAll: async () => { queries++; return []; },
         dbRun: async () => { throw new Error("Este teste não deve gravar no banco"); }
     };
@@ -338,19 +341,56 @@ test("servidor exige conta em todas as funcionalidades sem acessar banco real", 
     }
     for (const headers of [
         { Authorization: "Bearer invalid" },
-        { Authorization: "Bearer anonymous" },
-        { Authorization: "Basic registered" },
-        { Authorization: "Bearer registered extra" },
+        { Authorization: "Bearer e30.YW5vbnltb3Vz.c2ln" },
+        { Authorization: "Basic e30.cmVnaXN0ZXJlZA.c2ln" },
+        { Authorization: "Bearer e30.cmVnaXN0ZXJlZA.c2ln extra" },
         { "x-test-uid": "sec_test_user" }
     ]) {
         assert.equal((await request("/api/db-status", { headers })).status, 401);
     }
     assert.equal(queries, 0, "Acesso recusado não deve consultar o banco");
 
-    const valid = await request("/api/db-status", { headers: { Authorization: "Bearer registered" } });
+    const valid = await request("/api/db-status", { headers: { Authorization: "Bearer e30.cmVnaXN0ZXJlZA.c2ln" } });
     assert.equal(valid.status, 200);
     assert.equal((await valid.json()).status, "online");
-    assert.equal(queries, 4);
-    const wrongUser = await request("/receitas/another-user", { headers: { Authorization: "Bearer registered" } });
+    assert.equal(queries, 3);
+    assert.ok(queriedUsers.every(({ sql, params }) => /WHERE user_id = \?/.test(sql) && params[0] === "sec_test_user"));
+    const wrongUser = await request("/receitas/another-user", { headers: { Authorization: "Bearer e30.cmVnaXN0ZXJlZA.c2ln" } });
     assert.equal(wrongUser.status, 403);
+});
+
+
+test("token nunca sai para outra origem e requisições não seguem redirecionamentos", async () => {
+    const h = harness();
+    const api = await h.load("apiClient.js");
+    await h.emit(h.user());
+    for (const target of ["https://evil.invalid/x", "//evil.invalid/x", "/\\evil.invalid/x", "data:text/plain,test"]) {
+        await assert.rejects(api.apiFetch(target), /inválido/);
+    }
+    assert.equal(h.requests.length, 0);
+    h.responses.push({ status: 200 });
+    await api.apiFetch("/receitas/sec_test_user", { redirect: "follow", cache: "force-cache" });
+    assert.equal(h.requests[0].redirect, "error");
+    assert.equal(h.requests[0].cache, "no-store");
+});
+
+test("troca de conta durante emissão do token bloqueia envio", async () => {
+    const h = harness();
+    const api = await h.load("apiClient.js");
+    await h.emit(h.user({ async getIdToken() {
+        h.auth.currentUser = h.user({ uid: "sec_test_other" });
+        return "token-anterior";
+    } }));
+    await assert.rejects(api.apiFetch("/receitas/sec_test_user"), /conta mudou/);
+    assert.equal(h.requests.length, 0);
+});
+
+test("guard oculta conteúdo e recarrega ao trocar de conta", async () => {
+    const h = harness();
+    await h.guard();
+    await h.emit(h.user());
+    assert.equal(h.root.hasAttribute("data-auth-pending"), false);
+    await h.emit(h.user({ uid: "sec_test_other" }));
+    assert.equal(h.root.hasAttribute("data-auth-pending"), true);
+    assert.equal(h.reloadCalls, 1);
 });

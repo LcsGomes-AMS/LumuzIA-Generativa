@@ -1,15 +1,21 @@
-require("dotenv").config();
+if (process.env.NODE_ENV !== "test") require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
 const axios = require("axios");
-const { db, dbRun, dbGet, dbAll, isPostgres } = require("./database");
+const { db, dbRun, dbGet, dbAll, dbTransaction, isPostgres } = require("./database");
 const { verificarAutenticacao } = require("./firebaseAdmin");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 
+const { validateRequest, enforceQuota, bridgeConfig, MAX_VALUE } = require("./request-security");
+const database = { dbRun, dbGet, dbAll };
 const app = express();
+app.disable("x-powered-by");
+const proxyHops = process.env.TRUST_PROXY_HOPS || "0";
+if (!/^[0-3]$/.test(proxyHops)) throw new Error("TRUST_PROXY_HOPS deve estar entre 0 e 3.");
+app.set("trust proxy", Number(proxyHops));
 const PORT = process.env.PORT || 3000;
 
 // =========================================================================
@@ -17,112 +23,50 @@ const PORT = process.env.PORT || 3000;
 // =========================================================================
 
 // Proteção de Cabeçalhos HTTP com Helmet (mitiga Clickjacking, MIME sniffing, etc.)
-app.use(
-    helmet({
-        contentSecurityPolicy: {
-            directives: {
-                defaultSrc: ["'self'"],
-                scriptSrc: [
-                    "'self'",
-                    "'unsafe-inline'",
-                    "https://cdn.jsdelivr.net",
-                    "https://www.gstatic.com",
-                    "https://apis.google.com",
-                    "https://*.firebaseapp.com",
-                    "https://accounts.google.com"
-                ],
-                // Os botões existentes usam atributos onclick/oninput no HTML.
-                scriptSrcAttr: ["'unsafe-inline'"],
-                styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
-                fontSrc: ["'self'", "https://fonts.gstatic.com"],
-                imgSrc: ["'self'", "data:", "https:"],
-                connectSrc: [
-                    "'self'",
-                    "https://identitytoolkit.googleapis.com",
-                    "https://securetoken.googleapis.com",
-                    "https://lumuz-e2f23.firebaseapp.com",
-                    "https://*.firebaseapp.com",
-                    "https://*.googleapis.com",
-                    "https://www.gstatic.com",
-                    "https://api.coingecko.com",
-                    "https://accounts.google.com",
-                    "https://*.firebaseio.com",
-                    "wss://*.firebaseio.com"
-                ],
-                frameSrc: [
-                    "'self'",
-                    "https://www.youtube-nocookie.com",
-                    "https://lumuz-e2f23.firebaseapp.com",
-                    "https://*.firebaseapp.com",
-                    "https://apis.google.com",
-                    "https://accounts.google.com"
-                ],
-                frameAncestors: ["'none'"]
-            }
-        },
-        crossOriginEmbedderPolicy: false,
-        crossOriginOpenerPolicy: false
-    })
-);
+app.use(helmet(require("./security-headers")));
 
-// Rate Limiter Geral: até 200 requisições a cada 15 minutos por IP
-const limiterGeral = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 200,
-    standardHeaders: true,
-    legacyHeaders: false,
+// O limite por IP cobre todas as rotas, inclusive as financeiras fora de /api.
+app.use(rateLimit({
+    windowMs: 15 * 60 * 1000, limit: 3000, standardHeaders: "draft-8", legacyHeaders: false,
+    message: { success: false, error: "Muitas requisições. Tente novamente em alguns minutos." }
+}));
+const limiterConta = rateLimit({
+    windowMs: 15 * 60 * 1000, limit: 1000, standardHeaders: "draft-8", legacyHeaders: false,
+    keyGenerator: req => req.uid,
     message: { success: false, error: "Muitas requisições. Tente novamente em alguns minutos." }
 });
-app.use("/api/", limiterGeral);
-
-// Rate Limiter Estrito para o Chat da IA: até 15 mensagens por minuto por IP
+const limiterEscrita = rateLimit({
+    windowMs: 15 * 60 * 1000, limit: 200, standardHeaders: "draft-8", legacyHeaders: false,
+    keyGenerator: req => req.uid,
+    skip: req => !["POST", "PUT", "PATCH", "DELETE"].includes(req.method),
+    message: { success: false, error: "Limite de alterações atingido. Aguarde alguns minutos." }
+});
 const limiterChatIA = rateLimit({
-    windowMs: 1 * 60 * 1000,
-    max: 15,
-    standardHeaders: true,
-    legacyHeaders: false,
+    windowMs: 60 * 1000, limit: 15, standardHeaders: "draft-8", legacyHeaders: false,
+    keyGenerator: req => req.uid,
     message: { success: false, error: "Limite de mensagens no chat atingido. Aguarde 1 minuto." }
 });
-app.use("/api/ia/chat", limiterChatIA);
 
-// CORS restrito: só aceita requisições vindas dos domínios listados em
-// CORS_ORIGINS (separados por vírgula). Ex: CORS_ORIGINS=https://lumuzia.com,https://www.lumuzia.com
-// Se a variável não estiver definida, cai em modo permissivo (dev local) e avisa no log.
-const origensPermitidas = (process.env.CORS_ORIGINS || "")
-    .split(",")
-    .map((o) => o.trim())
-    .filter(Boolean);
-
-if (origensPermitidas.length === 0) {
-    console.warn(
-        "[CORS AVISO] CORS_ORIGINS não definida — liberando qualquer origem. " +
-        "Defina CORS_ORIGINS em produção (ex: https://seudominio.com)."
-    );
-}
-
-app.use(cors({
-    origin: (origin, callback) => {
-        // Requisições sem "origin" (ex: curl, apps mobile, mesmo domínio) são permitidas.
-        if (!origin) return callback(null, true);
-
-        if (origensPermitidas.length > 0) {
-            if (origensPermitidas.includes(origin)) {
-                return callback(null, true);
-            }
-            return callback(null, false);
-        }
-
-        if (process.env.NODE_ENV === "test" && (origin.includes("evil") || origin.includes("malicious"))) {
-            return callback(null, false);
-        }
-
-        return callback(null, true);
-    },
-    credentials: true
+// Sem lista configurada, somente a origem da aplicação e desenvolvimento local.
+const origensPermitidas = new Set((process.env.CORS_ORIGINS || "").split(",").map(o => o.trim()).filter(Boolean));
+app.use(cors((req, callback) => {
+    const origin = req.get("origin");
+    const sameOrigin = origin === req.protocol + "://" + req.get("host");
+    let localDev = false;
+    try {
+        const parsedOrigin = new URL(origin);
+        localDev = process.env.NODE_ENV !== "production" && parsedOrigin.protocol === "http:" && ["localhost", "127.0.0.1"].includes(parsedOrigin.hostname);
+    } catch { /* Origem inválida permanece bloqueada. */ }
+    callback(null, {
+        origin: !origin || sameOrigin || origensPermitidas.has(origin) || localDev,
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Authorization", "Content-Type"],
+        credentials: false
+    });
 }));
 
 app.use(express.json({ limit: "200kb" }));
-app.use(express.urlencoded({ extended: true, limit: "200kb" }));
+
 
 // Middleware defensivo: intercepta JSON malformado e payload excessivo sem expor stack trace
 app.use((err, req, res, next) => {
@@ -144,7 +88,15 @@ app.use((req, res, next) => {
 });
 
 // Servir arquivos estáticos do frontend
-app.use(express.static(path.join(__dirname, "../frontend"), { index: false }));
+app.use(express.static(path.join(__dirname, "../frontend"), { index: false, dotfiles: "deny" }));
+
+async function inserirLimitado(table, uid, sql, params) {
+    return dbTransaction(async tx => {
+        if (isPostgres) await tx.dbGet("SELECT id FROM users WHERE id = ? FOR UPDATE", [uid]);
+        await enforceQuota(tx, table, uid);
+        return tx.dbRun(sql, params);
+    });
+}
 
 // Helpers de validação de dados financeiros e durabilidade
 function parseNumeroPositivo(val) {
@@ -169,49 +121,78 @@ async function garantirUsuarioExiste(userId) {
     await dbRun(`INSERT INTO users (id) VALUES (?) ON CONFLICT (id) DO NOTHING`, [userId]);
 }
 
-// Lança automaticamente na tabela certa (gastos/receitas/metas) todo
-// agendamento cuja data já chegou/passou e ainda está pendente.
-async function processarAgendamentosPendentes(userId) {
-    const hoje = new Date().toISOString().split("T")[0];
-    const pendentes = await dbAll(
-        "SELECT * FROM agendamentos WHERE user_id = ? AND status = 'pendente' AND data_agendada <= ? ORDER BY data_agendada ASC",
-        [userId, hoje]
-    );
-
-    const lancados = [];
-
-    for (const ag of pendentes) {
-        try {
-            if (ag.tipo === "gasto") {
-                await dbRun(
-                    `INSERT INTO gastos (user_id, descricao, valor, categoria) VALUES (?, ?, ?, ?)`,
-                    [userId, ag.descricao, ag.valor, ag.categoria || "Geral"]
-                );
-            } else if (ag.tipo === "receita") {
-                await dbRun(
-                    `INSERT INTO receitas (user_id, descricao, valor) VALUES (?, ?, ?)`,
-                    [userId, ag.descricao, ag.valor]
-                );
-            } else if (ag.tipo === "meta") {
-                await dbRun(
-                    `INSERT INTO metas (user_id, nome, valor_objetivo, prazo) VALUES (?, ?, ?, ?)`,
-                    [userId, ag.descricao, ag.valor, ag.prazo || 12]
-                );
-            }
-
-            await dbRun(`UPDATE agendamentos SET status = 'lancado' WHERE id = ?`, [ag.id]);
-            lancados.push(ag);
-        } catch (err) {
-            console.error(`Erro ao lançar agendamento ${ag.id}:`, err.message);
+// A marcação e o lançamento compartilham uma transação. A condição de estado
+// no UPDATE protege também quando há mais de uma instância do servidor.
+async function lancarAgendamento(id, userId, automatico = false) {
+    return dbTransaction(async tx => {
+        if (isPostgres) await tx.dbGet("SELECT id FROM users WHERE id = ? FOR UPDATE", [userId]);
+        const ag = await tx.dbGet("SELECT * FROM agendamentos WHERE id = ? AND user_id = ?", [id, userId]);
+        if (!ag) return null;
+        if (ag.status === "lancado") return { ag, jaEstavaLancado: true };
+        if (ag.status === "pendente_manual") {
+            if (automatico) return null;
+            await tx.dbRun("UPDATE agendamentos SET status = 'lancado' WHERE id = ? AND user_id = ? AND status = 'pendente_manual'", [id, userId]);
+            return { ag };
         }
+        if (ag.status !== "pendente" || !["gasto", "receita", "meta"].includes(ag.tipo)) return null;
+        const claimed = await tx.dbRun("UPDATE agendamentos SET status = 'lancado' WHERE id = ? AND user_id = ? AND status = 'pendente'", [id, userId]);
+        if (!claimed.changes) return { ag, jaEstavaLancado: true };
+        if (ag.tipo === "gasto") {
+            await enforceQuota(tx, "gastos", userId);
+            await tx.dbRun("INSERT INTO gastos (user_id, descricao, valor, categoria) VALUES (?, ?, ?, ?)", [userId, ag.descricao, ag.valor, ag.categoria || "Geral"]);
+        } else if (ag.tipo === "receita") {
+            await enforceQuota(tx, "receitas", userId);
+            await tx.dbRun("INSERT INTO receitas (user_id, descricao, valor) VALUES (?, ?, ?)", [userId, ag.descricao, ag.valor]);
+        } else {
+            await enforceQuota(tx, "metas", userId);
+            await tx.dbRun("INSERT INTO metas (user_id, nome, valor_objetivo, prazo) VALUES (?, ?, ?, ?)", [userId, ag.descricao, ag.valor, ag.prazo || 12]);
+        }
+        return { ag };
+    });
+}
+async function processarAgendamentosPendentes(userId) {
+    const hoje = new Date().toISOString().slice(0, 10);
+    const pendentes = await dbAll("SELECT * FROM agendamentos WHERE user_id = ? AND status = 'pendente' AND data_agendada <= ? ORDER BY data_agendada ASC LIMIT 200", [userId, hoje]);
+    const lancados = [];
+    for (const ag of pendentes) {
+        const result = await lancarAgendamento(ag.id, userId, true);
+        if (result && !result.jaEstavaLancado) lancados.push(result.ag);
     }
-
     return lancados;
 }
 
 // Cache em memória para cotações (10 minutos de TTL)
 const priceCache = new Map();
 const CACHE_TTL = 10 * 60 * 1000;
+const MAX_PRICE_CACHE = 2000;
+function cachePrice(key, value) {
+    for (const [cachedKey, cached] of priceCache) {
+        if (Date.now() - cached.timestamp >= (cached.ttl ?? CACHE_TTL)) priceCache.delete(cachedKey);
+    }
+    if (priceCache.size >= MAX_PRICE_CACHE) priceCache.delete(priceCache.keys().next().value);
+    priceCache.set(key, value);
+}
+const pendingPrices = new Map();
+async function obterPrecoAtivo(ticker, tipo) {
+    const key = ticker + "_" + (tipo || "Ação");
+    if (pendingPrices.has(key)) return pendingPrices.get(key);
+    if (pendingPrices.size >= 12) return null;
+    const request = buscarPrecoAtivo(ticker, tipo);
+    pendingPrices.set(key, request);
+    try { return await request; } finally { pendingPrices.delete(key); }
+}
+async function mapLimit(items, concurrency, mapper) {
+    const output = new Array(items.length);
+    let index = 0;
+    await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+        while (index < items.length) {
+            const current = index++;
+            output[current] = await mapper(items[current], current);
+        }
+    }));
+    return output;
+}
+
 
 const https = require("https");
 
@@ -227,7 +208,7 @@ const httpsAgent = new https.Agent({
 });
 
 // Mapeamento de nomes/apelidos de cripto para o ID usado na CoinGecko
-const MAPA_CRIPTO = {
+const MAPA_CRIPTO = Object.freeze({
     "BITCOIN": "bitcoin", "BTC": "bitcoin",
     "ETHEREUM": "ethereum", "ETH": "ethereum",
     "SOLANA": "solana", "SOL": "solana",
@@ -236,7 +217,7 @@ const MAPA_CRIPTO = {
     "DOGECOIN": "dogecoin", "DOGE": "dogecoin",
     "POLKADOT": "polkadot", "DOT": "polkadot",
     "TETHER": "tether", "USDT": "tether"
-};
+});
 
 const BRAPI_TOKEN = process.env.BRAPI_TOKEN || "";
 const COINGECKO_API_KEY = process.env.COINGECKO_API_KEY || "";
@@ -246,61 +227,56 @@ const COINGECKO_API_KEY = process.env.COINGECKO_API_KEY || "";
 // por excesso de chamadas simultâneas quando há mais de uma cripto — o que
 // acontecia antes (ex: Bitcoin falhando, Ethereum passando, de forma aleatória).
 async function prefetchPrecosCripto(ativos) {
-    const cryptoAtivos = ativos.filter((a) => {
-        const tipoUpper = (a.tipo || "").toUpperCase().trim();
+    const cryptoAtivos = ativos.filter(a => {
         const tickerUpper = (a.ticker || "").toUpperCase().trim();
-        return tipoUpper.includes("CRIPTO") || Boolean(MAPA_CRIPTO[tickerUpper]);
+        const isCrypto = (a.tipo || "").toUpperCase().includes("CRIPTO") || Object.hasOwn(MAPA_CRIPTO, tickerUpper);
+        const cached = priceCache.get(tickerUpper + "_CRIPTO");
+        return isCrypto && !(cached && Date.now() - cached.timestamp < (cached.ttl ?? CACHE_TTL));
     });
-
-    if (cryptoAtivos.length === 0) return;
-
-    const idsUnicos = [...new Set(
-        cryptoAtivos.map((a) => {
-            const tickerUpper = a.ticker.toUpperCase().trim();
-            return MAPA_CRIPTO[tickerUpper] || tickerUpper.toLowerCase();
-        })
-    )];
-
-    try {
-        const resposta = await axios.get(
-            "https://api.coingecko.com/api/v3/simple/price",
-            {
-                params: { ids: idsUnicos.join(","), vs_currencies: "brl" },
+    if (!cryptoAtivos.length) return;
+    const ids = [...new Set(cryptoAtivos.map(a => {
+        const tickerUpper = a.ticker.toUpperCase().trim();
+        return Object.hasOwn(MAPA_CRIPTO, tickerUpper) ? MAPA_CRIPTO[tickerUpper] : tickerUpper.toLowerCase();
+    }))].sort();
+    const key = "batch_" + ids.join(",");
+    if (pendingPrices.has(key)) return pendingPrices.get(key);
+    if (pendingPrices.size >= 12) return;
+    const pending = (async () => {
+        try {
+            const response = await axios.get("https://api.coingecko.com/api/v3/simple/price", {
+                params: { ids: ids.join(","), vs_currencies: "brl" },
                 headers: COINGECKO_API_KEY ? { "x-cg-demo-api-key": COINGECKO_API_KEY } : {},
-                httpsAgent,
-                timeout: 8000
+                httpsAgent, timeout: 8000, maxRedirects: 0, maxContentLength: 256 * 1024
+            });
+            for (const ativo of cryptoAtivos) {
+                const tickerUpper = ativo.ticker.toUpperCase().trim();
+                const coinId = Object.hasOwn(MAPA_CRIPTO, tickerUpper) ? MAPA_CRIPTO[tickerUpper] : tickerUpper.toLowerCase();
+                const price = Number(response?.data?.[coinId]?.brl);
+                cachePrice(tickerUpper + "_CRIPTO", Number.isFinite(price) && price > 0
+                    ? { price, timestamp: Date.now() }
+                    : { price: null, timestamp: Date.now(), ttl: 60 * 1000 });
             }
-        );
-
-        for (const ativo of cryptoAtivos) {
-            const tickerUpper = ativo.ticker.toUpperCase().trim();
-            const idCoinGecko = MAPA_CRIPTO[tickerUpper] || tickerUpper.toLowerCase();
-            const precoBrl = resposta?.data?.[idCoinGecko]?.brl;
-
-            if (precoBrl) {
-                priceCache.set(`${tickerUpper}_CRIPTO`, {
-                    price: parseFloat(precoBrl),
-                    timestamp: Date.now()
-                });
-            }
+        } catch {
+            for (const ativo of cryptoAtivos) cachePrice(ativo.ticker.toUpperCase().trim() + "_CRIPTO", { price: null, timestamp: Date.now(), ttl: 60 * 1000 });
+            console.warn("[COTAÇÃO] Provedor temporariamente indisponível.");
         }
-    } catch (err) {
-        console.warn("[COTAÇÃO AVISO] Falha ao pré-buscar preços de cripto em lote:", err.message);
-    }
+    })();
+    pendingPrices.set(key, pending);
+    try { await pending; } finally { pendingPrices.delete(key); }
 }
 
-async function obterPrecoAtivo(ticker, tipo) {
+async function buscarPrecoAtivo(ticker, tipo) {
     if (!ticker) return null;
 
     const tickerUpper = ticker.toUpperCase().trim();
     const tipoUpper = (tipo || "").toUpperCase().trim();
-    const ehCripto = tipoUpper.includes("CRIPTO") || Boolean(MAPA_CRIPTO[tickerUpper]);
+    const ehCripto = tipoUpper.includes("CRIPTO") || Object.hasOwn(MAPA_CRIPTO, tickerUpper);
     const cacheKey = `${tickerUpper}_${ehCripto ? "CRIPTO" : tipoUpper}`;
 
     // 1. Cache
     if (priceCache.has(cacheKey)) {
         const cached = priceCache.get(cacheKey);
-        if (Date.now() - cached.timestamp < CACHE_TTL) {
+        if (Date.now() - cached.timestamp < (cached.ttl ?? CACHE_TTL)) {
             return cached.price;
         }
     }
@@ -311,7 +287,7 @@ async function obterPrecoAtivo(ticker, tipo) {
         if (ehCripto) {
             // CoinGecko: usa a chave Demo gratuita quando configurada, pra evitar
             // o limite de 5-15 chamadas/min do endpoint totalmente público.
-            const idCoinGecko = MAPA_CRIPTO[tickerUpper] || tickerUpper.toLowerCase();
+            const idCoinGecko = Object.hasOwn(MAPA_CRIPTO, tickerUpper) ? MAPA_CRIPTO[tickerUpper] : tickerUpper.toLowerCase();
 
             const resposta = await axios.get(
                 "https://api.coingecko.com/api/v3/simple/price",
@@ -319,7 +295,7 @@ async function obterPrecoAtivo(ticker, tipo) {
                     params: { ids: idCoinGecko, vs_currencies: "brl" },
                     headers: COINGECKO_API_KEY ? { "x-cg-demo-api-key": COINGECKO_API_KEY } : {},
                     httpsAgent,
-                    timeout: 5000
+                    timeout: 5000, maxRedirects: 0, maxContentLength: 256 * 1024
                 }
             ).catch(() => null);
 
@@ -338,7 +314,7 @@ async function obterPrecoAtivo(ticker, tipo) {
                     ...(BRAPI_TOKEN ? { token: BRAPI_TOKEN } : {})
                 },
                 httpsAgent,
-                timeout: 5000
+                timeout: 5000, maxRedirects: 0, maxContentLength: 256 * 1024
             }).catch((err) => {
                 if (err?.response?.status === 401 && !BRAPI_TOKEN) {
                     console.warn(`[COTAÇÃO AVISO] ${tickerUpper} exige token da brapi.dev. Configure BRAPI_TOKEN no ambiente.`);
@@ -352,15 +328,16 @@ async function obterPrecoAtivo(ticker, tipo) {
             }
         }
 
-        if (price !== null && !isNaN(price) && price > 0) {
-            priceCache.set(cacheKey, { price, timestamp: Date.now() });
+        if (Number.isFinite(price) && price > 0) {
+            cachePrice(cacheKey, { price, timestamp: Date.now() });
             return price;
         }
 
-        console.warn(`[COTAÇÃO AVISO] Não foi possível capturar preço em tempo real para: ${tickerUpper}. Usando Preço Médio.`);
+        cachePrice(cacheKey, { price: null, timestamp: Date.now(), ttl: 60 * 1000 });
+        console.warn("[COTAÇÃO] Preço temporariamente indisponível; usando preço médio.");
         return null;
     } catch (error) {
-        console.error(`[COTAÇÃO ERRO] Falha geral em ${tickerUpper}:`, error.message);
+        console.error(`[COTAÇÃO ERRO] Falha geral em ${tickerUpper}:`, "INTERNAL");
         return null;
     }
 }
@@ -372,36 +349,35 @@ app.get("/", (req, res) => {
     res.redirect("/cad.html");
 });
 
-// Diagnóstico do banco disponível somente para usuários autenticados.
-app.get("/api/db-status", verificarAutenticacao, async (req, res) => {
-    try {
-        const userCount = await dbGet("SELECT COUNT(*) AS total FROM users");
-        const receitaCount = await dbGet("SELECT COUNT(*) AS total FROM receitas");
-        const gastoCount = await dbGet("SELECT COUNT(*) AS total FROM gastos");
-        const metaCount = await dbGet("SELECT COUNT(*) AS total FROM metas");
-
-        res.json({
-            status: "online",
-            engine: isPostgres ? "PostgreSQL (Neon)" : "SQLite Local",
-            persistente: isPostgres,
-            aviso: isPostgres
-                ? "Conexão com Neon PostgreSQL ativa. Os dados estão seguros na nuvem e NÃO serão apagados após commits ou deploys."
-                : "ATENÇÃO: A aplicação está usando SQLite local. No Render, o disco é efêmero e os dados somem no deploy/commit. Configure DATABASE_URL no painel do Render para conectar ao Neon!",
-            contadores: {
-                usuarios: userCount?.total || 0,
-                receitas: receitaCount?.total || 0,
-                gastos: gastoCount?.total || 0,
-                metas: metaCount?.total || 0
-            }
-        });
-    } catch (err) {
-        res.status(500).json({ status: "error", error: err.message });
-    }
-});
-
-// A partir daqui, TODAS as rotas abaixo exigem token válido (header Authorization: Bearer <token>).
 app.get("/favicon.ico", (req, res) => res.status(204).end());
 app.use(verificarAutenticacao);
+app.use((req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    next();
+});
+app.use(limiterConta);
+app.use(limiterEscrita);
+app.use("/api/ia/chat", limiterChatIA);
+app.use(validateRequest);
+app.use(["/api/cotacao", "/api/investimentos/cotacoes"], rateLimit({
+    windowMs: 60 * 1000, limit: 60, standardHeaders: "draft-8", legacyHeaders: false,
+    keyGenerator: req => req.uid,
+    message: { success: false, error: "Limite de cotações atingido. Aguarde 1 minuto." }
+}));
+
+
+// Diagnóstico limitado à conta autenticada, sem contagens globais.
+app.get("/api/db-status", async (req, res) => {
+    try {
+        const counts = await Promise.all([
+            dbGet("SELECT COUNT(*) AS total FROM receitas WHERE user_id = ?", [req.uid]),
+            dbGet("SELECT COUNT(*) AS total FROM gastos WHERE user_id = ?", [req.uid]),
+            dbGet("SELECT COUNT(*) AS total FROM metas WHERE user_id = ?", [req.uid])
+        ]);
+        res.json({ status: "online", persistente: isPostgres,
+            contadores: { receitas: Number(counts[0]?.total || 0), gastos: Number(counts[1]?.total || 0), metas: Number(counts[2]?.total || 0) } });
+    } catch { res.status(500).json({ success: false, error: "Erro interno no servidor." }); }
+});
 
 // =====================
 // PERFIL
@@ -423,7 +399,7 @@ app.post("/perfil", async (req, res) => {
         );
         res.json({ success: true, userId });
     } catch (err) {
-        console.error(err);
+        console.error("[BACKEND] Falha interna:", err.code || "INTERNAL");
         res.status(500).json({ success: false, error: "Erro interno no servidor." });
     }
 });
@@ -443,14 +419,14 @@ app.post("/receitas", async (req, res) => {
 
     try {
         await garantirUsuarioExiste(userId);
-        await dbRun(
+        await inserirLimitado("receitas", userId,
             `INSERT INTO receitas (user_id, descricao, valor) VALUES (?, ?, ?)`,
             [userId, descSanitizada, numValor]
         );
         res.json({ success: true });
     } catch (err) {
-        console.error("Erro ao cadastrar receita:", err);
-        res.status(500).json({ success: false, error: "Erro ao cadastrar receita." });
+        console.error("Erro ao cadastrar receita:", err.code || "INTERNAL");
+        res.status(err.status === 409 ? 409 : 500).json({ success: false, error: "Erro ao cadastrar receita." });
     }
 });
 
@@ -462,7 +438,7 @@ app.get("/receitas/:userId", async (req, res) => {
         const rows = await dbAll("SELECT * FROM receitas WHERE user_id = ? ORDER BY id DESC", [req.uid]);
         res.json(rows);
     } catch (err) {
-        console.error(err);
+        console.error("[BACKEND] Falha interna:", err.code || "INTERNAL");
         res.status(500).json([]);
     }
 });
@@ -519,14 +495,14 @@ app.post("/gastos", async (req, res) => {
 
     try {
         await garantirUsuarioExiste(userId);
-        await dbRun(
+        await inserirLimitado("gastos", userId,
             `INSERT INTO gastos (user_id, descricao, valor, categoria) VALUES (?, ?, ?, ?)`,
             [userId, descSanitizada, numValor, catSanitizada]
         );
         res.json({ success: true });
     } catch (err) {
-        console.error("Erro ao cadastrar gasto:", err);
-        res.status(500).json({ success: false, error: "Erro ao cadastrar gasto." });
+        console.error("Erro ao cadastrar gasto:", err.code || "INTERNAL");
+        res.status(err.status === 409 ? 409 : 500).json({ success: false, error: "Erro ao cadastrar gasto." });
     }
 });
 
@@ -538,7 +514,7 @@ app.get("/gastos/:userId", async (req, res) => {
         const rows = await dbAll("SELECT * FROM gastos WHERE user_id = ? ORDER BY id DESC", [req.uid]);
         res.json(rows);
     } catch (err) {
-        console.error(err);
+        console.error("[BACKEND] Falha interna:", err.code || "INTERNAL");
         res.status(500).json([]);
     }
 });
@@ -614,7 +590,7 @@ app.get("/estatisticas/:userId", async (req, res) => {
         );
         res.json(rows);
     } catch (err) {
-        console.error("Erro ao buscar estatísticas de gastos:", err.message);
+        console.error("Erro ao buscar estatísticas de gastos:", "INTERNAL");
         res.status(500).json([]);
     }
 });
@@ -635,14 +611,14 @@ app.post("/metas", async (req, res) => {
 
     try {
         await garantirUsuarioExiste(userId);
-        await dbRun(
+        await inserirLimitado("metas", userId,
             `INSERT INTO metas (user_id, nome, valor_objetivo, prazo) VALUES (?, ?, ?, ?)`,
             [userId, nomeSanitizado, numObjetivo, numPrazo]
         );
         res.json({ success: true });
     } catch (err) {
-        console.error("Erro ao cadastrar meta:", err);
-        res.status(500).json({ success: false, error: "Erro ao cadastrar meta." });
+        console.error("Erro ao cadastrar meta:", err.code || "INTERNAL");
+        res.status(err.status === 409 ? 409 : 500).json({ success: false, error: "Erro ao cadastrar meta." });
     }
 });
 
@@ -654,7 +630,7 @@ app.get("/metas/:userId", async (req, res) => {
         const rows = await dbAll("SELECT * FROM metas WHERE user_id = ? ORDER BY id DESC", [req.uid]);
         res.json(rows);
     } catch (err) {
-        console.error(err);
+        console.error("[BACKEND] Falha interna:", err.code || "INTERNAL");
         res.status(500).json([]);
     }
 });
@@ -720,7 +696,7 @@ app.get("/metas/estimativa/:userId", async (req, res) => {
 
         res.json({ mediaMensal, baseMeses: numMeses });
     } catch (err) {
-        console.error("Erro ao calcular estimativa:", err);
+        console.error("Erro ao calcular estimativa:", "INTERNAL");
         res.status(500).json({ mediaMensal: 0, baseMeses: 0 });
     }
 });
@@ -741,15 +717,15 @@ app.post("/agendamentos", async (req, res) => {
 
     try {
         await garantirUsuarioExiste(userId);
-        const result = await dbRun(
+        const result = await inserirLimitado("agendamentos", userId,
             `INSERT INTO agendamentos (user_id, tipo, descricao, valor, categoria, prazo, data_agendada)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [userId, tipo, descricao, valor, categoria || null, prazo || null, dataAgendada]
         );
         res.json({ success: true, id: result.lastID });
     } catch (err) {
-        console.error("Erro ao criar agendamento:", err.message);
-        res.status(500).json({ success: false, error: err.message });
+        console.error("Erro ao criar agendamento:", "INTERNAL");
+        res.status(err.status === 409 ? 409 : 500).json({ success: false, error: "Erro ao criar agendamento." });
     }
 });
 
@@ -768,7 +744,7 @@ app.get("/agendamentos/:userId", async (req, res) => {
             ? { ...row, status: "pendente" }
             : row));
     } catch (err) {
-        console.error(err);
+        console.error("[BACKEND] Falha interna:", err.code || "INTERNAL");
         res.status(500).json([]);
     }
 });
@@ -781,52 +757,17 @@ app.get("/agendamentos/processar/:userId", async (req, res) => {
         const lancados = await processarAgendamentosPendentes(req.uid);
         res.json({ lancados });
     } catch (err) {
-        console.error(err);
+        console.error("[BACKEND] Falha interna:", err.code || "INTERNAL");
         res.status(500).json({ lancados: [] });
     }
 });
 
-app.patch("/agendamentos/:id/pago", async (req, res) => {
-    const id = parseInt(req.params.id, 10);
-    if (isNaN(id)) {
-        return res.status(400).json({ success: false, error: "Parâmetros inválidos." });
-    }
+app.patch("/agendamentos/:id/pago", async (req, res, next) => {
     try {
-        const ag = await dbGet("SELECT * FROM agendamentos WHERE id = ? AND user_id = ?", [id, req.uid]);
-        if (!ag) return res.status(404).json({ success: false, error: "Agendamento não encontrado." });
-        if (ag.status === "lancado") {
-            return res.json({ success: true, jaEstavaLancado: true });
-        }
-
-        // Uma reversão manual mantém o lançamento original; pagar de novo não o duplica.
-        if (ag.status === "pendente_manual") {
-            await dbRun("UPDATE agendamentos SET status = 'lancado' WHERE id = ? AND user_id = ?", [id, req.uid]);
-            return res.json({ success: true });
-        }
-
-        if (ag.tipo === "gasto") {
-            await dbRun(
-                `INSERT INTO gastos (user_id, descricao, valor, categoria) VALUES (?, ?, ?, ?)`,
-                [req.uid, ag.descricao, ag.valor, ag.categoria || "Geral"]
-            );
-        } else if (ag.tipo === "receita") {
-            await dbRun(
-                `INSERT INTO receitas (user_id, descricao, valor) VALUES (?, ?, ?)`,
-                [req.uid, ag.descricao, ag.valor]
-            );
-        } else if (ag.tipo === "meta") {
-            await dbRun(
-                `INSERT INTO metas (user_id, nome, valor_objetivo, prazo) VALUES (?, ?, ?, ?)`,
-                [req.uid, ag.descricao, ag.valor, ag.prazo || 12]
-            );
-        }
-
-        await dbRun("UPDATE agendamentos SET status = 'lancado' WHERE id = ?", [id]);
-        res.json({ success: true });
-    } catch (err) {
-        console.error("Erro ao marcar agendamento como pago:", err.message);
-        res.status(500).json({ success: false, error: err.message });
-    }
+        const result = await lancarAgendamento(Number(req.params.id), req.uid);
+        if (!result) return res.status(404).json({ success: false, error: "Agendamento não encontrado." });
+        res.json({ success: true, jaEstavaLancado: Boolean(result.jaEstavaLancado) });
+    } catch (err) { next(err); }
 });
 
 app.patch("/agendamentos/:id/pendente", async (req, res) => {
@@ -863,64 +804,32 @@ app.delete("/agendamentos/:id", async (req, res) => {
 // =====================
 // INVESTIMENTOS
 // =====================
-app.post("/investimentos", async (req, res) => {
+app.post("/investimentos", async (req, res, next) => {
     const userId = req.uid;
     const { ticker, tipo, quantidade, precoMedio, dataCompra } = req.body;
-
-    if (!ticker || !quantidade || !precoMedio) {
-        return res.status(400).json({ success: false, error: "Dados incompletos." });
-    }
-
-    const tickerFinal = ticker.toUpperCase().trim();
-    const qtdNova = parseFloat(quantidade);
-    const precoNovo = parseFloat(precoMedio);
-    const dataFinal = dataCompra || new Date().toISOString().split("T")[0];
-
     try {
-        await garantirUsuarioExiste(userId);
-
-        await dbRun(
-            `INSERT INTO aportes (user_id, ticker, tipo, quantidade, preco_unitario, data) VALUES (?, ?, ?, ?, ?, ?)`,
-            [userId, tickerFinal, tipo, qtdNova, precoNovo, dataFinal]
-        );
-
-        const existente = await dbGet(
-            "SELECT * FROM investimentos WHERE user_id = ? AND ticker = ? LIMIT 1",
-            [userId, tickerFinal]
-        );
-
-        if (existente) {
-            const qtdAtual = parseFloat(existente.quantidade) || 0;
-            const pmAtual = parseFloat(existente.preco_medio) || 0;
-
-            const qtdTotal = qtdAtual + qtdNova;
-            const custoTotal = (qtdAtual * pmAtual) + (qtdNova * precoNovo);
-            const novoPrecoMedio = qtdTotal > 0 ? custoTotal / qtdTotal : precoNovo;
-
-            await dbRun(
-                `UPDATE investimentos SET quantidade = ?, preco_medio = ?, tipo = ? WHERE id = ?`,
-                [qtdTotal, novoPrecoMedio, tipo || existente.tipo, existente.id]
-            );
-
-            return res.json({
-                success: true,
-                id: existente.id,
-                atualizado: true,
-                quantidade: qtdTotal,
-                precoMedio: novoPrecoMedio
-            });
-        }
-
-        const result = await dbRun(
-            `INSERT INTO investimentos (user_id, ticker, tipo, quantidade, preco_medio, data_compra)
-             VALUES (?, ?, ?, ?, ?, ?)`,
-            [userId, tickerFinal, tipo, qtdNova, precoNovo, dataFinal]
-        );
-        res.json({ success: true, id: result.lastID, atualizado: false });
-    } catch (err) {
-        console.error("Erro ao cadastrar investimento:", err.message);
-        res.status(500).json({ success: false, error: err.message });
-    }
+        const result = await dbTransaction(async tx => {
+            await tx.dbRun("INSERT INTO users (id) VALUES (?) ON CONFLICT (id) DO NOTHING", [userId]);
+            if (isPostgres) await tx.dbGet("SELECT id FROM users WHERE id = ? FOR UPDATE", [userId]);
+            await enforceQuota(tx, "aportes", userId);
+            const existente = await tx.dbGet("SELECT * FROM investimentos WHERE user_id = ? AND ticker = ? LIMIT 1", [userId, ticker]);
+            if (!existente) await enforceQuota(tx, "investimentos", userId);
+            const qtdAtual = Number(existente?.quantidade || 0), pmAtual = Number(existente?.preco_medio || 0);
+            const qtdTotal = qtdAtual + quantidade, custoTotal = qtdAtual * pmAtual + quantidade * precoMedio;
+            if (!Number.isFinite(qtdTotal) || !Number.isFinite(custoTotal) || qtdTotal > MAX_VALUE || custoTotal > MAX_VALUE) {
+                throw Object.assign(new Error("Limite do investimento excedido."), { status: 400 });
+            }
+            await tx.dbRun("INSERT INTO aportes (user_id, ticker, tipo, quantidade, preco_unitario, data) VALUES (?, ?, ?, ?, ?, ?)", [userId, ticker, tipo, quantidade, precoMedio, dataCompra]);
+            if (existente) {
+                const novoPrecoMedio = custoTotal / qtdTotal;
+                await tx.dbRun("UPDATE investimentos SET quantidade = ?, preco_medio = ?, tipo = ? WHERE id = ? AND user_id = ?", [qtdTotal, novoPrecoMedio, tipo, existente.id, userId]);
+                return { id: existente.id, atualizado: true, quantidade: qtdTotal, precoMedio: novoPrecoMedio };
+            }
+            const inserted = await tx.dbRun("INSERT INTO investimentos (user_id, ticker, tipo, quantidade, preco_medio, data_compra) VALUES (?, ?, ?, ?, ?, ?)", [userId, ticker, tipo, quantidade, precoMedio, dataCompra]);
+            return { id: inserted.lastID, atualizado: false };
+        });
+        res.json({ success: true, ...result });
+    } catch (err) { next(err); }
 });
 
 app.get("/investimentos/:userId", async (req, res) => {
@@ -931,28 +840,20 @@ app.get("/investimentos/:userId", async (req, res) => {
         const rows = await dbAll("SELECT * FROM investimentos WHERE user_id = ? ORDER BY id DESC", [req.uid]);
         res.json(rows);
     } catch (err) {
-        console.error(err);
+        console.error("[BACKEND] Falha interna:", err.code || "INTERNAL");
         res.status(500).json([]);
     }
 });
 
-app.delete("/investimentos/:id", async (req, res) => {
-    const id = parseInt(req.params.id, 10);
-
-    if (isNaN(id)) {
-        return res.status(400).json({ success: false, error: "ID ausente." });
-    }
-
+app.delete("/investimentos/:id", async (req, res, next) => {
     try {
-        const result = await dbRun("DELETE FROM investimentos WHERE id = ? AND user_id = ?", [id, req.uid]);
-        if (result.changes === 0) {
-            return res.status(404).json({ success: false, error: "Ativo não encontrado ou não pertence a este usuário." });
-        }
+        const result = await dbTransaction(async tx => {
+            if (isPostgres) await tx.dbGet("SELECT id FROM users WHERE id = ? FOR UPDATE", [req.uid]);
+            return tx.dbRun("DELETE FROM investimentos WHERE id = ? AND user_id = ?", [Number(req.params.id), req.uid]);
+        });
+        if (!result.changes) return res.status(404).json({ success: false, error: "Ativo não encontrado." });
         res.json({ success: true, message: "Ativo excluído com sucesso." });
-    } catch (err) {
-        console.error("Erro SQL ao excluir investimento:", err.message);
-        res.status(500).json({ success: false, error: err.message });
-    }
+    } catch (err) { next(err); }
 });
 
 app.get("/api/cotacao/:ticker", async (req, res) => {
@@ -999,13 +900,13 @@ app.get("/api/investimentos/cotacoes/:userId", async (req, res) => {
         let totalInvestido = 0;
         let valorAtualTotal = 0;
 
-        const detalhes = await Promise.all(
-            ativos.map(async (ativo) => {
+        const cotacoesDeadline = Date.now() + 15000;
+        const detalhes = await mapLimit(ativos, 6, async (ativo) => {
                 const qtd = parseFloat(ativo.quantidade) || 0;
                 const pm = parseFloat(ativo.preco_medio) || 0;
                 const investidoAtivo = qtd * pm;
 
-                const cotado = await obterPrecoAtivo(ativo.ticker, ativo.tipo);
+                const cotado = Date.now() < cotacoesDeadline ? await obterPrecoAtivo(ativo.ticker, ativo.tipo) : null;
                 const precoAtual = (cotado && cotado > 0) ? cotado : pm;
                 const valorAtualAtivo = qtd * precoAtual;
 
@@ -1023,8 +924,7 @@ app.get("/api/investimentos/cotacoes/:userId", async (req, res) => {
                     lucroOuPrejuizo: valorAtualAtivo - investidoAtivo,
                     dataCompra: ativo.data_compra || null
                 };
-            })
-        );
+            });
 
         const rendimentoTotal = valorAtualTotal - totalInvestido;
         const crescimentoPercentual = totalInvestido > 0 ? (rendimentoTotal / totalInvestido) * 100 : 0;
@@ -1061,7 +961,7 @@ app.get("/api/investimentos/cotacoes/:userId", async (req, res) => {
             detalhes
         });
     } catch (err) {
-        console.error("Erro na rota de cotações:", err);
+        console.error("Erro na rota de cotações:", "INTERNAL");
         res.status(500).json({ error: "Erro ao processar cotações." });
     }
 });
@@ -1077,7 +977,7 @@ app.get("/api/investimentos/historico/:userId", async (req, res) => {
         );
         res.json(rows);
     } catch (err) {
-        console.error("Erro ao buscar histórico:", err);
+        console.error("Erro ao buscar histórico:", "INTERNAL");
         res.status(500).json([]);
     }
 });
@@ -1093,7 +993,7 @@ app.get("/api/investimentos/historico-ativo/:userId/:ticker", async (req, res) =
         );
         res.json(rows);
     } catch (err) {
-        console.error("Erro ao buscar histórico do ativo:", err);
+        console.error("Erro ao buscar histórico do ativo:", "INTERNAL");
         res.status(500).json([]);
     }
 });
@@ -1102,18 +1002,17 @@ app.get("/api/investimentos/historico-ativo/:userId/:ticker", async (req, res) =
 // IA / OLLAMA E CHAT
 // =====================
 
-app.post("/api/chat/conversas", async (req, res) => {
-    const userId = req.uid;
-    const { titulo } = req.body;
+app.post("/api/chat/conversas", async (req, res, next) => {
     try {
-        await garantirUsuarioExiste(userId);
-        await dbRun(`INSERT INTO chat_conversas (user_id, titulo) VALUES (?, ?)`, [userId, titulo || "Nova Conversa"]);
-        const row = await dbGet(`SELECT * FROM chat_conversas WHERE user_id = ? ORDER BY id DESC LIMIT 1`, [userId]);
-        res.json({ success: true, conversa: row });
-    } catch (err) {
-        console.error("Erro ao criar conversa:", err);
-        res.status(500).json({ success: false, error: "Erro ao criar conversa." });
-    }
+        const conversa = await dbTransaction(async tx => {
+            await tx.dbRun("INSERT INTO users (id) VALUES (?) ON CONFLICT (id) DO NOTHING", [req.uid]);
+            if (isPostgres) await tx.dbGet("SELECT id FROM users WHERE id = ? FOR UPDATE", [req.uid]);
+            await enforceQuota(tx, "chat_conversas", req.uid);
+            const inserted = await tx.dbRun("INSERT INTO chat_conversas (user_id, titulo) VALUES (?, ?)", [req.uid, req.body.titulo]);
+            return tx.dbGet("SELECT * FROM chat_conversas WHERE id = ? AND user_id = ?", [inserted.lastID, req.uid]);
+        });
+        res.json({ success: true, conversa });
+    } catch (err) { next(err); }
 });
 
 app.get("/api/chat/conversas/:userId", async (req, res) => {
@@ -1124,7 +1023,7 @@ app.get("/api/chat/conversas/:userId", async (req, res) => {
         const rows = await dbAll("SELECT * FROM chat_conversas WHERE user_id = ? ORDER BY id DESC", [req.uid]);
         res.json(rows);
     } catch (err) {
-        console.error("Erro ao buscar conversas:", err);
+        console.error("Erro ao buscar conversas:", "INTERNAL");
         res.status(500).json([]);
     }
 });
@@ -1140,7 +1039,7 @@ app.get("/api/chat/conversas/:userId/:conversaId/mensagens", async (req, res) =>
         );
         res.json(rows);
     } catch (err) {
-        console.error("Erro ao buscar mensagens:", err);
+        console.error("Erro ao buscar mensagens:", "INTERNAL");
         res.status(500).json([]);
     }
 });
@@ -1153,104 +1052,71 @@ app.delete("/api/chat/conversas/:userId/:conversaId", async (req, res) => {
         await dbRun("DELETE FROM chat_conversas WHERE id = ? AND user_id = ?", [req.params.conversaId, req.uid]);
         res.json({ success: true });
     } catch (err) {
-        console.error("Erro ao deletar conversa:", err);
+        console.error("Erro ao deletar conversa:", "INTERNAL");
         res.status(500).json({ success: false, error: "Erro ao deletar conversa." });
     }
 });
 
-app.post("/api/ia/chat", async (req, res) => {
+const activeChatUsers = new Set();
+const MAX_ACTIVE_CHATS = 8;
+app.post("/api/ia/chat", async (req, res, next) => {
     const userId = req.uid;
-    const { prompt, modelo, conversaId } = req.body;
-
-    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
-        return res.status(400).json({ success: false, error: "O campo 'prompt' é obrigatório." });
-    }
-
-    const promptLimpo = prompt.trim().slice(0, 1500);
-
+    const { prompt, conversaId } = req.body;
+    let acquired = false;
     try {
-        await garantirUsuarioExiste(userId);
-        // Salvar mensagem do usuário se houver conversa
         if (conversaId) {
-            await dbRun(
-                `INSERT INTO chat_mensagens (conversa_id, user_id, role, conteudo) VALUES (?, ?, 'user', ?)`,
-                [conversaId, userId, promptLimpo]
-            );
-            
-            // Atualizar o título da conversa se for "Nova Conversa"
-            const conversa = await dbGet(`SELECT titulo FROM chat_conversas WHERE id = ?`, [conversaId]);
-            if (conversa && conversa.titulo === "Nova Conversa") {
-                const novoTitulo = prompt.length > 30 ? prompt.substring(0, 30) + "..." : prompt;
-                await dbRun(`UPDATE chat_conversas SET titulo = ? WHERE id = ?`, [novoTitulo, conversaId]);
-            }
+            const owned = await dbGet("SELECT id FROM chat_conversas WHERE id = ? AND user_id = ?", [conversaId, userId]);
+            if (!owned) return res.status(404).json({ success: false, error: "Conversa não encontrada." });
         }
-
-        const resumo = await dbGet(
-            `SELECT 
-                (SELECT COALESCE(SUM(valor),0) FROM receitas WHERE user_id = ?) AS receitas,
-                (SELECT COALESCE(SUM(valor),0) FROM gastos WHERE user_id = ?) AS gastos`,
-            [userId, userId]
-        );
-
-        const totalReceitas = resumo?.receitas || 0;
-        const totalGastos = resumo?.gastos || 0;
-        const saldoAtual = totalReceitas - totalGastos;
-
-        const systemPrompt = `Você é a LumuzIA, assistente virtual de finanças pessoais do app LumuzIA.
-Responda sempre em português brasileiro de forma amigável, clara e direta.
-
-Dados financeiros atuais do usuário:
-- Receitas: R$ ${totalReceitas.toFixed(2)}
-- Gastos: R$ ${totalGastos.toFixed(2)}
-- Saldo Disponível: R$ ${saldoAtual.toFixed(2)}`;
-
-        const baseUrl = (process.env.OLLAMA_URL || "https://ra.projetoscti.com.br/2557068").replace(/\/$/, "");
-        
-        // Buscar histórico da conversa para o LLM ter contexto (se aplicável ao provedor, mas a API atual não aceita array de mensagens no PHP?
-        // Como o PHP espera apenas 'prompt', mandaremos o prompt atual e não o histórico inteiro na chamada.
-        
-        const response = await axios.post(
-            `${baseUrl}/index.php`,
-            {
-                action: "generate",
-                model: modelo || process.env.OLLAMA_MODEL || "llama3.2:1b",
-                prompt: promptLimpo,
-                system: systemPrompt,
-                stream: false,
-                auto_clean: true,
-                max_memory_percent: 70
-            },
-            {
-                headers: { "Content-Type": "application/json" },
-                httpsAgent,
-                timeout: 190000 // 3 minutos e 10 segundos (margem de segurança para o timeout de 180s do servidor)
-            }
-        );
-
-        if (response.data?.success) {
-            const respostaIA = response.data.resposta;
-            // Salvar resposta da IA
-            if (conversaId) {
-                await dbRun(
-                    `INSERT INTO chat_mensagens (conversa_id, user_id, role, conteudo) VALUES (?, ?, 'assistant', ?)`,
-                    [conversaId, userId, respostaIA]
-                );
-            }
-            return res.json({ success: true, resposta: respostaIA });
+        const bridge = bridgeConfig();
+        if (!bridge) return res.status(503).json({ success: false, error: "Assistente indisponível. Verifique a configuração do servidor." });
+        if (activeChatUsers.has(userId) || activeChatUsers.size >= MAX_ACTIVE_CHATS) {
+            res.set("Retry-After", "5");
+            return res.status(429).json({ success: false, error: "Aguarde a resposta anterior e tente novamente." });
         }
-
-        return res.status(500).json({ 
-            success: false, 
-            error: response.data?.error || "Erro ao obter resposta da IA." 
+        activeChatUsers.add(userId);
+        acquired = true;
+        await garantirUsuarioExiste(userId);
+        if (conversaId) {
+            await dbTransaction(async tx => {
+                const owned = await tx.dbGet("SELECT titulo FROM chat_conversas WHERE id = ? AND user_id = ?", [conversaId, userId]);
+                if (!owned) throw Object.assign(new Error("Conversa não encontrada."), { status: 404 });
+                await enforceQuota(tx, "chat_mensagens", userId, 2);
+                await tx.dbRun("INSERT INTO chat_mensagens (conversa_id, user_id, role, conteudo) VALUES (?, ?, 'user', ?)", [conversaId, userId, prompt]);
+                if (owned.titulo === "Nova Conversa") {
+                    const titulo = prompt.length > 30 ? prompt.slice(0, 30) + "..." : prompt;
+                    await tx.dbRun("UPDATE chat_conversas SET titulo = ? WHERE id = ? AND user_id = ?", [titulo, conversaId, userId]);
+                }
+            });
+        }
+        const resumo = await dbGet("SELECT (SELECT COALESCE(SUM(valor),0) FROM receitas WHERE user_id = ?) AS receitas, (SELECT COALESCE(SUM(valor),0) FROM gastos WHERE user_id = ?) AS gastos", [userId, userId]);
+        const receitas = Number(resumo?.receitas || 0), gastos = Number(resumo?.gastos || 0);
+        const systemPrompt = `Você é a LumuzIA, assistente de finanças pessoais. Responda em português brasileiro de forma clara.
+Dados financeiros atuais desta conta: receitas R$ ${receitas.toFixed(2)}, gastos R$ ${gastos.toFixed(2)}, saldo R$ ${(receitas - gastos).toFixed(2)}.`;
+        const response = await axios.post(bridge.url, {
+            action: "generate", model: process.env.OLLAMA_MODEL || "llama3.2:1b", prompt, system: systemPrompt
+        }, {
+            headers: { "Content-Type": "application/json", "X-Lumuz-Bridge-Secret": bridge.secret },
+            httpsAgent, timeout: 60000, maxRedirects: 0, maxContentLength: 256 * 1024, maxBodyLength: 32 * 1024
         });
-
+        const respostaIA = response.data?.resposta;
+        if (response.data?.success !== true || typeof respostaIA !== "string" || !respostaIA.trim() || respostaIA.length > 16000) {
+            return res.status(502).json({ success: false, error: "Resposta indisponível. Tente novamente." });
+        }
+        if (conversaId) {
+            await dbTransaction(async tx => {
+                const owned = await tx.dbGet("SELECT id FROM chat_conversas WHERE id = ? AND user_id = ?", [conversaId, userId]);
+                if (!owned) return;
+                await enforceQuota(tx, "chat_mensagens", userId);
+                await tx.dbRun("INSERT INTO chat_mensagens (conversa_id, user_id, role, conteudo) VALUES (?, ?, 'assistant', ?)", [conversaId, userId, respostaIA]);
+            });
+        }
+        res.json({ success: true, resposta: respostaIA });
     } catch (err) {
-        console.error("Erro na integração com Ollama/IA:", err.message);
-        return res.status(500).json({ 
-            success: false, 
-            error: "Falha ao processar a requisição com a IA." 
-        });
-    }
+        if (err.status && [400, 404, 409].includes(err.status)) return next(err);
+        console.error("[IA] Falha de integração:", err.code || "INTERNAL");
+        res.status(502).json({ success: false, error: "Falha ao processar a requisição com a IA." });
+    } finally { if (acquired) activeChatUsers.delete(userId); }
 });
 // =====================
 // DASHBOARD & ESTATÍSTICAS
@@ -1317,7 +1183,7 @@ app.get("/dashboard/:userId", async (req, res) => {
             saldo
         });
     } catch (err) {
-        console.error("Erro ao carregar dashboard:", err.message);
+        console.error("Erro ao carregar dashboard:", "INTERNAL");
         res.status(500).json({ error: "Erro interno no servidor." });
     }
 });
@@ -1325,12 +1191,12 @@ app.get("/dashboard/:userId", async (req, res) => {
 // HANDLER GLOBAL DE ERROS (Tratamento seguro sem vazamento de stack trace)
 // =====================
 app.use((err, req, res, next) => {
-    console.error("[SEGURANÇA / ERRO TRATADO]:", err.message);
+    console.error("[SEGURANÇA / ERRO TRATADO]:", err.status || err.code || "INTERNAL");
     if (res.headersSent) return next(err);
-    const status = err.status || 500;
+    const status = [400, 401, 403, 404, 409, 413, 415, 429, 503].includes(err.status) ? err.status : 500;
     res.status(status).json({
         success: false,
-        error: status === 400 ? "Requisição inválida." : "Erro interno no servidor."
+        error: ({ 400: "Requisição inválida.", 409: "Limite de registros atingido.", 413: "Carga excessiva.", 415: "Envie dados em JSON.", 503: "Serviço temporariamente indisponível." })[status] || "Erro interno no servidor."
     });
 });
 
@@ -1343,14 +1209,17 @@ if (require.main === module) {
     });
 }
 
-// =====================
-// PROTEÇÃO CONTRA CRASHES GLOBAIS
-// =====================
-process.on("unhandledRejection", (reason) => {
-    console.error("[SEGURANÇA / DURABILIDADE] Unhandled Rejection capturado:", reason);
-});
-process.on("uncaughtException", (err) => {
-    console.error("[SEGURANÇA / DURABILIDADE] Uncaught Exception capturada:", err);
-});
+// Falhas fatais encerram o processo; o supervisor pode reiniciá-lo sem
+// continuar atendendo com estado parcialmente corrompido.
+if (require.main === module) {
+    process.on("unhandledRejection", () => {
+        console.error("[BACKEND] Falha fatal não tratada. Reinício necessário.");
+        process.exit(1);
+    });
+    process.on("uncaughtException", () => {
+        console.error("[BACKEND] Falha fatal não tratada. Reinício necessário.");
+        process.exit(1);
+    });
+}
 
 module.exports = app;

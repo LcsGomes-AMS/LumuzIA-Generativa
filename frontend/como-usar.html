@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <style>html[data-auth-pending] body { display: none !important; }</style>
-    <script src="./js/auth-guard.js" onerror="window.location.replace('./cad.html')"></script>
+    <script src="./js/auth-guard.js"></script>
     <noscript><meta http-equiv="refresh" content="0;url=./cad.html"></noscript>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Como Usar & Educação Financeira - LumuzIA</title>
@@ -46,7 +46,7 @@
                 <div class="hero-controls">
                     <div class="search-box-wrapper">
                         <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        <input type="text" id="buscaGuia" placeholder="Filtrar tópicos, conceitos ou tutoriais em vídeo..." oninput="filtrarGuia(this.value)">
+                        <input type="text" id="buscaGuia" placeholder="Filtrar tópicos, conceitos ou tutoriais em vídeo...">
                     </div>
 
                     <div class="quick-nav">
@@ -225,7 +225,7 @@
                     </div>
 
                     <div class="video-container" id="video-container-plataforma" data-video-title="Tour Completo pela Plataforma LumuzIA" data-video-id="">
-                        <div class="video-placeholder" onclick="abrirVideoModal('Tour Completo pela Plataforma LumuzIA', 'Visão geral passo a passo de como cadastrar receitas, gerenciar despesas agendadas, criar metas e consultar investimentos com cotações em tempo real.', 'video-container-plataforma')">
+                        <div class="video-placeholder" data-action="abrirVideoModal" data-args="[&quot;Tour Completo pela Plataforma LumuzIA&quot;,&quot;Visão geral passo a passo de como cadastrar receitas, gerenciar despesas agendadas, criar metas e consultar investimentos com cotações em tempo real.&quot;,&quot;video-container-plataforma&quot;]">
                             <div class="video-play-btn">
                                 <svg viewBox="0 0 24 24"><polygon points="6 4 19 12 6 20 6 4"></polygon></svg>
                             </div>
@@ -242,7 +242,7 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                             Configure uma aula do YouTube pelo botão ao lado. O link ficará salvo neste navegador.
                         </div>
-                        <button class="btn-video-config" onclick="configurarUrlVideo('video-container-plataforma')">
+                        <button class="btn-video-config" data-action="configurarUrlVideo" data-args="[&quot;video-container-plataforma&quot;]">
                             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                             Inserir Link do YouTube
                         </button>
@@ -364,7 +364,7 @@
                             <span class="video-duration">08:15</span>
                         </div>
                         <div class="video-container" id="video-container-orcamento" data-video-title="Como Organizar o Orçamento e Aplicar a Regra 50/30/20" data-video-id="">
-                            <div class="video-placeholder" onclick="abrirVideoModal('Como Organizar o Orçamento e Aplicar a Regra 50/30/20', 'Tutorial detalhado demonstrando como classificar despesas fixas e variáveis e distribuir os percentuais orçamentários recomendados pelo Banco Central.', 'video-container-orcamento')">
+                            <div class="video-placeholder" data-action="abrirVideoModal" data-args="[&quot;Como Organizar o Orçamento e Aplicar a Regra 50/30/20&quot;,&quot;Tutorial detalhado demonstrando como classificar despesas fixas e variáveis e distribuir os percentuais orçamentários recomendados pelo Banco Central.&quot;,&quot;video-container-orcamento&quot;]">
                                 <div class="video-play-btn">
                                     <svg viewBox="0 0 24 24"><polygon points="6 4 19 12 6 20 6 4"></polygon></svg>
                                 </div>
@@ -377,7 +377,7 @@
                         </div>
                         <div class="video-info-footer">
                             <div class="video-helper-text">Vídeo sobre separação orçamentária</div>
-                            <button class="btn-video-config" onclick="configurarUrlVideo('video-container-orcamento')">Configurar Link</button>
+                            <button class="btn-video-config" data-action="configurarUrlVideo" data-args="[&quot;video-container-orcamento&quot;]">Configurar Link</button>
                         </div>
                     </div>
 
@@ -390,7 +390,7 @@
                             <span class="video-duration">07:50</span>
                         </div>
                         <div class="video-container" id="video-container-reserva" data-video-title="Como Montar sua Reserva de Emergência Passo a Passo" data-video-id="">
-                            <div class="video-placeholder" onclick="abrirVideoModal('Como Montar sua Reserva de Emergência Passo a Passo', 'Entenda como calcular o valor ideal da sua reserva, escolher títulos de liquidez diária (Tesouro Selic e CDBs 100% CDI) e evitar armadilhas.', 'video-container-reserva')">
+                            <div class="video-placeholder" data-action="abrirVideoModal" data-args="[&quot;Como Montar sua Reserva de Emergência Passo a Passo&quot;,&quot;Entenda como calcular o valor ideal da sua reserva, escolher títulos de liquidez diária (Tesouro Selic e CDBs 100% CDI) e evitar armadilhas.&quot;,&quot;video-container-reserva&quot;]">
                                 <div class="video-play-btn">
                                     <svg viewBox="0 0 24 24"><polygon points="6 4 19 12 6 20 6 4"></polygon></svg>
                                 </div>
@@ -403,7 +403,7 @@
                         </div>
                         <div class="video-info-footer">
                             <div class="video-helper-text">Vídeo sobre liquidez diária e segurança</div>
-                            <button class="btn-video-config" onclick="configurarUrlVideo('video-container-reserva')">Configurar Link</button>
+                            <button class="btn-video-config" data-action="configurarUrlVideo" data-args="[&quot;video-container-reserva&quot;]">Configurar Link</button>
                         </div>
                     </div>
                 </div>
@@ -483,7 +483,7 @@
                             <span class="video-duration">11:20</span>
                         </div>
                         <div class="video-container" id="video-container-acoes" data-video-title="Como Escolher e Investir em Ações na Bolsa com Foco em Dividendos" data-video-id="">
-                            <div class="video-placeholder" onclick="abrirVideoModal('Como Escolher e Investir em Ações na Bolsa com Foco em Dividendos', 'Conheça os principais indicadores fundamentalistas (P/L, P/VP, Dividend Yield, ROE) e saiba como escolher boas empresas para sócio.', 'video-container-acoes')">
+                            <div class="video-placeholder" data-action="abrirVideoModal" data-args="[&quot;Como Escolher e Investir em Ações na Bolsa com Foco em Dividendos&quot;,&quot;Conheça os principais indicadores fundamentalistas (P/L, P/VP, Dividend Yield, ROE) e saiba como escolher boas empresas para sócio.&quot;,&quot;video-container-acoes&quot;]">
                                 <div class="video-play-btn">
                                     <svg viewBox="0 0 24 24"><polygon points="6 4 19 12 6 20 6 4"></polygon></svg>
                                 </div>
@@ -496,7 +496,7 @@
                         </div>
                         <div class="video-info-footer">
                             <div class="video-helper-text">Vídeo sobre ações, dividendos e valuation</div>
-                            <button class="btn-video-config" onclick="configurarUrlVideo('video-container-acoes')">Configurar Link</button>
+                            <button class="btn-video-config" data-action="configurarUrlVideo" data-args="[&quot;video-container-acoes&quot;]">Configurar Link</button>
                         </div>
                     </div>
 
@@ -509,7 +509,7 @@
                             <span class="video-duration">10:45</span>
                         </div>
                         <div class="video-container" id="video-container-fiis" data-video-title="Guia Prático de FIIs: Vivendo de Renda Passiva Isenta de IR" data-video-id="">
-                            <div class="video-placeholder" onclick="abrirVideoModal('Guia Prático de FIIs: Vivendo de Renda Passiva Isenta de IR', 'Aprenda a analisar relatórios gerenciais de fundos imobiliários, taxas de vacância física/financeira e calcular a rentabilidade dos proventos.', 'video-container-fiis')">
+                            <div class="video-placeholder" data-action="abrirVideoModal" data-args="[&quot;Guia Prático de FIIs: Vivendo de Renda Passiva Isenta de IR&quot;,&quot;Aprenda a analisar relatórios gerenciais de fundos imobiliários, taxas de vacância física/financeira e calcular a rentabilidade dos proventos.&quot;,&quot;video-container-fiis&quot;]">
                                 <div class="video-play-btn">
                                     <svg viewBox="0 0 24 24"><polygon points="6 4 19 12 6 20 6 4"></polygon></svg>
                                 </div>
@@ -522,7 +522,7 @@
                         </div>
                         <div class="video-info-footer">
                             <div class="video-helper-text">Vídeo sobre carteira e análise de FIIs</div>
-                            <button class="btn-video-config" onclick="configurarUrlVideo('video-container-fiis')">Configurar Link</button>
+                            <button class="btn-video-config" data-action="configurarUrlVideo" data-args="[&quot;video-container-fiis&quot;]">Configurar Link</button>
                         </div>
                     </div>
                 </div>
@@ -646,7 +646,7 @@
                         <span class="video-duration">12:05</span>
                     </div>
                     <div class="video-container" id="video-container-calculos" data-video-title="Como Calcular Preço Médio, Dividend Yield e Ganho Real na Prática" data-video-id="">
-                        <div class="video-placeholder" onclick="abrirVideoModal('Como Calcular Preço Médio, Dividend Yield e Ganho Real na Prática', 'Aprenda na tela como o preço médio se move a cada nova compra, como rebalancear seus ativos e como apurar seus ganhos reais.', 'video-container-calculos')">
+                        <div class="video-placeholder" data-action="abrirVideoModal" data-args="[&quot;Como Calcular Preço Médio, Dividend Yield e Ganho Real na Prática&quot;,&quot;Aprenda na tela como o preço médio se move a cada nova compra, como rebalancear seus ativos e como apurar seus ganhos reais.&quot;,&quot;video-container-calculos&quot;]">
                             <div class="video-play-btn">
                                 <svg viewBox="0 0 24 24"><polygon points="6 4 19 12 6 20 6 4"></polygon></svg>
                             </div>
@@ -659,7 +659,7 @@
                     </div>
                     <div class="video-info-footer">
                         <div class="video-helper-text">Vídeo sobre apuração de impostos e preço médio ponderado</div>
-                        <button class="btn-video-config" onclick="configurarUrlVideo('video-container-calculos')">Configurar Link</button>
+                        <button class="btn-video-config" data-action="configurarUrlVideo" data-args="[&quot;video-container-calculos&quot;]">Configurar Link</button>
                     </div>
                 </div>
             </section>
@@ -686,7 +686,7 @@
                             <h3>Aula 01: Tour LumuzIA</h3>
                         </div>
                         <p>Domine o painel, cadastro de transações, filtros e métricas principais da plataforma.</p>
-                        <a href="javascript:void(0)" onclick="abrirVideoModal('Aula 01: Tour pela Plataforma LumuzIA', 'Aprenda a cadastrar receitas, despesas, agendamentos e interagir com o Chat IA.', 'video-container-plataforma')" class="card-link">
+                        <a href="#videoModal" data-action="abrirVideoModal" data-args="[&quot;Aula 01: Tour pela Plataforma LumuzIA&quot;,&quot;Aprenda a cadastrar receitas, despesas, agendamentos e interagir com o Chat IA.&quot;,&quot;video-container-plataforma&quot;]" class="card-link">
                             Assistir Aula
                             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                         </a>
@@ -700,7 +700,7 @@
                             <h3>Aula 02: Orçamento 50/30/20</h3>
                         </div>
                         <p>Como distribuir seus rendimentos líquidos entre necessidades, desejos e investimentos.</p>
-                        <a href="javascript:void(0)" onclick="abrirVideoModal('Aula 02: Orçamento e Regra 50/30/20', 'Separação prática de gastos fixos, supérfluos e aportes para o futuro.', 'video-container-orcamento')" class="card-link">
+                        <a href="#videoModal" data-action="abrirVideoModal" data-args="[&quot;Aula 02: Orçamento e Regra 50/30/20&quot;,&quot;Separação prática de gastos fixos, supérfluos e aportes para o futuro.&quot;,&quot;video-container-orcamento&quot;]" class="card-link">
                             Assistir Aula
                             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                         </a>
@@ -714,7 +714,7 @@
                             <h3>Aula 03: Reserva de Emergência</h3>
                         </div>
                         <p>Como escolher ativos com liquidez diária e proteção do FGC sem correr riscos desnecessários.</p>
-                        <a href="javascript:void(0)" onclick="abrirVideoModal('Aula 03: Reserva de Emergência', 'Passo a passo para alocar 3 a 12 meses de custo de vida com segurança total.', 'video-container-reserva')" class="card-link">
+                        <a href="#videoModal" data-action="abrirVideoModal" data-args="[&quot;Aula 03: Reserva de Emergência&quot;,&quot;Passo a passo para alocar 3 a 12 meses de custo de vida com segurança total.&quot;,&quot;video-container-reserva&quot;]" class="card-link">
                             Assistir Aula
                             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                         </a>
@@ -728,7 +728,7 @@
                             <h3>Aula 04: Ações e Dividendos</h3>
                         </div>
                         <p>Como iniciar na B3, selecionar empresas lucrativas e acompanhar o fluxo de dividendos.</p>
-                        <a href="javascript:void(0)" onclick="abrirVideoModal('Aula 04: Investimento em Ações na B3', 'Estratégia de investimento de longo prazo e análise de fundamentos.', 'video-container-acoes')" class="card-link">
+                        <a href="#videoModal" data-action="abrirVideoModal" data-args="[&quot;Aula 04: Investimento em Ações na B3&quot;,&quot;Estratégia de investimento de longo prazo e análise de fundamentos.&quot;,&quot;video-container-acoes&quot;]" class="card-link">
                             Assistir Aula
                             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                         </a>
@@ -742,7 +742,7 @@
                             <h3>Aula 05: Fundos Imobiliários</h3>
                         </div>
                         <p>Guia detalhado de FIIs de tijolo e papel com rendimentos mensais isentos de IR na fonte.</p>
-                        <a href="javascript:void(0)" onclick="abrirVideoModal('Aula 05: Fundos Imobiliários na Prática', 'Como viver de renda com aluguéis de galpões e shoppings sem ter imóveis físicos.', 'video-container-fiis')" class="card-link">
+                        <a href="#videoModal" data-action="abrirVideoModal" data-args="[&quot;Aula 05: Fundos Imobiliários na Prática&quot;,&quot;Como viver de renda com aluguéis de galpões e shoppings sem ter imóveis físicos.&quot;,&quot;video-container-fiis&quot;]" class="card-link">
                             Assistir Aula
                             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                         </a>
@@ -756,7 +756,7 @@
                             <h3>Aula 06: Preço Médio e Cálculos</h3>
                         </div>
                         <p>Fórmula matemática, planilha de cálculo e exemplo de apuração de rentabilidade real.</p>
-                        <a href="javascript:void(0)" onclick="abrirVideoModal('Aula 06: Preço Médio e Rentabilidade Real', 'Demonstração prática de como calcular o preço médio ponderado e o ganho real.', 'video-container-calculos')" class="card-link">
+                        <a href="#videoModal" data-action="abrirVideoModal" data-args="[&quot;Aula 06: Preço Médio e Rentabilidade Real&quot;,&quot;Demonstração prática de como calcular o preço médio ponderado e o ganho real.&quot;,&quot;video-container-calculos&quot;]" class="card-link">
                             Assistir Aula
                             <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
                         </a>
@@ -837,7 +837,7 @@
     <div class="video-modal-content">
         <div class="video-modal-header">
             <h3 id="modalVideoTitulo">Assistir Tutorial</h3>
-            <button class="video-modal-close" onclick="fecharVideoModal()" aria-label="Fechar">
+            <button class="video-modal-close" data-action="fecharVideoModal" aria-label="Fechar">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
         </div>
@@ -857,7 +857,7 @@
             </div>
         </div>
         <div class="video-modal-actions" style="margin-top: 16px;">
-            <button class="btn-secondary" onclick="fecharVideoModal()">Fechar</button>
+            <button class="btn-secondary" data-action="fecharVideoModal">Fechar</button>
         </div>
     </div>
 </div>
@@ -867,7 +867,7 @@
     <div class="video-modal-content">
         <div class="video-modal-header">
             <h3>Configurar Link do Vídeo</h3>
-            <button class="video-modal-close" onclick="fecharConfigModal()" aria-label="Fechar">
+            <button class="video-modal-close" data-action="fecharConfigModal" aria-label="Fechar">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
         </div>
@@ -878,13 +878,13 @@
             <input type="hidden" id="targetContainerId">
         </div>
         <div class="video-modal-actions">
-            <button class="btn-secondary" onclick="fecharConfigModal()">Cancelar</button>
-            <button class="btn-primary" onclick="salvarConfigUrl()">Salvar Vídeo</button>
+            <button class="btn-secondary" data-action="fecharConfigModal">Cancelar</button>
+            <button class="btn-primary" data-action="salvarConfigUrl">Salvar Vídeo</button>
         </div>
     </div>
 </div>
 
 <script src="./js/sidebar.js"></script>
-<script src="./js/como-usar.js"></script>
+<script type="module" src="./js/como-usar.js"></script>
 </body>
 </html>

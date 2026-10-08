@@ -10,7 +10,7 @@ import {
     updateProfile,
     onAuthStateChanged,
     signOut
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
 
 const authForm = document.getElementById("authForm");
 const forgotForm = document.getElementById("forgotForm");

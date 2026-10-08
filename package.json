@@ -7,7 +7,13 @@
     "test:agendamentos": "node --test backend/test-agendamentos.js",
     "test:auth": "node --experimental-vm-modules --test backend/test-auth.js",
     "test:security": "node backend/test-security.js",
-    "test:db": "node backend/test-db-persistence.js"
+    "test:db": "node backend/test-db-persistence.js",
+    "test:integrations": "node --test backend/test-integrations-auth.js backend/test-integrations-bridge.js backend/test-integrations-hosting.js",
+    "test:routes-security": "node --test backend/test-routes-security.js",
+    "test:database-security": "node --test backend/test-database-security.js",
+    "test:firestore": "node --test backend/test-integrations-firestore.js",
+    "test": "node --experimental-vm-modules --test backend/test-auth.js backend/test-agendamentos.js backend/test-routes-security.js backend/test-database-security.js backend/test-integrations-auth.js backend/test-integrations-bridge.js backend/test-integrations-hosting.js",
+    "test:hosting": "node --test backend/test-integrations-hosting.js"
   },
   "dependencies": {
     "axios": "^1.19.0",
@@ -15,14 +21,15 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.6.2",
-    "firebase-admin": "^12.7.0",
+    "firebase-admin": "^14.5.0",
     "helmet": "^8.3.0",
-    "jwks-rsa": "^3.1.0",
     "pg": "^8.23.1",
-    "sqlite3": "^6.0.1",
-    "yahoo-finance2": "^4.0.2"
+    "sqlite3": "^6.0.1"
   },
   "allowScripts": {
     "sqlite3@6.0.1": true
+  },
+  "engines": {
+    "node": ">=22"
   }
 }
