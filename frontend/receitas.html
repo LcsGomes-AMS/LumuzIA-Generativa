@@ -1,7 +1,10 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-auth-pending>
     <head>
         <meta charset="UTF-8">
+    <style>html[data-auth-pending] body { display: none !important; }</style>
+    <script src="./js/auth-guard.js" onerror="window.location.replace('./cad.html')"></script>
+    <noscript><meta http-equiv="refresh" content="0;url=./cad.html"></noscript>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Receitas - LumuzIA</title>
         <link rel="icon" type="./img/png" href="img/LumuzIA.png">

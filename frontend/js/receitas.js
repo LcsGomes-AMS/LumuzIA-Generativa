@@ -154,7 +154,7 @@ function renderizarTabelaReceitas(receitas) {
             <td>R$ ${Number(receita.valor).toFixed(2)}</td>
             <td>${receita.created_at ? new Date(String(receita.created_at).slice(0,10)+"T00:00:00").toLocaleDateString("pt-BR") : "--"}</td>
             <td>
-                <button onclick="editarReceita(${receita.id}, '${escapeHtml(receita.descricao).replace(/'/g, "&#39;")}', ${receita.valor})" style="background:transparent;border:1px solid #6FE7DD;color:#6FE7DD;padding:4px 8px;border-radius:4px;cursor:pointer;">Editar</button>
+                <button onclick="editarReceita(${receita.id})" style="background:transparent;border:1px solid #6FE7DD;color:#6FE7DD;padding:4px 8px;border-radius:4px;cursor:pointer;">Editar</button>
                 <button onclick="excluirReceita(${receita.id})" style="background:transparent;border:1px solid #EF4444;color:#EF4444;padding:4px 8px;border-radius:4px;cursor:pointer; margin-left:6px;">Excluir</button>
             </td>
         </tr>
@@ -162,18 +162,22 @@ function renderizarTabelaReceitas(receitas) {
 }
 
 // Transforma a linha em um formulário de edição inline
-window.editarReceita = function (id, descricaoAtual, valorAtual) {
+window.editarReceita = function (id) {
+    const receita = receitasAtuais.find(item => Number(item.id) === Number(id));
+    if (!receita) return;
     const linha = document.getElementById(`linha-receita-${id}`);
     if (!linha) return;
 
     linha.innerHTML = `
-        <td><input class="receita-edit-input" id="editDesc-${id}" value="${escapeHtml(descricaoAtual)}"></td>
-        <td><input class="receita-edit-input" id="editValor-${id}" type="number" step="0.01" value="${valorAtual}"></td>
+        <td><input class="receita-edit-input" id="editDesc-${id}"></td>
+        <td><input class="receita-edit-input" id="editValor-${id}" type="number" min="0.01" step="0.01"></td>
         <td>
             <button onclick="salvarEdicaoReceita(${id})" style="background:#10B981;border:none;color:#fff;padding:4px 8px;border-radius:4px;cursor:pointer;">Salvar</button>
-            <button onclick="carregarReceitas()" style="background:transparent;border:1px solid #8FA1A3;color:#8FA1A3;padding:4px 8px;border-radius:4px;cursor:pointer; margin-left:6px;">Cancelar</button>
+            <button onclick="filtrarReceitas()" style="background:transparent;border:1px solid #8FA1A3;color:#8FA1A3;padding:4px 8px;border-radius:4px;cursor:pointer; margin-left:6px;">Cancelar</button>
         </td>
     `;
+    document.getElementById(`editDesc-${id}`).value = receita.descricao;
+    document.getElementById(`editValor-${id}`).value = receita.valor;
 };
 
 window.salvarEdicaoReceita = async function (id) {

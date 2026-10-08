@@ -8,7 +8,8 @@ import {
     GoogleAuthProvider,
     sendPasswordResetEmail,
     updateProfile,
-    onAuthStateChanged
+    onAuthStateChanged,
+    signOut
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const authForm = document.getElementById("authForm");
@@ -34,6 +35,7 @@ const backToLoginLink = document.getElementById("backToLoginLink");
 
 const tabs = document.querySelectorAll(".tab");
 let modoAtual = "login"; // "login" ou "signup"
+let autenticando = false;
 
 function mostrarMensagem(texto, tipo = "info") {
     if (!msg) return;
@@ -61,7 +63,9 @@ function traduzirErroFirebase(err) {
         "auth/popup-closed-by-user": "Login com Google cancelado.",
         "auth/popup-blocked": "Pop-up bloqueado. Redirecionando...",
         "auth/cancelled-popup-request": "Login com Google cancelado.",
-        "auth/network-request-failed": "Erro de rede. Verifique sua conexão."
+        "auth/network-request-failed": "Erro de rede. Verifique sua conexão.",
+        "auth/unauthorized-domain": "Este endereço ainda não está autorizado para login. Verifique os domínios autorizados no Firebase.",
+        "auth/operation-not-allowed": "Este método de login ainda não está habilitado no Firebase."
     };
     return mapa[codigo] || "Ocorreu um erro. Tente novamente.";
 }
@@ -69,25 +73,24 @@ function traduzirErroFirebase(err) {
 // =====================
 // Alternância entre abas Entrar / Criar conta
 // =====================
-tabs.forEach(tab => {
-    tab.addEventListener("click", () => {
-        tabs.forEach(t => t.classList.remove("active"));
-        tab.classList.add("active");
-        modoAtual = tab.dataset.tab;
-        limparMensagem();
+function selecionarModo(modo) {
+    modoAtual = modo;
+    tabs.forEach(tab => tab.classList.toggle("active", tab.dataset.tab === modo));
+    limparMensagem();
+    authForm.style.display = "block";
+    forgotForm.style.display = "none";
+    if (divider) divider.style.display = "block";
+    if (googleBtn) googleBtn.style.display = "flex";
+    const cadastro = modo === "signup";
+    nameField.style.display = cadastro ? "block" : "none";
+    cardTitle.innerText = cadastro ? "Criar conta" : "Bem-vindo de volta";
+    cardSub.innerText = cadastro ? "Preencha os dados para começar." : "Entre ou crie uma conta para usar a LumuzIA.";
+    submitBtn.innerText = cadastro ? "Criar conta" : "Entrar";
+    passwordInput.autocomplete = cadastro ? "new-password" : "current-password";
+}
 
-        if (modoAtual === "signup") {
-            nameField.style.display = "block";
-            cardTitle.innerText = "Criar conta";
-            cardSub.innerText = "Preencha os dados para começar.";
-            submitBtn.innerText = "Criar conta";
-        } else {
-            nameField.style.display = "none";
-            cardTitle.innerText = "Bem-vindo de volta";
-            cardSub.innerText = "Entre para continuar sua conversa.";
-            submitBtn.innerText = "Entrar";
-        }
-    });
+tabs.forEach(tab => {
+    tab.addEventListener("click", () => selecionarModo(tab.dataset.tab));
 });
 
 // =====================
@@ -102,22 +105,29 @@ authForm.addEventListener("submit", async (e) => {
     const name = nameInput.value.trim();
 
     submitBtn.disabled = true;
+    autenticando = true;
 
     try {
         if (modoAtual === "signup") {
             const cred = await createUserWithEmailAndPassword(auth, email, password);
             if (name) {
-                await updateProfile(cred.user, { displayName: name });
+                try {
+                    await updateProfile(cred.user, { displayName: name });
+                } catch (profileError) {
+                    // A conta já foi criada; o nome pode ser atualizado no perfil.
+                    console.error("Erro ao salvar o nome da conta:", profileError);
+                }
             }
         } else {
             await signInWithEmailAndPassword(auth, email, password);
         }
 
-        window.location.href = "./como-usar.html";
+        window.location.replace("./como-usar.html");
     } catch (err) {
         console.error(err);
         mostrarMensagem(traduzirErroFirebase(err), "error");
     } finally {
+        autenticando = false;
         submitBtn.disabled = false;
     }
 });
@@ -137,15 +147,13 @@ if (googleBtn) {
             // Tenta abrir o popup do Google
             const result = await signInWithPopup(auth, googleProvider);
             if (result.user) {
-                window.location.href = "./como-usar.html";
+                window.location.replace("./como-usar.html");
             }
         } catch (err) {
             console.error("Erro no login Google:", err);
 
-            // Se o popup foi bloqueado ou fechado, tenta via redirect
-            if (err.code === "auth/popup-blocked" ||
-                err.code === "auth/popup-closed-by-user" ||
-                err.code === "auth/cancelled-popup-request") {
+            // Usa redirecionamento quando o navegador bloqueia o popup.
+            if (err.code === "auth/popup-blocked") {
                 mostrarMensagem("Redirecionando para login com Google...", "info");
                 try {
                     await signInWithRedirect(auth, googleProvider);
@@ -181,13 +189,7 @@ if (forgotLink) {
 if (backToLoginLink) {
     backToLoginLink.addEventListener("click", (e) => {
         e.preventDefault();
-        limparMensagem();
-        forgotForm.style.display = "none";
-        authForm.style.display = "block";
-        if (divider) divider.style.display = "block";
-        if (googleBtn) googleBtn.style.display = "flex";
-        cardTitle.innerText = "Bem-vindo de volta";
-        cardSub.innerText = "Entre para continuar sua conversa.";
+        selecionarModo("login");
     });
 }
 
@@ -217,7 +219,7 @@ if (forgotForm) {
 getRedirectResult(auth)
     .then((result) => {
         if (result && result.user) {
-            window.location.href = "./como-usar.html";
+            window.location.replace("./como-usar.html");
         }
     })
     .catch((err) => {
@@ -228,10 +230,14 @@ getRedirectResult(auth)
     });
 
 // =====================
-// Se já estiver logado, pula direto pro dashboard
+// Se já estiver logado, abre a plataforma após concluir o cadastro.
 // =====================
 onAuthStateChanged(auth, (user) => {
-    if (user) {
-        window.location.href = "./como-usar.html";
+    if (user?.isAnonymous) {
+        void signOut(auth);
+        return;
+    }
+    if (user && !autenticando) {
+        window.location.replace("./como-usar.html");
     }
 });

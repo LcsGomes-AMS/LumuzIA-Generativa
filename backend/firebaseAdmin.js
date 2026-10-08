@@ -24,7 +24,8 @@ if (!getApps().length) {
     if (serviceAccount) {
         initializeApp({ credential: cert(serviceAccount) });
     } else {
-        initializeApp();
+        // A verificação de ID tokens usa as chaves públicas do projeto Firebase.
+        initializeApp({ projectId: process.env.FIREBASE_PROJECT_ID || "lumuz-e2f23" });
     }
 }
 
@@ -40,7 +41,7 @@ async function verificarAutenticacao(req, res, next) {
     }
 
     const authHeader = req.headers.authorization || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.split("Bearer ")[1] : null;
+    const token = /^Bearer (\S+)$/.exec(authHeader)?.[1];
 
     if (!token) {
         return res.status(401).json({ success: false, error: "Token não fornecido." });
@@ -48,6 +49,9 @@ async function verificarAutenticacao(req, res, next) {
 
     try {
         const decoded = await authAdmin.verifyIdToken(token);
+        if (decoded.firebase?.sign_in_provider === "anonymous") {
+            return res.status(401).json({ success: false, error: "Faça login ou crie uma conta para continuar." });
+        }
         req.uid = decoded.uid;
         next();
     } catch (err) {

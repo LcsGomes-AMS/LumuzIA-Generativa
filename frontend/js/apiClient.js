@@ -1,126 +1,43 @@
-// apiClient.js
+import { requireUser, endSession } from "./session.js";
 
-import { auth } from "./config.js";
-
-
-// URL base da API
-// Se frontend e backend estiverem no mesmo domínio,
-// deixe vazio.
 const API_BASE = "";
 
-
-// =====================================================
-// FETCH AUTENTICADO
-// =====================================================
-
 export async function apiFetch(path, options = {}) {
+    const user = await requireUser();
 
-    const user = auth.currentUser;
+    const request = async (forceRefresh = false) => {
+        const token = await user.getIdToken(forceRefresh);
+        const headers = new Headers(options.headers);
+        if (!headers.has("Content-Type")) {
+            headers.set("Content-Type", "application/json");
+        }
+        headers.set("Authorization", `Bearer ${token}`);
 
-
-    // Usuário não está logado
-    if (!user) {
-
-        window.location.href = "./cad.html";
-
-        throw new Error("Usuário não autenticado.");
-
-    }
-
+        return fetch(`${API_BASE}${path}`, { ...options, headers });
+    };
 
     try {
+        let response = await request();
 
-        // Pega o Firebase ID Token
-        const token = await user.getIdToken();
-
-
-        // Headers padrão
-        const headers = {
-
-            "Content-Type": "application/json",
-
-            "Authorization": `Bearer ${token}`,
-
-            ...(options.headers || {})
-
-        };
-
-
-        // Faz a requisição
-        const response = await fetch(
-            `${API_BASE}${path}`,
-            {
-                ...options,
-                headers
-            }
-        );
-
-
-        // =================================================
-        // TOKEN INVÁLIDO / EXPIRADO
-        // =================================================
-
+        // Renova uma vez; se o servidor continuar recusando, encerra a sessão.
         if (response.status === 401) {
-
-            console.warn(
-                "Sessão Firebase inválida ou expirada."
-            );
-
-            // Tenta renovar o token uma vez
-            const novoToken =
-                await user.getIdToken(true);
-
-
-            const retryHeaders = {
-
-                "Content-Type": "application/json",
-
-                "Authorization":
-                    `Bearer ${novoToken}`,
-
-                ...(options.headers || {})
-
-            };
-
-
-            const retryResponse = await fetch(
-                `${API_BASE}${path}`,
-                {
-                    ...options,
-                    headers: retryHeaders
-                }
-            );
-
-
-            // Se continuar 401, manda para login
-            if (retryResponse.status === 401) {
-
-                window.location.href = "./cad.html";
-
-                throw new Error(
-                    "Sessão expirada. Faça login novamente."
-                );
-
+            response = await request(true);
+            if (response.status === 401) {
+                await endSession();
+                throw new Error("Sessão expirada. Faça login novamente.");
             }
-
-
-            return retryResponse;
-
         }
 
-
         return response;
-
-
     } catch (error) {
-
-        console.error(
-            "Erro na requisição API:",
-            error
-        );
-
+        if ([
+            "auth/user-token-expired",
+            "auth/invalid-user-token",
+            "auth/user-disabled",
+            "auth/user-not-found"
+        ].includes(error.code)) {
+            await endSession();
+        }
         throw error;
-
     }
-
 }

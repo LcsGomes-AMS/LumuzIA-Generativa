@@ -1,7 +1,8 @@
 import { auth, db } from "./config.js";
-import { onAuthStateChanged, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { verificarParcelasPendentes } from "./notifications.js";
+import { endSession } from "./session.js";
 
 const loadingState = document.getElementById("loadingState");
 const profileContent = document.getElementById("profileContent");
@@ -35,7 +36,7 @@ function providerLabel(providerId) {
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    window.location.href = "index.html";
+    window.location.replace("./cad.html");
     return;
   }
 
@@ -74,7 +75,8 @@ saveBtn.addEventListener("click", async () => {
   saveBtn.disabled = true;
   try {
     await updateProfile(user, { displayName: newName });
-    await setDoc(doc(db, "users", user.uid), { name: newName }, { merge: true });
+    void setDoc(doc(db, "users", user.uid), { name: newName }, { merge: true })
+      .catch(error => console.warn("Não foi possível sincronizar o nome adicional:", error));
     profileName.textContent = newName || user.email;
     avatarInitials.textContent = initialsOf(newName, user.email);
     showMsg("Perfil atualizado com sucesso.", "info");
@@ -86,6 +88,5 @@ saveBtn.addEventListener("click", async () => {
 });
 
 logoutBtn.addEventListener("click", async () => {
-  await signOut(auth);
-  window.location.href = "index.html";
+  await endSession();
 });

@@ -18,7 +18,7 @@
 
     <div class="card">
       <h1 id="cardTitle">Bem-vindo de volta</h1>
-      <p class="sub" id="cardSub">Entre para continuar sua conversa.</p>
+      <p class="sub" id="cardSub">Entre ou crie uma conta para usar a LumuzIA.</p>
 
       <div class="tabs">
         <div class="tab active" data-tab="login">Entrar</div>
@@ -35,11 +35,11 @@
         </div>
         <div class="field">
           <label for="email">E-mail</label>
-          <input type="email" id="email" placeholder="voce@exemplo.com" required>
+          <input type="email" id="email" placeholder="voce@exemplo.com" autocomplete="email" required>
         </div>
         <div class="field">
           <label for="password">Senha</label>
-          <input type="password" id="password" placeholder="••••••••" required minlength="6">
+          <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" required minlength="6">
           <a href="#" id="forgotLink" class="forgot-link">Esqueceu sua senha?</a>
         </div>
         <button type="submit" class="btn btn-primary" id="submitBtn">Entrar</button>

@@ -1,7 +1,8 @@
 import { auth, db } from "./config.js";
-import { onAuthStateChanged, updateProfile, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { verificarParcelasPendentes } from "./notifications.js";
+import { endSession } from "./session.js";
 
 const loading = document.getElementById("lzLoading");
 const profileBox = document.getElementById("lzProfile");
@@ -81,7 +82,7 @@ let currentUserData = {};
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     localStorage.removeItem("userId");
-    window.location.href = "cad.html";
+    window.location.replace("./cad.html");
     return;
   }
 
@@ -113,7 +114,7 @@ onAuthStateChanged(auth, async (user) => {
     const userSnap = await getDoc(userRef);
     if (userSnap.exists()) {
       currentUserData = userSnap.data();
-      if (currentUserData.photoURL) {
+      if (Object.hasOwn(currentUserData, "photoURL")) {
         renderAvatar(currentUserData.photoURL, displayName, user.email);
       }
     }
@@ -196,10 +197,11 @@ saveBtn.addEventListener("click", async () => {
     await updateProfile(user, { displayName: newName });
 
     const userRef = doc(db, "usuarios", user.uid);
-    await setDoc(userRef, { displayName: newName, email: user.email }, { merge: true });
+    void setDoc(userRef, { displayName: newName, email: user.email }, { merge: true })
+      .catch(error => console.warn("Não foi possível sincronizar o nome adicional:", error));
 
     nameEl.textContent = newName || user.email;
-    renderAvatar(currentUserData.photoURL, newName, user.email);
+    renderAvatar(Object.hasOwn(currentUserData, "photoURL") ? currentUserData.photoURL : user.photoURL, newName, user.email);
     showMsg("Perfil atualizado com sucesso.", "info");
   } catch (err) {
     showMsg("Não foi possível salvar.", "error");
@@ -210,6 +212,5 @@ saveBtn.addEventListener("click", async () => {
 
 logoutBtn.addEventListener("click", async () => {
   localStorage.removeItem("userId");
-  await signOut(auth);
-  window.location.href = "cad.html";
+  await endSession();
 });

@@ -13,23 +13,30 @@ function escapeHtml(str) {
 // GASTOS
 // =====================
 async function salvarGasto() {
-    const descricao = document.getElementById("descricao").value;
-    const valor = document.getElementById("valor").value;
+    const descricao = document.getElementById("descricao").value.trim();
+    const valor = Number(document.getElementById("valor").value);
     const categoria = document.getElementById("categoria").value;
-
-    const res = await apiFetch("/gastos", {
-        method: "POST",
-        body: JSON.stringify({ descricao, valor, categoria })
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-        carregarGastos();
+    if (!descricao || !Number.isFinite(valor) || valor <= 0) {
+        alert("Preencha descrição e um valor maior que zero.");
+        return;
+    }
+    const button = document.querySelector('button[onclick="salvarGasto()"]');
+    if (button?.disabled) return;
+    if (button) button.disabled = true;
+    try {
+        const res = await apiFetch("/gastos", {
+            method: "POST", body: JSON.stringify({ descricao, valor, categoria })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.error || "Não foi possível salvar o gasto.");
         document.getElementById("descricao").value = "";
         document.getElementById("valor").value = "";
-    } else {
-        alert("Erro ao salvar gasto: " + (data.error || "Desconhecido"));
+        await carregarGastos();
+    } catch (error) {
+        console.error("Erro ao salvar gasto:", error);
+        alert(error.message || "Falha na comunicação com o servidor.");
+    } finally {
+        if (button) button.disabled = false;
     }
 }
 
@@ -167,65 +174,71 @@ window.salvarGasto = salvarGasto;
 // =====================
 function addMesesISO(dataBaseISO, n) {
     const [ano, mes, dia] = dataBaseISO.split("-").map(Number);
-    const d = new Date(ano, mes - 1 + n, dia);
+    const d = new Date(ano, mes - 1 + n, 1);
+    const ultimoDia = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    d.setDate(Math.min(dia, ultimoDia));
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-async function salvarParcelamento() {
-    const descricao = document.getElementById("pcDescricao").value.trim();
-    const valorTotal = parseFloat(document.getElementById("pcValorTotal").value);
-    const numParcelas = parseInt(document.getElementById("pcParcelas").value, 10);
-    const categoria = document.getElementById("pcCategoria").value;
-    let dataPrimeira = document.getElementById("pcDataPrimeira").value;
+let parcelamentoEmAndamento = false;
+let tentativaParcelamento = null;
 
-    if (!descricao || isNaN(valorTotal) || valorTotal <= 0) {
+async function salvarParcelamento() {
+    if (parcelamentoEmAndamento) return;
+    const descricao = document.getElementById("pcDescricao").value.trim();
+    const valorTotal = Number(document.getElementById("pcValorTotal").value);
+    const numParcelas = Number(document.getElementById("pcParcelas").value);
+    const categoria = document.getElementById("pcCategoria").value;
+    const dataPrimeira = document.getElementById("pcDataPrimeira").value || new Date().toISOString().split("T")[0];
+
+    if (!descricao || !Number.isFinite(valorTotal) || valorTotal <= 0) {
         alert("Preencha descrição e valor total corretamente.");
         return;
     }
-    if (isNaN(numParcelas) || numParcelas < 2 || numParcelas > 48) {
+    if (!Number.isInteger(numParcelas) || numParcelas < 2 || numParcelas > 48) {
         alert("Número de parcelas deve ser entre 2 e 48.");
         return;
     }
-    if (!dataPrimeira) {
-        dataPrimeira = new Date().toISOString().split("T")[0];
-    }
-
     const valorParcela = Math.floor((valorTotal / numParcelas) * 100) / 100;
-    const somaParcelas = valorParcela * (numParcelas - 1);
-    const valorUltimaParcela = Math.round((valorTotal - somaParcelas) * 100) / 100;
+    if (valorParcela < 0.01) {
+        alert("Cada parcela deve ter pelo menos R$ 0,01.");
+        return;
+    }
+    const assinatura = JSON.stringify({ descricao, valorTotal, numParcelas, categoria, dataPrimeira });
+    if (tentativaParcelamento?.assinatura !== assinatura) {
+        tentativaParcelamento = { assinatura, proxima: 0 };
+    }
+    const valorUltimaParcela = Math.round((valorTotal - valorParcela * (numParcelas - 1)) * 100) / 100;
+    const button = document.querySelector('button[onclick="salvarParcelamento()"]');
+    parcelamentoEmAndamento = true;
+    if (button) button.disabled = true;
 
     try {
-        const requisicoes = [];
-        for (let i = 0; i < numParcelas; i++) {
-            const valor = (i === numParcelas - 1) ? valorUltimaParcela : valorParcela;
-            const dataAgendada = addMesesISO(dataPrimeira, i);
-
-            requisicoes.push(
-                apiFetch("/agendamentos", {
-                    method: "POST",
-                    body: JSON.stringify({
-                        tipo: "gasto",
-                        descricao: `${descricao} (${i + 1}/${numParcelas})`,
-                        valor,
-                        categoria,
-                        dataAgendada
-                    })
+        for (let i = tentativaParcelamento.proxima; i < numParcelas; i++) {
+            const response = await apiFetch("/agendamentos", {
+                method: "POST",
+                body: JSON.stringify({
+                    tipo: "gasto", descricao: `${descricao} (${i + 1}/${numParcelas})`,
+                    valor: i === numParcelas - 1 ? valorUltimaParcela : valorParcela,
+                    categoria, dataAgendada: addMesesISO(dataPrimeira, i)
                 })
-            );
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) throw new Error(data.error || "O servidor não confirmou a parcela.");
+            tentativaParcelamento.proxima = i + 1;
         }
-
-        await Promise.all(requisicoes);
-
-        document.getElementById("pcDescricao").value = "";
-        document.getElementById("pcValorTotal").value = "";
-        document.getElementById("pcParcelas").value = "";
-        document.getElementById("pcDataPrimeira").value = "";
-
-        carregarParcelas();
-        carregarAgendamentos();
-    } catch (err) {
-        console.error("Erro ao parcelar:", err);
-        alert("Falha na comunicação com o servidor.");
+        tentativaParcelamento = null;
+        ["pcDescricao", "pcValorTotal", "pcParcelas", "pcDataPrimeira"].forEach(id => {
+            document.getElementById(id).value = "";
+        });
+        await Promise.all([carregarParcelas(), carregarAgendamentos()]);
+    } catch (error) {
+        console.error("Erro ao parcelar:", error);
+        alert(`Foram confirmadas ${tentativaParcelamento?.proxima || 0} de ${numParcelas} parcelas. Clique em Parcelar novamente para tentar as restantes.`);
+        await Promise.all([carregarParcelas(), carregarAgendamentos()]);
+    } finally {
+        parcelamentoEmAndamento = false;
+        if (button) button.disabled = false;
     }
 }
 
@@ -268,7 +281,7 @@ async function carregarParcelas() {
                 return `
                     <tr>
                         <td>${dia}/${mes}/${ano}</td>
-                        <td>${item.descricao}</td>
+                        <td>${escapeHtml(item.descricao)}</td>
                         <td>R$ ${Number(item.valor).toFixed(2)}</td>
                         <td>${badge}</td>
                         <td>${botaoStatus} ${botaoExcluir}</td>
@@ -286,7 +299,7 @@ window.excluirParcela = async function (id) {
         const res = await apiFetch(`/agendamentos/${id}`, { method: "DELETE" });
         const data = await res.json();
         if (data.success) {
-            carregarParcelas();
+            await Promise.all([carregarParcelas(), carregarAgendamentos()]);
         } else {
             alert("Erro ao excluir: " + (data.error || ""));
         }
@@ -554,7 +567,7 @@ window.deletarAgendamento = async function (id) {
         const res = await apiFetch(`/agendamentos/${id}`, { method: "DELETE" });
         const data = await res.json();
         if (data.success) {
-            carregarAgendamentos();
+            await Promise.all([carregarParcelas(), carregarAgendamentos()]);
         } else {
             alert("Erro ao excluir: " + (data.error || ""));
         }

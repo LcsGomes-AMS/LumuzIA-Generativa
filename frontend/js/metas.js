@@ -16,25 +16,31 @@ let mediaMensalDisponivel = 0;
 ========================================================= */
 
 async function salvarMeta() {
-    const nome = document.getElementById("nome").value;
-    const valorObjetivo = document.getElementById("valorObjetivo").value;
-    const prazo = document.getElementById("prazo").value;
-
-    const res = await apiFetch("/metas", {
-        method: "POST",
-        body: JSON.stringify({ nome, valorObjetivo, prazo })
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-        alert("Meta salva com sucesso!");
-        carregarMetas();
+    const nome = document.getElementById("nome").value.trim();
+    const valorObjetivo = Number(document.getElementById("valorObjetivo").value);
+    const prazo = Number(document.getElementById("prazo").value);
+    if (!nome || !Number.isFinite(valorObjetivo) || valorObjetivo <= 0 || !Number.isInteger(prazo) || prazo <= 0) {
+        alert("Preencha nome, valor maior que zero e prazo em meses.");
+        return;
+    }
+    const button = document.querySelector('button[onclick="salvarMeta()"]');
+    if (button?.disabled) return;
+    if (button) button.disabled = true;
+    try {
+        const res = await apiFetch("/metas", {
+            method: "POST", body: JSON.stringify({ nome, valorObjetivo, prazo })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) throw new Error(data.error || "Não foi possível salvar a meta.");
         document.getElementById("nome").value = "";
         document.getElementById("valorObjetivo").value = "";
         document.getElementById("prazo").value = "";
-    } else {
-        alert("Erro ao salvar meta: " + (data.error || "Desconhecido"));
+        await carregarMetas();
+    } catch (error) {
+        console.error("Erro ao salvar meta:", error);
+        alert(error.message || "Falha na comunicação com o servidor.");
+    } finally {
+        if (button) button.disabled = false;
     }
 }
 
@@ -149,7 +155,6 @@ function renderizarMetas(metas) {
 
         const previsao = calcularPrevisao(meta);
         const metaMensal = calcularMetaMensalNecessaria(meta);
-        const nomeEscapado = escapeHtml(meta.nome).replace(/'/g, "&#39;");
 
         tabela.innerHTML += `
             <tr>
@@ -165,8 +170,8 @@ function renderizarMetas(metas) {
                 <td class="${metaMensal.classe}">${metaMensal.texto}</td>
                 <td>${meta.created_at ? new Date(String(meta.created_at).slice(0,10)+"T00:00:00").toLocaleDateString("pt-BR") : "--"}</td>
                 <td style="white-space:nowrap;">
-                    <button class="btn-acao-meta btn-guardar" onclick="abrirModalMeta(${meta.id}, '${nomeEscapado}', ${meta.valor_objetivo}, ${meta.valor_atual || 0}, ${meta.prazo}, 'guardar')">Guardar</button>
-                    <button class="btn-acao-meta btn-retirar" onclick="abrirModalMeta(${meta.id}, '${nomeEscapado}', ${meta.valor_objetivo}, ${meta.valor_atual || 0}, ${meta.prazo}, 'retirar')">Retirar</button>
+                    <button class="btn-acao-meta btn-guardar" onclick="abrirModalMeta(${meta.id}, 'guardar')">Guardar</button>
+                    <button class="btn-acao-meta btn-retirar" onclick="abrirModalMeta(${meta.id}, 'retirar')">Retirar</button>
                     <button class="btn-acao-meta btn-excluir" onclick="excluirMeta(${meta.id})">Excluir</button>
                 </td>
             </tr>
@@ -269,7 +274,10 @@ function inicializarEventosFiltroMetas() {
 
 let metaEmEdicao = null; // { id, nome, valorObjetivo, valorAtual, prazo, modo }
 
-window.abrirModalMeta = function (id, nome, valorObjetivo, valorAtual, prazo, modo) {
+window.abrirModalMeta = function (id, modo) {
+    const meta = metasAtuais.find(item => Number(item.id) === Number(id));
+    if (!meta) return;
+    const { nome, valor_objetivo: valorObjetivo, valor_atual: valorAtual = 0, prazo } = meta;
     metaEmEdicao = { id, nome, valorObjetivo, valorAtual, prazo, modo };
 
     const titulo = document.getElementById("modalMetaTitulo");
@@ -388,7 +396,7 @@ async function deletarMeta(id) {
     if (!confirmar) return;
 
     try {
-        const res = await fetch(`/metas/${id}`, {
+        const res = await apiFetch(`/metas/${id}`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ userId: usuarioAtual.uid })

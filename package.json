@@ -3,6 +3,9 @@
   "version": "0.97.0",
   "scripts": {
     "start": "node backend/server.js",
+    "test:ui": "node backend/test-ui.js",
+    "test:agendamentos": "node --test backend/test-agendamentos.js",
+    "test:auth": "node --experimental-vm-modules --test backend/test-auth.js",
     "test:security": "node backend/test-security.js",
     "test:db": "node backend/test-db-persistence.js"
   },

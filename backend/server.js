@@ -31,6 +31,8 @@ app.use(
                     "https://*.firebaseapp.com",
                     "https://accounts.google.com"
                 ],
+                // Os botões existentes usam atributos onclick/oninput no HTML.
+                scriptSrcAttr: ["'unsafe-inline'"],
                 styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdn.jsdelivr.net"],
                 fontSrc: ["'self'", "https://fonts.gstatic.com"],
                 imgSrc: ["'self'", "data:", "https:"],
@@ -49,6 +51,7 @@ app.use(
                 ],
                 frameSrc: [
                     "'self'",
+                    "https://www.youtube-nocookie.com",
                     "https://lumuz-e2f23.firebaseapp.com",
                     "https://*.firebaseapp.com",
                     "https://apis.google.com",
@@ -141,7 +144,7 @@ app.use((req, res, next) => {
 });
 
 // Servir arquivos estáticos do frontend
-app.use(express.static(path.join(__dirname, "../frontend")));
+app.use(express.static(path.join(__dirname, "../frontend"), { index: false }));
 
 // Helpers de validação de dados financeiros e durabilidade
 function parseNumeroPositivo(val) {
@@ -366,11 +369,11 @@ async function obterPrecoAtivo(ticker, tipo) {
 // ROTAS DE NAVEGAÇÃO
 // =====================
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend/dashboard.html"));
+    res.redirect("/cad.html");
 });
 
-// Endpoint público de diagnóstico de banco de dados e persistência (permite verificar se o Neon está ativo no Render)
-app.get("/api/db-status", async (req, res) => {
+// Diagnóstico do banco disponível somente para usuários autenticados.
+app.get("/api/db-status", verificarAutenticacao, async (req, res) => {
     try {
         const userCount = await dbGet("SELECT COUNT(*) AS total FROM users");
         const receitaCount = await dbGet("SELECT COUNT(*) AS total FROM receitas");
@@ -761,7 +764,9 @@ app.get("/agendamentos/:userId", async (req, res) => {
             "SELECT * FROM agendamentos WHERE user_id = ? ORDER BY data_agendada ASC",
             [req.uid]
         );
-        res.json(rows);
+        res.json(rows.map(row => row.status === "pendente_manual"
+            ? { ...row, status: "pendente" }
+            : row));
     } catch (err) {
         console.error(err);
         res.status(500).json([]);
@@ -791,6 +796,12 @@ app.patch("/agendamentos/:id/pago", async (req, res) => {
         if (!ag) return res.status(404).json({ success: false, error: "Agendamento não encontrado." });
         if (ag.status === "lancado") {
             return res.json({ success: true, jaEstavaLancado: true });
+        }
+
+        // Uma reversão manual mantém o lançamento original; pagar de novo não o duplica.
+        if (ag.status === "pendente_manual") {
+            await dbRun("UPDATE agendamentos SET status = 'lancado' WHERE id = ? AND user_id = ?", [id, req.uid]);
+            return res.json({ success: true });
         }
 
         if (ag.tipo === "gasto") {
@@ -825,7 +836,7 @@ app.patch("/agendamentos/:id/pendente", async (req, res) => {
     }
     try {
         const result = await dbRun(
-            "UPDATE agendamentos SET status = 'pendente' WHERE id = ? AND user_id = ?",
+            "UPDATE agendamentos SET status = CASE WHEN status = 'lancado' THEN 'pendente_manual' ELSE status END WHERE id = ? AND user_id = ?",
             [id, req.uid]
         );
         if (result.changes === 0) return res.status(404).json({ success: false, error: "Agendamento não encontrado." });
