@@ -281,17 +281,16 @@ const cases = [
         await click(".conversa-item"); await waitDOM("document.querySelector('#chatContainer').textContent.includes('Quero economizar')", "abrir conversa");
         await click("#btnOpenHistory"); await click(".conversa-item-delete"); await poll(() => state.conversas.length === 0, "excluir conversa");
     }],
-    ["Como Usar: configurar, salvar, assistir, fechar e persistir vídeo", async () => {
-        await goto("como-usar.html", "document.querySelector('.btn-video-config')");
-        await click(".btn-video-config"); await waitDOM("document.querySelector('#configUrlModal').classList.contains('active')", "configurar vídeo");
-        await fill("#inputVideoUrl", "https://youtu.be/aqz-KE-bpKQ"); await button("Salvar Vídeo", "#configUrlModal");
-        await waitDOM("document.querySelector('#video-container-plataforma iframe')", "salvar vídeo");
+    ["Como Usar: filtrar conteúdo, abrir e fechar modal de vídeo", async () => {
+        await goto("como-usar.html", "document.querySelector('#buscaGuia')");
+        await fill("#buscaGuia", "Receita Bruta x Receita Líquida");
+        await waitDOM("document.querySelector('#orcamento').style.display !== 'none'", "filtrar guia");
+        await fill("#buscaGuia", "");
         await click('.card-link[data-action="abrirVideoModal"]');
         await waitDOM("document.querySelector('#videoModal').classList.contains('active')", "assistir vídeo");
-        assert.ok((await evaluate("document.querySelector('#modalVideoIframe').src")).includes("youtube-nocookie.com/embed/aqz-KE-bpKQ"));
-        await button("Fechar", "#videoModal"); await goto("como-usar.html", "document.querySelector('#video-container-plataforma iframe')");
-        await click(".btn-video-config"); await button("Cancelar", "#configUrlModal");
-        assert.equal(await evaluate("document.querySelector('#configUrlModal').classList.contains('active')"), false);
+        assert.ok((await evaluate("document.querySelector('#modalVideoTitulo').textContent")).includes("Aula 01"));
+        await button("Fechar", "#videoModal");
+        assert.equal(await evaluate("document.querySelector('#videoModal').classList.contains('active')"), false);
     }],
     ["Ações delegadas: salvar, agendar, pagar, desmarcar e excluir", async () => {
         const saved = structuredClone(state);
