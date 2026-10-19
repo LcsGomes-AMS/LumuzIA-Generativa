@@ -1093,11 +1093,13 @@ app.post("/api/ia/chat", async (req, res, next) => {
         const receitas = Number(resumo?.receitas || 0), gastos = Number(resumo?.gastos || 0);
         const systemPrompt = `Você é a LumuzIA, assistente de finanças pessoais. Responda em português brasileiro de forma clara.
 Dados financeiros atuais desta conta: receitas R$ ${receitas.toFixed(2)}, gastos R$ ${gastos.toFixed(2)}, saldo R$ ${(receitas - gastos).toFixed(2)}.`;
+        const bridgeHeaders = { "Content-Type": "application/json" };
+        if (bridge.secret) bridgeHeaders["X-Lumuz-Bridge-Secret"] = bridge.secret;
         const response = await axios.post(bridge.url, {
             action: "generate", model: process.env.OLLAMA_MODEL || "llama3.2:1b", prompt, system: systemPrompt
         }, {
-            headers: { "Content-Type": "application/json", "X-Lumuz-Bridge-Secret": bridge.secret },
-            httpsAgent, timeout: 60000, maxRedirects: 0, maxContentLength: 256 * 1024, maxBodyLength: 32 * 1024
+            headers: bridgeHeaders,
+            httpsAgent, timeout: 190000, maxRedirects: 0, maxContentLength: 256 * 1024, maxBodyLength: 32 * 1024
         });
         const respostaIA = response.data?.resposta;
         if (response.data?.success !== true || typeof respostaIA !== "string" || !respostaIA.trim() || respostaIA.length > 16000) {
