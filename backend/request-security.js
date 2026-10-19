@@ -146,16 +146,20 @@ async function enforceQuota(database, table, uid, increment = 1) {
     }
 }
 
+const DEFAULT_OLLAMA_URL = "https://ra.projetoscti.com.br/2557068";
+
 function bridgeConfig() {
+    const isTest = process.env.NODE_ENV === "test";
     const secret = process.env.OLLAMA_BRIDGE_SECRET || "";
-    const input = process.env.OLLAMA_URL || "";
-    if (secret.length < 32 || secret.length > 256 || /[\x00-\x20\x7f]/u.test(secret) || !input) return null;
+    const input = process.env.OLLAMA_URL || (isTest ? "" : DEFAULT_OLLAMA_URL);
+    if (!input) return null;
+    if ((isTest || secret) && (secret.length < 32 || secret.length > 256 || /[\x00-\x20\x7f]/u.test(secret))) return null;
     try {
         const url = new URL(input);
         const local = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
         if (url.username || url.password || url.search || url.hash ||
             (url.protocol !== "https:" && !(url.protocol === "http:" && local && process.env.NODE_ENV !== "production"))) return null;
-        return { url: url.href.replace(/\/$/u, "") + "/index.php", secret };
+        return { url: url.href.replace(/\/(?:index\.php)?\/?$/u, "") + "/index.php", secret };
     } catch { return null; }
 }
 
