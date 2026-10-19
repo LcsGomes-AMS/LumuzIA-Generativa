@@ -65,6 +65,22 @@ test("sessão válida usa UID verificado e consulta revogação", async () => {
     assert.deepEqual(h.calls, [{ token: TOKEN, checkRevoked: true }]);
 });
 
+test("servidor sem credencial administrativa valida assinatura JWT via chaves públicas sem derrubar a sessão", async () => {
+    const h = harness({
+        verify(token, checkRevoked) {
+            if (checkRevoked) throw Object.assign(new Error("no service account"), { code: "app/invalid-credential" });
+            return { uid: "sec_test_owner", email: "sec_test_owner@example.invalid", firebase: { sign_in_provider: "password" } };
+        }
+    });
+    const out = await h.request({ authorization: "Bearer " + TOKEN });
+    assert.equal(out.passed, true);
+    assert.equal(out.req.uid, "sec_test_owner");
+    assert.deepEqual(h.calls, [
+        { token: TOKEN, checkRevoked: true },
+        { token: TOKEN, checkRevoked: false }
+    ]);
+});
+
 test("contas anônimas, UID inválido e tokens revogados recebem falha uniforme", async () => {
     for (const verify of [
         () => ({ uid: "sec_test_anonymous", firebase: { sign_in_provider: "anonymous" } }),

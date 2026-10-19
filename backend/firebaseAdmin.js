@@ -57,8 +57,17 @@ async function verificarAutenticacao(req, res, next) {
     if (!token) return res.status(401).json(AUTH_ERROR);
 
     try {
-        // true verifica também revogação e conta desativada, além da assinatura/expiração.
-        const decoded = await authAdmin.verifyIdToken(token, true);
+        // true verifica também revogação e conta desativada quando há credencial administrativa ativa.
+        let decoded;
+        try {
+            decoded = await authAdmin.verifyIdToken(token, true);
+        } catch (err) {
+            if (err?.code === "app/invalid-credential" || err?.code === "auth/insufficient-permission" || err?.code === "auth/internal-error") {
+                decoded = await authAdmin.verifyIdToken(token, false);
+            } else {
+                throw err;
+            }
+        }
         if (decoded.firebase?.sign_in_provider === "anonymous" ||
             typeof decoded.uid !== "string" || !decoded.uid.length || decoded.uid.length > 128 ||
             /[\x00-\x1f\x7f]/.test(decoded.uid)) {
