@@ -27,11 +27,16 @@ function normalizarVideo(raw) {
         const host = url.hostname.replace(/^www\./, "");
         if (host === "youtu.be") id = url.pathname.slice(1).split("/")[0];
         else if (["youtube.com", "m.youtube.com", "youtube-nocookie.com"].includes(host)) {
-            id = url.searchParams.get("v") || url.pathname.match(/^\/(?:embed|shorts)\/([^/]+)/)?.[1];
+            id = url.searchParams.get("v") || url.pathname.match(/^\/(?:embed|shorts|live)\/([^/?#]+)/)?.[1];
         } else throw new Error("Use um link ou ID válido do YouTube.");
     }
     if (!/^[\w-]{11}$/.test(id || "")) throw new Error("Use um link ou ID válido do YouTube.");
-    return "https://www.youtube-nocookie.com/embed/" + id;
+    const embed = new URL("https://www.youtube.com/embed/" + id);
+    embed.searchParams.set("rel", "0");
+    if (/^https?:$/.test(window.location?.protocol || "")) {
+        embed.searchParams.set("origin", window.location.origin);
+    }
+    return embed.href;
 }
 
 function abrirVideoModal(titulo, desc, containerId) {
@@ -41,6 +46,7 @@ function abrirVideoModal(titulo, desc, containerId) {
     document.getElementById("modalVideoTitulo").textContent = titulo || "Assistir Tutorial";
     document.getElementById("modalVideoDesc").textContent = desc || "";
     if (iframe) {
+        iframe.referrerPolicy = "strict-origin-when-cross-origin";
         try {
             const embedUrl = configured ? normalizarVideo(configured) : "";
             if (embedUrl) iframe.src = embedUrl;

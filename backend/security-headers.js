@@ -30,6 +30,7 @@ module.exports = {
                 frameSrc: [
                     "'self'",
                     "https://www.youtube-nocookie.com",
+                    "https://www.youtube.com",
                     "https://lumuz-e2f23.firebaseapp.com",
                     "https://*.firebaseapp.com",
                     "https://apis.google.com",
@@ -37,6 +38,9 @@ module.exports = {
                 ],
                 frameAncestors: ["'none'"]
             }
+        },
+        referrerPolicy: {
+            policy: "strict-origin-when-cross-origin"
         },
         crossOriginEmbedderPolicy: false,
         crossOriginOpenerPolicy: false
