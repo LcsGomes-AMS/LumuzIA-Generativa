@@ -2,6 +2,7 @@
   "name": "lumuzia",
   "version": "0.97.0",
   "scripts": {
+    "test:education": "node --test backend/test-education.js",
     "start": "node backend/server.js",
     "test:ui": "node backend/test-ui.js",
     "test:agendamentos": "node --test backend/test-agendamentos.js",
@@ -12,7 +13,7 @@
     "test:routes-security": "node --test backend/test-routes-security.js",
     "test:database-security": "node --test backend/test-database-security.js",
     "test:firestore": "node --test backend/test-integrations-firestore.js",
-    "test": "node --experimental-vm-modules --test backend/test-auth.js backend/test-agendamentos.js backend/test-routes-security.js backend/test-database-security.js backend/test-integrations-auth.js backend/test-integrations-bridge.js backend/test-integrations-hosting.js",
+    "test": "node --experimental-vm-modules --test backend/test-auth.js backend/test-agendamentos.js backend/test-routes-security.js backend/test-database-security.js backend/test-integrations-auth.js backend/test-integrations-bridge.js backend/test-integrations-hosting.js backend/test-education.js",
     "test:hosting": "node --test backend/test-integrations-hosting.js"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
     "express-rate-limit": "^8.6.2",
     "firebase-admin": "^14.5.0",
     "helmet": "^8.3.0",
+    "pdfkit": "^0.20.2",
     "pg": "^8.23.1",
     "sqlite3": "^6.0.1"
   },

@@ -1,5 +1,6 @@
 # Dependências
 node_modules/
+.npm-cache/
 
 # Variáveis de ambiente
 .env

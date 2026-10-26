@@ -1,5 +1,7 @@
 # LumuzIA — Plataforma Inteligente de Gestão Financeira e Investimentos
 
+A área de Educação Financeira possui trilha autenticada com 10 módulos, 38 tasks, progresso persistente, XP, ofensiva e certificado PDF. Consulte [implementação e testes](docs/educacao-implementacao.md) para arquitetura, comandos e limites da validação.
+
 O **LumuzIA** é um ecossistema completo de controle financeiro pessoal, gestão de patrimônio e investimentos, integrado a um assistente de Inteligência Artificial generativa projetado para orientar você a alcançar a liberdade financeira.
 
 ---

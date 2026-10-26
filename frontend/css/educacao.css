@@ -498,6 +498,7 @@
 }
 
 @media (max-width: 720px) {
+    body.education-task-open { overflow: hidden; }
     .education-main { padding: 20px; }
 
     .education-hero {
@@ -534,4 +535,27 @@
         animation: none;
         transition: none;
     }
+}
+
+[hidden] { display: none !important; }
+.education-main :focus-visible { outline: 3px solid #6FE7A0; outline-offset: 4px; }
+.education-primary-button, .task-option { min-height: 48px; }
+.education-primary-button:disabled { opacity: .55; cursor: wait; }
+.education-progress-track span { transition: width .35s ease; }
+.path-list h3 { position: relative; background: var(--bg); padding: 14px 0; }
+.path-node.is-in_progress .path-marker { border-color: #6FE7A0; }
+.marker-completed::before { content: ""; width: 10px; height: 18px; border: solid currentColor; border-width: 0 3px 3px 0; transform: rotate(45deg); margin-top: -5px; }
+.marker-locked { position: relative; }
+.marker-locked::before { content: ""; width: 16px; height: 13px; border: 2px solid currentColor; border-radius: 3px; margin-top: 8px; }
+.marker-locked::after { content: ""; position: absolute; width: 10px; height: 10px; border: 2px solid currentColor; border-bottom: 0; border-radius: 8px 8px 0 0; top: 14px; }
+.streak-symbol[data-tier="special"] { text-shadow: 0 0 24px #8B4AC6; animation: lumuzStreakPulse 3s infinite; }
+.xp-gained { animation: lumuzStreakPulse .5s ease 2; }
+.module-celebration .progress-card { box-shadow: 0 0 24px #159B79; }
+#closeTask { margin-bottom: 15px; }
+#educationComplete { margin-bottom: 24px; }
+@media (max-width: 720px) {
+    .task-panel.is-open { position: fixed; inset: 0; z-index: 1500; overflow-y: auto; border-radius: 0; padding: 24px; background: var(--bg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .education-main *, .streak-symbol[data-tier="special"] { animation: none !important; transition: none !important; }
 }

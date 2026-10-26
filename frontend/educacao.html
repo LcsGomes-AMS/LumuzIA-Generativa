@@ -32,29 +32,29 @@
     <main class="education-main">
         <header class="education-hero">
             <div>
-                <span class="education-eyebrow">LumuzIA Educação Financeira</span>
-                <h1>Aprenda a cuidar melhor do seu dinheiro, um passo por vez.</h1>
-                <p>Complete pequenas tasks, avance pela trilha e mantenha sua ofensiva de aprendizado.</p>
+                <span class="education-eyebrow">Sua jornada de aprendizado</span>
+                <h1>LumuzIA Educação Financeira</h1>
+                <p>Aprenda a cuidar melhor do seu dinheiro, um passo por vez.</p>
             </div>
-            <div class="education-hero-badge" aria-label="Versão de demonstração">Fase 1 · Protótipo</div>
+            <div id="educationLevel" class="education-hero-badge">Sua jornada</div>
         </header>
 
         <section class="education-summary" aria-label="Resumo de progresso">
             <article class="education-card streak-card">
                 <div class="education-card-heading">
                     <span>Ofensiva</span>
-                    <span class="education-card-kicker">mock</span>
+                    <span class="education-card-kicker">Diária</span>
                 </div>
                 <div class="streak-symbol-wrap">
                     <div id="streakSymbol" class="streak-symbol" aria-hidden="true">$</div>
                     <div>
-                        <strong id="streakDays" class="streak-days">12 dias</strong>
+                        <strong id="streakDays" class="streak-days">—</strong>
                         <span class="streak-caption">de ofensiva</span>
                     </div>
                 </div>
                 <div class="streak-meta">
                     <span>Maior ofensiva</span>
-                    <strong id="bestStreak">24 dias</strong>
+                    <strong id="bestStreak">—</strong>
                 </div>
                 <p>Continue aprendendo hoje para manter sua sequência.</p>
             </article>
@@ -62,19 +62,28 @@
             <article class="education-card progress-card">
                 <div class="education-card-heading">
                     <span>Seu progresso</span>
-                    <span id="progressPercent" class="education-card-kicker">32%</span>
+                    <span id="progressPercent" class="education-card-kicker">—</span>
                 </div>
-                <div class="education-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="32">
-                    <span id="progressFill" style="width:32%"></span>
+                <div class="education-progress-track" role="progressbar" aria-label="Progresso da trilha" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <span id="progressFill"></span>
                 </div>
                 <div class="education-stat-grid">
-                    <div><span>Tasks concluídas</span><strong id="tasksCompleted">8 / 25</strong></div>
-                    <div><span>XP</span><strong id="totalXp">320 XP</strong></div>
-                    <div><span>Módulo atual</span><strong id="currentModule">Orçamento Pessoal</strong></div>
+                    <div><span>Tasks concluídas</span><strong id="tasksCompleted">—</strong></div>
+                    <div><span>XP</span><strong id="totalXp">—</strong></div>
+                    <div><span>Módulo atual</span><strong id="currentModule">—</strong></div>
                 </div>
             </article>
         </section>
 
+        <p id="educationNotice" class="task-feedback" role="status" aria-live="polite">Carregando sua jornada…</p>
+        <button id="educationRetry" class="education-primary-button" type="button" hidden>Tentar novamente</button>
+        <div id="educationRecommendations" aria-label="Sugestões de estudo"></div>
+        <section id="educationComplete" class="education-card" hidden aria-labelledby="completionTitle">
+            <h2 id="completionTitle">Parabéns! Você concluiu a LumuzIA Educação Financeira.</h2>
+            <p id="completionStats"></p>
+            <button id="certificateButton" type="button" class="education-primary-button">Gerar meu certificado PDF</button>
+            <p>O certificado usa seu nome cadastrado. <a href="perfil.html">Atualizar perfil</a></p>
+        </section>
         <section class="education-content-grid">
             <section class="learning-path" aria-labelledby="learningPathTitle">
                 <div class="section-title-row">
@@ -87,7 +96,7 @@
                 <div id="learningPath" class="path-list"></div>
             </section>
 
-            <aside class="task-panel" aria-labelledby="taskPanelTitle">
+            <aside class="task-panel" aria-label="Aula de educação financeira">
                 <div id="taskEmptyState" class="task-empty-state">
                     <div class="task-empty-icon" aria-hidden="true">$</div>
                     <h2 id="taskPanelTitle">Escolha uma task</h2>
@@ -95,11 +104,12 @@
                 </div>
 
                 <div id="taskContent" class="task-content" hidden>
+                    <button id="closeTask" type="button" class="education-primary-button">Voltar à trilha</button>
                     <div class="task-header">
                         <span id="taskModule" class="task-module"></span>
                         <span id="taskReward" class="task-reward"></span>
                     </div>
-                    <h2 id="taskTitle"></h2>
+                    <h2 id="taskTitle" tabindex="-1"></h2>
                     <p id="taskLesson" class="task-lesson"></p>
 
                     <form id="taskForm" class="question-card">
@@ -111,6 +121,7 @@
                     </form>
 
                     <div id="taskFeedback" class="task-feedback" role="status" aria-live="polite" hidden></div>
+                    <button id="continueButton" type="button" class="education-primary-button" hidden>Concluir e continuar</button>
                 </div>
             </aside>
         </section>

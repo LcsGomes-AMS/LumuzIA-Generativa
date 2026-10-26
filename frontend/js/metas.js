@@ -312,6 +312,8 @@ window.fecharModalMeta = function () {
 
 window.confirmarModalMeta = async function () {
     if (!metaEmEdicao) return;
+    const confirmar = document.getElementById("modalMetaConfirmar");
+    if (confirmar.disabled) return;
 
     const input = document.getElementById("modalMetaValor");
     const erro = document.getElementById("modalMetaErro");
@@ -337,6 +339,7 @@ window.confirmarModalMeta = async function () {
         novoValorAtual = Number(valorAtual) + valor;
     }
 
+    confirmar.disabled = true;
     try {
         const res = await apiFetch(`/metas/${id}`, {
             method: "PUT",
@@ -350,8 +353,8 @@ window.confirmarModalMeta = async function () {
         const data = await res.json();
 
         if (data.success) {
+            await carregarMetas();
             window.fecharModalMeta();
-            carregarMetas();
             // Avisa outras telas (ex: dashboard) que o valor guardado em metas mudou,
             // para que possam descontar/recarregar o saldo disponível.
             window.dispatchEvent(new CustomEvent("metasAtualizadas"));
@@ -363,6 +366,8 @@ window.confirmarModalMeta = async function () {
         console.error("Erro ao salvar valor da meta:", err);
         erro.innerText = "Falha na comunicação com o servidor.";
         erro.style.display = "block";
+    } finally {
+        confirmar.disabled = false;
     }
 };
 

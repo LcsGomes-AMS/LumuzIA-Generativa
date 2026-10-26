@@ -12,6 +12,7 @@ const transactionScope = new AsyncLocalStorage();
 
 let dbInstance = null;
 let dbRun, dbGet, dbAll, dbTransaction;
+let schemaReady = Promise.resolve(true);
 
 function toPgSql(sql) {
     let i = 1;
@@ -91,7 +92,7 @@ if (isPostgres) {
     };
 
     // Inicialização assíncrona das tabelas no PostgreSQL (Neon)
-    (async () => {
+    schemaReady = (async () => {
         try {
             await pool.query(`
                 CREATE TABLE IF NOT EXISTS users (
@@ -229,8 +230,10 @@ if (isPostgres) {
             `);
 
             console.log("[DATABASE] Tabelas e funções no PostgreSQL (Neon) inicializadas com sucesso!");
+            return true;
         } catch (err) {
             console.error("[DATABASE] Não foi possível inicializar o PostgreSQL.");
+            return false;
         }
     })();
 
@@ -448,5 +451,6 @@ for (const method of Object.keys(directAccess)) {
 }
 exported.dbTransaction = dbTransaction;
 exported.isPostgres = isPostgres;
+exported.schemaReady = schemaReady;
 
 module.exports = exported;

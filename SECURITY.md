@@ -1,5 +1,11 @@
 # Segurança do LumuzIA
 
+## Educação financeira — revisão de 26/10/2026
+
+Nova API protegida pela autenticação e pelos limites existentes, com isolamento por `req.uid`, consultas parametrizadas, bloqueio de etapas, gabarito no servidor, conclusão transacional, XP idempotente e certificados restritos ao titular. A implementação e o escopo dos testes estão em [Educação financeira](docs/educacao-implementacao.md). A revisão das dependências corrigiu três pacotes vulneráveis (`body-parser`, `ip-address` e `undici`); o npm passou a indicar zero vulnerabilidades conhecidas.
+
+Os testes de educação e cibersegurança usam banco em memória e serviços simulados. A configuração e as credenciais do ambiente de produção não foram auditadas novamente nesta entrega. As pendências externas abaixo continuam válidas.
+
 Revisão local em 08/10/2026. Foram usados dados sintéticos `sec_test_*`, SQLite em memória e serviços simulados. Nenhum banco real foi migrado, limpo ou alterado; não houve publicação nem alteração de credenciais externas.
 
 ## Correções implementadas

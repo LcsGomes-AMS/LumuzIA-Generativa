@@ -1,4 +1,5 @@
 "use strict";
+process.env.NODE_ENV = "test";
 // Testes de cliques no Chrome real; Firebase, banco, IA e cotações simulados.
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -17,6 +18,7 @@ const state = {
     investimentos: [], agendamentos: [], conversas: [], mensagens: {}
 };
 let nextId = 1000;
+let educationFailure = false;
 const requests = [];
 const app = express();
 app.use(express.json());
@@ -29,6 +31,10 @@ app.use((req, res, next) => {
     if (!api) return next();
     requests.push({ route, method: req.method, body });
     if (req.headers.authorization !== "Bearer ui-test-token") return res.status(401).json({ success: false });
+    if (route.startsWith("/api/educacao/")) {
+        if (educationFailure) return res.status(503).json({ error: "Falha simulada para teste de recuperação." });
+        req.uid = "ui-user"; return next();
+    }
     const id = Number(route.split("/").at(-1));
     if (route.startsWith("/metas/estimativa/")) return res.json({ mediaMensal: 300, baseMeses: 3 });
     if (route.startsWith("/api/investimentos/historico/")) return res.json([]);
@@ -72,6 +78,7 @@ app.use((req, res, next) => {
     if (req.method === "DELETE") { state[collection] = state[collection].filter(i => i.id !== id); return res.json({ success: true }); }
     return res.status(405).end();
 });
+app.use("/api/educacao", require("./education/education-routes"));
 app.use(express.static(path.join(__dirname, "../frontend")));
 const server = http.createServer(app);
 
@@ -178,7 +185,7 @@ async function startBrowser() {
     session = (await command("Target.attachToTarget", { targetId: target.targetId, flatten: true }, null)).sessionId;
     for (const method of ["Runtime.enable", "Page.enable", "Log.enable"]) await command(method);
     await command("Fetch.enable", { patterns: [{ urlPattern: "https://*" }] });
-    await command("Page.addScriptToEvaluateOnNewDocument", { source: 'window.__uiDocumentReady=1;window.__uiAlerts=[];window.alert=m=>__uiAlerts.push(String(m));window.confirm=()=>true;' });
+    await command("Page.addScriptToEvaluateOnNewDocument", { source: 'window.__uiDocumentReady=1;window.__uiAlerts=[];window.alert=m=>__uiAlerts.push(String(m));window.confirm=()=>true;window.__uiFetchPending=0;const originalFetch=window.fetch;window.fetch=async(...args)=>{window.__uiFetchPending++;try{return await originalFetch(...args)}finally{window.__uiFetchPending--}};' });
 }
 const cases = [
     ["Segurança: CSP estrita e nenhum evento inline nas páginas", async () => {
@@ -414,6 +421,7 @@ const cases = [
     }],
     ["Segurança: tokens ficam na origem local e respostas respeitam troca de conta", async () => {
         await goto("receitas.html", "document.querySelector('#tabelaReceitas button')");
+        await waitDOM("window.__uiFetchPending===0", "aguardar notificações antes de simular troca de conta");
         const result = await evaluate(`(async()=>{
             const {apiFetch}=await import('./js/apiClient.js');
             const {auth}=await import('./js/session.js');
@@ -428,6 +436,68 @@ const cases = [
             return blocked;
         })()`);
         assert.equal(result, 4);
+    }],
+    ["Educação: erro, conexão perdida e recuperação", async () => {
+        educationFailure = true;
+        await goto("educacao.html", "!document.querySelector('#educationRetry').hidden");
+        assert.ok(await evaluate("document.querySelector('#educationNotice').textContent.includes('Falha simulada')"));
+        educationFailure = false;
+        await click("#educationRetry");
+        await waitDOM("document.querySelector('#taskTitle').textContent.includes('educação financeira')", "recuperar carregamento");
+        await command("Network.emulateNetworkConditions", { offline: true, latency: 0, downloadThroughput: 0, uploadThroughput: 0 });
+        await waitDOM("document.querySelector('#educationNotice').textContent.includes('Sem conexão')", "estado offline");
+        await command("Network.emulateNetworkConditions", { offline: false, latency: 0, downloadThroughput: 0, uploadThroughput: 0 });
+        await click("#educationRetry");
+        await waitDOM("document.querySelector('#educationRetry').hidden&&!document.querySelector('#answerButton').disabled", "recuperar conexão");
+    }],
+    ["Educação: usuário novo, erro, acerto, progresso, revisão, reload e mobile", async () => {
+        await goto("educacao.html", "document.querySelector('#taskTitle').textContent.includes('educação financeira')");
+        assert.equal(await evaluate("document.querySelector('#tasksCompleted').textContent"), "0 / 38");
+        assert.ok(await evaluate("document.querySelectorAll('.path-node:disabled').length > 30"));
+        await click('#taskOptions input[value="0"]'); await click("#answerButton");
+        await waitDOM("document.querySelector('#taskFeedback').textContent.includes('Ainda não')", "resposta errada educativa");
+        assert.equal(await evaluate("document.querySelector('#continueButton').hidden"), true);
+        await click('#taskOptions input[value="1"]'); await click("#answerButton");
+        await waitDOM("!document.querySelector('#continueButton').hidden", "resposta correta");
+        await click("#continueButton");
+        await waitDOM("document.querySelector('#tasksCompleted').textContent.startsWith('1 /')&&!document.querySelector('#answerButton').disabled", "desbloqueio");
+        assert.equal(await evaluate("document.querySelector('#totalXp').textContent"), "10 XP");
+        await goto("educacao.html", "document.querySelector('#taskTitle').textContent==='Receitas e despesas'");
+        assert.equal(await evaluate("document.querySelector('#tasksCompleted').textContent"), "1 / 38");
+        await click('.path-node[data-task-id="fundamentos-001"]');
+        await waitDOM("document.querySelector('#taskReward').textContent.includes('sem XP')", "revisão");
+        await click('#taskOptions input[value="1"]'); await click("#answerButton");
+        await waitDOM("!document.querySelector('#continueButton').hidden", "acerto revisão");
+        await click("#continueButton");
+        await waitDOM("document.querySelector('#educationNotice').textContent.includes('+0 XP')", "replay sem XP");
+        await command("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+        await click('.path-node[data-task-id="fundamentos-002"]');
+        await waitDOM("document.querySelector('.task-panel').classList.contains('is-open')", "task mobile");
+        assert.equal(await evaluate("getComputedStyle(document.querySelector('.task-panel')).position"), "fixed");
+        assert.equal(await evaluate("document.querySelector('.task-panel').getAttribute('aria-modal')"), "true");
+        // Eventos DOM testam o ciclo de foco sem depender do roteamento de teclas do CDP
+        // após os cenários de popup/iframe executados anteriormente nesta mesma janela.
+        await evaluate("document.querySelector('#answerButton').focus();document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',bubbles:true,cancelable:true}))");
+        assert.equal(await evaluate("document.activeElement.id"), "closeTask");
+        await evaluate("document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',shiftKey:true,bubbles:true,cancelable:true}))");
+        assert.equal(await evaluate("document.activeElement.id"), "answerButton");
+        assert.ok(await evaluate("document.documentElement.scrollWidth<=window.innerWidth"));
+        await command("Emulation.setEmulatedMedia", { features: [{ name: "prefers-reduced-motion", value: "reduce" }] });
+        assert.equal(await evaluate("getComputedStyle(document.querySelector('#streakSymbol')).animationName"), "none");
+        await evaluate("document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}))");
+        assert.equal(await evaluate("document.querySelector('.task-panel').classList.contains('is-open')"), false);
+        await command("Emulation.clearDeviceMetricsOverride");
+        await command("Emulation.setEmulatedMedia", { features: [] });
+    }],
+    ["Educação: conclusão, nome real e download de PDF real", async () => {
+        const service = require("./education/education-service");
+        for (const task of service.tasks.slice(1)) { await service.answer("ui-user", task.id, task.correctAnswer); await service.complete("ui-user", task.id); }
+        await require("./database").dbRun("UPDATE users SET nome = ? WHERE id = ?", ["Pessoa Educação", "ui-user"]);
+        await goto("educacao.html", "!document.querySelector('#educationComplete').hidden");
+        await evaluate("(()=>{const original=URL.createObjectURL;URL.createObjectURL=blob=>{window.__educationPdf=blob.arrayBuffer().then(b=>new TextDecoder().decode(b.slice(0,5)));return original(blob)}})()");
+        await click("#certificateButton");
+        await waitDOM("document.querySelector('#educationNotice').textContent.includes('Certificado emitido para Pessoa Educação')", "certificado no nome do perfil");
+        assert.equal(await evaluate("window.__educationPdf"), "%PDF-");
     }],
     ["Acesso sem sessão continua bloqueado", async () => {
         await evaluate("localStorage.setItem('ui-auth','off')");
@@ -447,12 +517,13 @@ const cases = [
         await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
         origin = "http://127.0.0.1:" + server.address().port;
         await startBrowser();
-        for (const [name, run] of cases) {
+        const selectedCases = process.env.UI_FILTER ? cases.filter(([name]) => name.includes(process.env.UI_FILTER)) : cases;
+        for (const [name, run] of selectedCases) {
             try { await run(); passed++; console.log("OK " + name); }
             catch (error) { failures++; console.error("FALHOU " + name + "\n" + error.stack); }
         }
         if (errors.length) { failures++; console.error("Erros JS/CSP:", [...new Set(errors)]); }
-        console.log(`${passed}/${cases.length} cenários; PDF ${process.env.UI_REAL_PDF === "1" ? "real" : "simulado"}.`);
+        console.log(`${passed}/${selectedCases.length} cenários; PDF de relatórios ${process.env.UI_REAL_PDF === "1" ? "real" : "simulado"}; certificado usa PDF real.`);
         process.exitCode = failures ? 1 : 0;
     } catch (error) { process.exitCode = 1; console.error(error.stack); }
     finally {
@@ -462,6 +533,7 @@ const cases = [
             if (browser.exitCode === null) { browser.kill(); await Promise.race([new Promise(resolve => browser.once("exit", resolve)), delay(1500)]); }
         }
         await new Promise(resolve => server.close(resolve));
+        await new Promise(resolve => require("./database").db.close(resolve));
         if (profile && path.dirname(path.resolve(profile)) === path.resolve(os.tmpdir()) && path.basename(profile).startsWith("lumuzia-ui-")) {
             fs.rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
         }
