@@ -1,6 +1,21 @@
 // sidebar.js — menu hamburguer + active link automático
 (function () {
 
+    // ─── 0. Garante o acesso à Educação Financeira sem duplicar HTML em todas as páginas ───
+    var sidebarNav = document.querySelector('.sidebar, aside');
+    if (sidebarNav && !sidebarNav.querySelector('a[href="educacao.html"]')) {
+        var educationLink = document.createElement('a');
+        educationLink.href = 'educacao.html';
+        educationLink.textContent = 'Educação Financeira';
+
+        var investmentsLink = sidebarNav.querySelector('a[href="investimentos.html"]');
+        if (investmentsLink && investmentsLink.parentNode === sidebarNav) {
+            investmentsLink.insertAdjacentElement('afterend', educationLink);
+        } else {
+            sidebarNav.appendChild(educationLink);
+        }
+    }
+
     // ─── 1. Marca o link ativo com base na URL atual ─────────────────────────
     var current = window.location.pathname.split('/').pop() || 'index.html';
     document.querySelectorAll('.sidebar a, aside a').forEach(function (a) {
@@ -38,7 +53,7 @@
     mobileTopbar.appendChild(btn);
     mobileTopbar.appendChild(mobileLogo);
     mobileTopbar.appendChild(pageTitle);
-    
+
     document.body.prepend(mobileTopbar);
 
     // ─── 3. Overlay ──────────────────────────────────────────────────────────
@@ -52,14 +67,14 @@
         if (!input.value) {
             var today = new Date();
             var id = (input.id || "").toLowerCase();
-            
+
             // Se for data de INÍCIO de filtro (ex: filtroInicio, filtroGastoInicio)
             if (id.includes('inicio') || id.includes('inicial') || id.includes('min')) {
                 // Setar para o PRIMEIRO dia do mês atual
                 var firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
                 firstDay.setMinutes(firstDay.getMinutes() - firstDay.getTimezoneOffset());
                 input.value = firstDay.toISOString().split('T')[0];
-            } 
+            }
             // Se for data FINAL (ex: filtroFim, filtroGastoFim)
             else if (id.includes('fim') || id.includes('final') || id.includes('max')) {
                 // Setar para o ÚLTIMO dia do mês atual

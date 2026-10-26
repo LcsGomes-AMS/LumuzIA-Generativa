@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-auth-pending>
+<head>
+    <meta charset="UTF-8">
+    <style>html[data-auth-pending] body { display: none !important; }</style>
+    <script src="./js/auth-guard.js"></script>
+    <noscript><meta http-equiv="refresh" content="0;url=./cad.html"></noscript>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educação Financeira - LumuzIA</title>
+    <link rel="icon" type="image/png" href="img/LumuzIA.png">
+    <link rel="stylesheet" href="./css/style.css">
+    <link rel="stylesheet" href="./css/educacao.css">
+</head>
+<body>
+<div class="container">
+    <aside class="sidebar">
+        <div class="sidebar-brand education-brand">
+            <img src="img/LumuzIA.png" alt="LumuzIA">
+        </div>
+        <a href="como-usar.html">Como Usar</a>
+        <a href="dashboard.html">Informações Gerais</a>
+        <a href="gastos.html">Gastos</a>
+        <a href="receitas.html">Receitas</a>
+        <a href="metas.html">Metas</a>
+        <a href="investimentos.html">Investimentos</a>
+        <a href="educacao.html">Educação Financeira</a>
+        <a href="relatorio.html">Relatório</a>
+        <a href="chat.html">Chat</a>
+        <a href="perfil.html">Perfil</a>
+    </aside>
+
+    <main class="education-main">
+        <header class="education-hero">
+            <div>
+                <span class="education-eyebrow">LumuzIA Educação Financeira</span>
+                <h1>Aprenda a cuidar melhor do seu dinheiro, um passo por vez.</h1>
+                <p>Complete pequenas tasks, avance pela trilha e mantenha sua ofensiva de aprendizado.</p>
+            </div>
+            <div class="education-hero-badge" aria-label="Versão de demonstração">Fase 1 · Protótipo</div>
+        </header>
+
+        <section class="education-summary" aria-label="Resumo de progresso">
+            <article class="education-card streak-card">
+                <div class="education-card-heading">
+                    <span>Ofensiva</span>
+                    <span class="education-card-kicker">mock</span>
+                </div>
+                <div class="streak-symbol-wrap">
+                    <div id="streakSymbol" class="streak-symbol" aria-hidden="true">$</div>
+                    <div>
+                        <strong id="streakDays" class="streak-days">12 dias</strong>
+                        <span class="streak-caption">de ofensiva</span>
+                    </div>
+                </div>
+                <div class="streak-meta">
+                    <span>Maior ofensiva</span>
+                    <strong id="bestStreak">24 dias</strong>
+                </div>
+                <p>Continue aprendendo hoje para manter sua sequência.</p>
+            </article>
+
+            <article class="education-card progress-card">
+                <div class="education-card-heading">
+                    <span>Seu progresso</span>
+                    <span id="progressPercent" class="education-card-kicker">32%</span>
+                </div>
+                <div class="education-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="32">
+                    <span id="progressFill" style="width:32%"></span>
+                </div>
+                <div class="education-stat-grid">
+                    <div><span>Tasks concluídas</span><strong id="tasksCompleted">8 / 25</strong></div>
+                    <div><span>XP</span><strong id="totalXp">320 XP</strong></div>
+                    <div><span>Módulo atual</span><strong id="currentModule">Orçamento Pessoal</strong></div>
+                </div>
+            </article>
+        </section>
+
+        <section class="education-content-grid">
+            <section class="learning-path" aria-labelledby="learningPathTitle">
+                <div class="section-title-row">
+                    <div>
+                        <span class="education-eyebrow">Sua jornada</span>
+                        <h2 id="learningPathTitle">Trilha de aprendizado</h2>
+                    </div>
+                    <span class="path-legend">Selecione uma task disponível</span>
+                </div>
+                <div id="learningPath" class="path-list"></div>
+            </section>
+
+            <aside class="task-panel" aria-labelledby="taskPanelTitle">
+                <div id="taskEmptyState" class="task-empty-state">
+                    <div class="task-empty-icon" aria-hidden="true">$</div>
+                    <h2 id="taskPanelTitle">Escolha uma task</h2>
+                    <p>Selecione uma etapa disponível da trilha para começar.</p>
+                </div>
+
+                <div id="taskContent" class="task-content" hidden>
+                    <div class="task-header">
+                        <span id="taskModule" class="task-module"></span>
+                        <span id="taskReward" class="task-reward"></span>
+                    </div>
+                    <h2 id="taskTitle"></h2>
+                    <p id="taskLesson" class="task-lesson"></p>
+
+                    <form id="taskForm" class="question-card">
+                        <fieldset>
+                            <legend id="taskQuestion"></legend>
+                            <div id="taskOptions" class="task-options"></div>
+                        </fieldset>
+                        <button id="answerButton" type="submit" class="education-primary-button">Responder</button>
+                    </form>
+
+                    <div id="taskFeedback" class="task-feedback" role="status" aria-live="polite" hidden></div>
+                </div>
+            </aside>
+        </section>
+    </main>
+</div>
+
+<script type="module" src="./js/educacao.js"></script>
+<script src="./js/sidebar.js"></script>
+</body>
+</html>
