@@ -94,6 +94,10 @@ test("educação: funcionalidade e ataques em banco isolado", async t => {
         const p = (await request("/progresso")).data;
         assert.equal(p.xp, first.xp); assert.equal(p.currentStreak, 1); assert.equal(p.completedTasks, 1);
         assert.equal(p.tasks[1].status, "available");
+        assert.equal(p.tasks[2].status, "available", "o outro filho também deve desbloquear");
+        assert.equal(p.tasks[3].status, "locked", "netos ainda precisam de seu próprio pai");
+        assert.equal((await service.unlocked(owner, service.tasks[2].id)).id, service.tasks[2].id);
+        await assert.rejects(service.unlocked(owner, service.modules[1].tasks[0]), error => error.status === 403);
         await request(`/task/${first.id}/responder`, { body: { answer: first.correctAnswer } });
         assert.equal((await request(`/task/${first.id}/concluir`, { body: {} })).data.awardedXp, 0);
     });

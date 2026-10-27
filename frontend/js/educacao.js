@@ -121,11 +121,23 @@ function renderSummary() {
 }
 function renderPath() {
     refs.learningPath.replaceChildren();
+    const canvas = document.createElement("div");
+    canvas.className = "skill-canvas";
+    canvas.style.width = `${journey.modules.length * 720}px`;
+    refs.learningPath.append(canvas);
+    const positions = new Map();
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.classList.add("skill-connections");
+    svg.setAttribute("width", String(journey.modules.length * 720));
+    svg.setAttribute("height", "600");
+    svg.setAttribute("aria-hidden", "true");
+    canvas.append(svg);
     journey.modules.forEach(module => {
         const heading = document.createElement("h3");
         heading.textContent = `${module.order}. ${module.title}${journey.progress.completedModules.includes(module.id) ? " · Concluído" : ""}`;
         const branch = document.createElement("section");
         branch.className = "skill-branch";
+        branch.style.left = `${(module.order - 1) * 720}px`;
         const count = document.createElement("p");
         count.className = "skill-count";
         const done = journey.progress.tasks.filter(t => t.moduleId === module.id && t.status === "completed").length;
@@ -133,12 +145,19 @@ function renderPath() {
         const nodes = document.createElement("div");
         nodes.className = "skill-nodes";
         branch.append(heading, count, nodes);
-        refs.learningPath.append(branch);
-        journey.progress.tasks.filter(task => task.moduleId === module.id).forEach(task => {
+        canvas.append(branch);
+        journey.progress.tasks.filter(task => task.moduleId === module.id).forEach((task, index) => {
+            const depth = Math.floor(Math.log2(index + 1));
+            const slot = index - (2 ** depth - 1);
+            const x = 60 + depth * 155;
+            const y = 300 + (slot - (2 ** depth - 1) / 2) * 68;
+            positions.set(task.id, { x: (module.order - 1) * 720 + x + 24, y: y + 24 });
             const button = document.createElement("button");
             button.type = "button";
             button.className = `path-node is-${task.status}`;
             button.dataset.taskId = task.id;
+            button.style.left = `${x}px`;
+            button.style.top = `${y}px`;
             button.disabled = task.status === "locked";
             const marker = document.createElement("span");
             marker.className = `path-marker marker-${task.status}`;
@@ -148,6 +167,7 @@ function renderPath() {
             copy.className = "path-copy";
             const title = document.createElement("strong");
             title.textContent = task.title;
+            button.title = task.title;
             copy.append(title);
             const state = document.createElement("span");
             state.className = "path-state";
@@ -155,6 +175,20 @@ function renderPath() {
             button.append(marker, copy, state);
             button.addEventListener("click", () => openTask(task.id));
             nodes.append(button);
+        });
+    });
+    journey.progress.tasks.forEach(task => {
+        (task.prerequisiteIds || []).forEach(id => {
+            const from = positions.get(id), to = positions.get(task.id);
+            if (!from || !to) return;
+            // Entre módulos, as linhas partem apenas das folhas do ramo anterior.
+            const parent = journey.progress.tasks.find(t => t.id === id);
+            if (parent?.moduleId !== task.moduleId && journey.progress.tasks.some(t => t.moduleId === parent?.moduleId && t.prerequisiteIds?.includes(id))) return;
+            const line = document.createElementNS(svg.namespaceURI, "line");
+            line.setAttribute("x1", String(from.x)); line.setAttribute("y1", String(from.y));
+            line.setAttribute("x2", String(to.x)); line.setAttribute("y2", String(to.y));
+            line.classList.add(task.status === "locked" ? "is-locked" : "is-active");
+            svg.append(line);
         });
     });
 }

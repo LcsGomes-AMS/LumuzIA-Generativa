@@ -43,8 +43,8 @@ async function progress(uid, access = db) {
         bestStreak: streak?.best_streak || 0, completedModules: completedModules.map(m => m.id),
         nextTask: nextTask?.id || null, currentModule: modules.find(m => m.id === nextTask?.moduleId)?.title || "Trilha concluída",
         complete: done,
-        tasks: tasks.map((task, i) => ({ id: task.id, moduleId: task.moduleId, title: task.title, xp: task.xp,
-            status: completed.has(task.id) ? "completed" : i > 0 && !completed.has(tasks[i - 1].id) ? "locked"
+        tasks: tasks.map(task => ({ id: task.id, moduleId: task.moduleId, title: task.title, xp: task.xp, prerequisiteIds: task.prerequisiteIds,
+            status: completed.has(task.id) ? "completed" : task.prerequisiteIds.some(id => !completed.has(id)) ? "locked"
                 : rows.some(r => r.task_id === task.id) ? "in_progress" : "available" })) };
 }
 async function recommendations(uid) {
@@ -64,8 +64,9 @@ async function unlocked(uid, id, access = db) {
     const task = taskById(id);
     // Conteúdo novo não impede a revisão das aulas concluídas antes da expansão.
     if (await access.dbGet("SELECT id FROM education_progress WHERE user_id = ? AND task_id = ? AND status = 'completed'", [uid, id])) return task;
-    const i = tasks.indexOf(task);
-    if (i && !(await access.dbGet("SELECT id FROM education_progress WHERE user_id = ? AND task_id = ? AND status = 'completed'", [uid, tasks[i - 1].id]))) fail(403, "Conclua a task anterior para desbloquear esta etapa.");
+    for (const prerequisite of task.prerequisiteIds) {
+        if (!(await access.dbGet("SELECT id FROM education_progress WHERE user_id = ? AND task_id = ? AND status = 'completed'", [uid, prerequisite]))) fail(403, "Conclua as habilidades anteriores deste ramo para desbloquear esta etapa.");
+    }
     return task;
 }
 function publicTask(task) {

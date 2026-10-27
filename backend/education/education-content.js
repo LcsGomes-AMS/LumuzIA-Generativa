@@ -73,4 +73,8 @@ const modules = definitions.map(([id, title, lessons], index) => ({
         return taskId;
     })
 }));
+modules.forEach((module, index) => module.tasks.forEach((id, n) => {
+    const task = tasks.find(t => t.id === id);
+    task.prerequisiteIds = n ? [module.tasks[Math.floor((n - 1) / 2)]] : index ? [...modules[index - 1].tasks] : [];
+}));
 module.exports = { modules, tasks };
