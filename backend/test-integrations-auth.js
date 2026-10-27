@@ -8,9 +8,10 @@ const TOKEN = "e30.c2VjX3Rlc3Q.c2ln";
 
 function harness({ env = {}, verify } = {}) {
     const calls = [];
+    const logs = [];
     const module = { exports: {} };
     vm.runInNewContext(code, {
-        module, __dirname, process: { env: { NODE_ENV: "test", ...env }, cwd: () => __dirname },
+        module, __dirname, console: { error: line => logs.push(line) }, process: { env: { NODE_ENV: "test", ...env }, cwd: () => __dirname },
         require(name) {
             if (name === "firebase-admin/app") return { getApps: () => [{}] };
             if (name === "firebase-admin/auth") return { getAuth: () => ({
@@ -26,7 +27,7 @@ function harness({ env = {}, verify } = {}) {
         }
     });
     return {
-        calls,
+        calls, logs,
         async request(headers = {}) {
             const req = { headers }, res = { statusCode: 0, body: null, status(value) { this.statusCode = value; return this; }, json(body) { this.body = JSON.parse(JSON.stringify(body)); return this; } };
             let passed = false;
@@ -63,6 +64,7 @@ test("sessão válida usa UID verificado e consulta revogação", async () => {
     assert.equal(out.passed, true);
     assert.equal(out.req.uid, "sec_test_owner");
     assert.deepEqual(h.calls, [{ token: TOKEN, checkRevoked: true }]);
+    assert.deepEqual(h.logs, []);
 });
 
 for (const errorCode of ["app/invalid-credential", "auth/insufficient-permission", "auth/internal-error"]) {
@@ -78,10 +80,13 @@ test(`consulta de revogação falha fechada em ${errorCode}`, async () => {
     const out = await h.request({ authorization: "Bearer " + TOKEN });
     assert.equal(out.passed, false);
     assert.equal(out.res.statusCode, 503);
+    assert.deepEqual(h.logs, [`[AUTH] Consulta de revogação indisponível: ${errorCode}`]);
     assert.equal(out.req.uid, undefined);
     assert.equal(out.req.userEmail, undefined);
     assert.deepEqual(out.res.body, { success: false, error: "Serviço de autenticação temporariamente indisponível." });
     assert.deepEqual(h.calls, [{ token: TOKEN, checkRevoked: true }]);
+    await h.request({ authorization: "Bearer " + TOKEN });
+    assert.equal(h.logs.length, 1);
   }
 });
 }

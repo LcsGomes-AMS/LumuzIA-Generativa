@@ -47,6 +47,7 @@ if (!getApps().length) {
 
 const authAdmin = getAuth();
 const AUTH_ERROR = { success: false, error: "Autenticação necessária." };
+const reportedAuthErrors = new Set();
 
 // A identidade sempre vem de um ID token assinado, ativo e pertencente ao projeto.
 async function verificarAutenticacao(req, res, next) {
@@ -69,6 +70,11 @@ async function verificarAutenticacao(req, res, next) {
         return next();
     } catch (error) {
         if (["app/invalid-credential", "auth/insufficient-permission", "auth/internal-error"].includes(error?.code)) {
+            // Apenas códigos conhecidos, uma vez por processo; nunca mensagem, token ou credencial.
+            if (!reportedAuthErrors.has(error.code)) {
+                reportedAuthErrors.add(error.code);
+                console.error(`[AUTH] Consulta de revogação indisponível: ${error.code}`);
+            }
             return res.status(503).json({ success: false, error: "Serviço de autenticação temporariamente indisponível." });
         }
         return res.status(401).json(AUTH_ERROR);
