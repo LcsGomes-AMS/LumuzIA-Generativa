@@ -65,20 +65,37 @@ test("sessão válida usa UID verificado e consulta revogação", async () => {
     assert.deepEqual(h.calls, [{ token: TOKEN, checkRevoked: true }]);
 });
 
-test("servidor sem credencial administrativa valida assinatura JWT via chaves públicas sem derrubar a sessão", async () => {
+for (const errorCode of ["app/invalid-credential", "auth/insufficient-permission", "auth/internal-error"]) {
+test(`consulta de revogação falha fechada em ${errorCode}`, async () => {
+  for (const NODE_ENV of ["production", "development", "test"]) {
     const h = harness({
+        env: { NODE_ENV },
         verify(token, checkRevoked) {
-            if (checkRevoked) throw Object.assign(new Error("no service account"), { code: "app/invalid-credential" });
+            if (checkRevoked) throw Object.assign(new Error("sec_test_private_credential_detail"), { code: errorCode });
             return { uid: "sec_test_owner", email: "sec_test_owner@example.invalid", firebase: { sign_in_provider: "password" } };
         }
     });
     const out = await h.request({ authorization: "Bearer " + TOKEN });
-    assert.equal(out.passed, true);
-    assert.equal(out.req.uid, "sec_test_owner");
-    assert.deepEqual(h.calls, [
-        { token: TOKEN, checkRevoked: true },
-        { token: TOKEN, checkRevoked: false }
-    ]);
+    assert.equal(out.passed, false);
+    assert.equal(out.res.statusCode, 503);
+    assert.equal(out.req.uid, undefined);
+    assert.equal(out.req.userEmail, undefined);
+    assert.deepEqual(out.res.body, { success: false, error: "Serviço de autenticação temporariamente indisponível." });
+    assert.deepEqual(h.calls, [{ token: TOKEN, checkRevoked: true }]);
+  }
+});
+}
+
+test("falha temporária não impede recuperação com consulta de revogação", async () => {
+    let unavailable = true;
+    const h = harness({ verify() {
+        if (unavailable) throw Object.assign(new Error("synthetic outage"), { code: "auth/internal-error" });
+        return { uid: "sec_test_owner", firebase: { sign_in_provider: "password" } };
+    } });
+    assert.equal((await h.request({ authorization: "Bearer " + TOKEN })).passed, false);
+    unavailable = false;
+    assert.equal((await h.request({ authorization: "Bearer " + TOKEN })).passed, true);
+    assert.ok(h.calls.every(call => call.checkRevoked === true));
 });
 
 test("contas anônimas, UID inválido e tokens revogados recebem falha uniforme", async () => {

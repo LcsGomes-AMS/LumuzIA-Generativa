@@ -184,6 +184,19 @@ test("falha de rede ou falta de permissão não apaga uma sessão válida", asyn
     assert.equal(h.redirects.length, 0);
 });
 
+test("503 de autenticação preserva sessão e permite nova tentativa sem renovar token", async () => {
+    const h = harness();
+    const api = await h.load("apiClient.js");
+    await h.emit(h.user());
+    h.responses.push({ status: 503 }, { status: 200 });
+    assert.equal((await api.apiFetch("/gastos")).status, 503);
+    assert.equal(h.requests.length, 1);
+    assert.equal((await api.apiFetch("/gastos")).status, 200);
+    assert.equal(h.signOutCalls, 0);
+    assert.equal(h.redirects.length, 0);
+    assert.deepEqual(h.tokenRequests, [false, false]);
+});
+
 test("erro de token revogado encerra a sessão", async () => {
     const h = harness();
     const api = await h.load("apiClient.js");

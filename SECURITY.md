@@ -1,5 +1,9 @@
 # Segurança do LumuzIA
 
+## Correção de revogação de sessões — 26/10/2026
+
+Removido o fallback que validava apenas a assinatura quando a consulta administrativa de revogação falhava. Agora toda autenticação exige `verifyIdToken(token, true)`. Falhas de credenciais, permissões ou erro interno do Firebase retornam 503 sanitizado e não liberam a rota; revogação e conta desativada continuam retornando 401. O cliente preserva a sessão em 503 para permitir nova tentativa. O servidor precisa de credenciais administrativas válidas; sem elas não aceita sessões com verificação reduzida. Regressões e limitações estão em [Auditoria local](docs/auditoria-ciberseguranca-2026-10-26.md).
+
 ## Educação financeira — revisão de 26/10/2026
 
 Nova API protegida pela autenticação e pelos limites existentes, com isolamento por `req.uid`, consultas parametrizadas, bloqueio de etapas, gabarito no servidor, conclusão transacional, XP idempotente e certificados restritos ao titular. A implementação e o escopo dos testes estão em [Educação financeira](docs/educacao-implementacao.md). A revisão das dependências corrigiu três pacotes vulneráveis (`body-parser`, `ip-address` e `undici`); o npm passou a indicar zero vulnerabilidades conhecidas.

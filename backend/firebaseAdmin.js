@@ -57,17 +57,8 @@ async function verificarAutenticacao(req, res, next) {
     if (!token) return res.status(401).json(AUTH_ERROR);
 
     try {
-        // true verifica também revogação e conta desativada quando há credencial administrativa ativa.
-        let decoded;
-        try {
-            decoded = await authAdmin.verifyIdToken(token, true);
-        } catch (err) {
-            if (err?.code === "app/invalid-credential" || err?.code === "auth/insufficient-permission" || err?.code === "auth/internal-error") {
-                decoded = await authAdmin.verifyIdToken(token, false);
-            } else {
-                throw err;
-            }
-        }
+        // A consulta de revogação é obrigatória; indisponibilidade nunca reduz a verificação.
+        const decoded = await authAdmin.verifyIdToken(token, true);
         if (decoded.firebase?.sign_in_provider === "anonymous" ||
             typeof decoded.uid !== "string" || !decoded.uid.length || decoded.uid.length > 128 ||
             /[\x00-\x1f\x7f]/.test(decoded.uid)) {
@@ -76,7 +67,10 @@ async function verificarAutenticacao(req, res, next) {
         req.uid = decoded.uid;
         req.userEmail = typeof decoded.email === "string" ? decoded.email : null;
         return next();
-    } catch {
+    } catch (error) {
+        if (["app/invalid-credential", "auth/insufficient-permission", "auth/internal-error"].includes(error?.code)) {
+            return res.status(503).json({ success: false, error: "Serviço de autenticação temporariamente indisponível." });
+        }
         return res.status(401).json(AUTH_ERROR);
     }
 }
