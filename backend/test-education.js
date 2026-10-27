@@ -26,6 +26,25 @@ test("educação: funcionalidade e ataques em banco isolado", async t => {
         return { status: response.status, headers: response.headers, data: response.headers.get("content-type")?.includes("application/pdf") ? Buffer.from(await response.arrayBuffer()) : await response.json() };
     };
     const first = service.tasks[0], second = service.tasks[1];
+    await t.test("conteúdo expandido mantém IDs únicos, gabaritos válidos e várias perguntas por módulo", async () => {
+        assert.equal(service.tasks.length, 78);
+        assert.equal(new Set(service.tasks.map(task => task.id)).size, 78);
+        for (const module of service.modules) assert.ok(module.tasks.length >= 7);
+        for (const task of service.tasks) {
+            assert.ok(Number.isInteger(task.correctAnswer) && task.correctAnswer >= 0 && task.correctAnswer < task.answers.length);
+            assert.ok(task.content && task.explanation && task.question);
+        }
+    });
+    await t.test("expansão preserva revisão e XP de conclusão antiga com antecessora pendente", async () => {
+        const legacy = "sec_test_education_legacy";
+        await service.mutation(legacy, tx => tx.dbRun(`INSERT INTO education_progress
+            (id,user_id,module_id,task_id,status,attempts,answered_correct,completed_at,xp_earned,created_at,updated_at)
+            VALUES (?,?,?,?,'completed',1,1,?,10,?,?)`,
+            ["legacy-completed", legacy, second.moduleId, second.id, "2026-10-26", "2026-10-26", "2026-10-26"]));
+        assert.equal((await service.unlocked(legacy, second.id)).id, second.id);
+        assert.equal((await service.complete(legacy, second.id)).awardedXp, 0);
+        assert.equal((await service.progress(legacy)).nextTask, first.id);
+    });
     await t.test("sem sessão não acessa nenhuma rota; gabarito não vaza", async () => {
         for (const path of ["/trilha", "/progresso", `/task/${first.id}`, "/certificado/pdf"]) assert.equal((await request(path, { uid: null })).status, 401);
         for (const path of [`/task/${first.id}/responder`, `/task/${first.id}/concluir`, "/certificado"]) assert.equal((await request(path, { uid: null, body: {} })).status, 401);

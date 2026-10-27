@@ -62,9 +62,10 @@ const definitions = [
     ]]
 ];
 const tasks = [];
+const extraLessons = require("./education-extra-content");
 const modules = definitions.map(([id, title, lessons], index) => ({
     id, title, description: `Aprenda e pratique: ${title.toLowerCase()}.`, order: index + 1,
-    tasks: lessons.map(([name, content, question, answers, correctAnswer, type], n) => {
+    tasks: [...lessons, ...(extraLessons[id] || [])].map(([name, content, question, answers, correctAnswer, type], n) => {
         const taskId = `${id}-${String(n + 1).padStart(3, "0")}`;
         tasks.push({ id: taskId, moduleId: id, title: name, content, question, answers,
             correctAnswer, explanation: `${content} Resposta: ${answers[correctAnswer]}.`,

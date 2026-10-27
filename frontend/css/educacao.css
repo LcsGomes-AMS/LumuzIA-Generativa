@@ -576,6 +576,39 @@
 .task-option span, .path-copy { min-width: 0; overflow-wrap: anywhere; }
 #educationRetry { width: auto; margin-bottom: 18px; }
 #educationComplete { margin-bottom: 24px; }
+.education-content-grid { display: block; }
+.learning-path { padding: 24px 0 0; overflow: hidden; }
+.learning-path .section-title-row { padding: 0 24px; }
+.skill-controls { display: flex; gap: 10px; padding: 0 24px 20px; }
+.skill-controls button { width: auto; min-height: 44px; background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+.skill-controls #pathCurrent { color: var(--accent-2); }
+.path-list { display: flex; flex-direction: row; gap: 32px; overflow-x: auto; padding: 24px; cursor: grab; touch-action: pan-x pan-y; background: radial-gradient(circle, #6fe7dd20 1px, transparent 1px) 0 0 / 22px 22px, var(--bg); scrollbar-width: thin; scrollbar-color: var(--accent-2) var(--surface); }
+.path-list.is-dragging { cursor: grabbing; user-select: none; }
+.path-list::before { display: none; }
+.skill-branch { flex: 0 0 auto; position: relative; padding: 20px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); }
+.skill-branch::after { content: ""; position: absolute; left: 100%; top: 50%; width: 33px; height: 3px; background: var(--accent-2); opacity: .4; }
+.skill-branch:last-child::after { display: none; }
+.skill-branch h3 { margin: 0; font-size: 17px; line-height: 1.4; color: var(--text); }
+.skill-count { color: var(--text-muted); font-size: 12px; margin: 8px 0 20px; }
+.skill-nodes { display: grid; grid-template-rows: repeat(3, 150px); grid-auto-flow: column; grid-auto-columns: 160px; gap: 20px 16px; }
+.skill-nodes .path-node { display: flex; flex-direction: column; justify-content: flex-start; gap: 8px; min-height: 150px; padding: 16px 10px; text-align: center; border-radius: 14px; }
+.skill-nodes .path-copy strong { font-size: 13px; line-height: 1.4; }
+.skill-nodes .path-state { margin: auto 0 0; font-size: 10px; }
+.skill-nodes .path-node::after { content: ""; position: absolute; height: 21px; width: 2px; top: 100%; background: var(--border-light); }
+.skill-nodes .path-node:nth-child(3n)::after, .skill-nodes .path-node:last-child::after { display: none; }
+.task-panel { position: fixed; inset: 0; margin: auto; width: min(640px, calc(100vw - 40px)); max-height: calc(100dvh - 48px); height: fit-content; color: var(--text); padding: 28px; box-shadow: 0 24px 90px #0008; overscroll-behavior: contain; }
+.task-panel:not([open]) { display: none; }
+.task-panel::backdrop { background: #061013cc; backdrop-filter: blur(6px); }
+body.education-task-open { overflow: hidden; }
+@media (max-width: 720px) {
+    .skill-branch { padding: 16px; }
+    .skill-nodes { grid-auto-columns: 135px; }
+    .path-list { padding: 16px; gap: 22px; }
+    .skill-branch::after { width: 23px; }
+    .skill-controls { padding: 0 16px 16px; }
+    .skill-controls button { font-size: 12px; padding: 10px; }
+    .task-panel.is-open { margin: 0; width: 100%; max-width: none; height: 100dvh; max-height: 100dvh; }
+}
 @media (max-width: 720px) {
     .task-panel.is-open { position: fixed; inset: 0; z-index: 1500; overflow-y: auto; border-radius: 0; padding: 24px; padding-bottom: max(24px, env(safe-area-inset-bottom)); background: var(--bg); }
 }

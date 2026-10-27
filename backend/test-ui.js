@@ -452,8 +452,22 @@ const cases = [
     }],
     ["Educação: usuário novo, erro, acerto, progresso, revisão, reload e mobile", async () => {
         await goto("educacao.html", "document.querySelector('#taskTitle').textContent.includes('educação financeira')");
-        assert.equal(await evaluate("document.querySelector('#tasksCompleted').textContent"), "0 / 38");
-        assert.ok(await evaluate("(()=>{const panel=document.querySelector('.task-panel').getBoundingClientRect(),path=document.querySelector('.learning-path').getBoundingClientRect();return panel.width>=360&&panel.left>=path.right&&panel.right<=innerWidth&&getComputedStyle(document.querySelector('.task-panel')).position==='sticky'})()"), "Aula ocupa sua coluna sem herdar dimensões da sidebar");
+        assert.equal(await evaluate("document.querySelector('#tasksCompleted').textContent"), "0 / 78");
+        assert.ok(await evaluate("!document.querySelector('.task-panel').open"), "Modal não abre sozinho");
+        assert.ok(await evaluate("document.querySelector('#learningPath').scrollWidth>document.querySelector('#learningPath').clientWidth"), "Mapa horizontal navegável");
+        await click("#pathNext");
+        assert.ok(await evaluate("document.querySelector('#learningPath').scrollLeft>0"));
+        await evaluate("document.querySelector('#learningPath').scrollIntoView({block:'center'})");
+        const dragPoint = await evaluate("(()=>{const r=document.querySelector('#learningPath').getBoundingClientRect();return{x:r.right-8,y:Math.max(110,Math.min(innerHeight-80,r.top+12)),scroll:document.querySelector('#learningPath').scrollLeft}})()");
+        await command("Input.dispatchMouseEvent", { type: "mouseMoved", x: dragPoint.x, y: dragPoint.y });
+        await command("Input.dispatchMouseEvent", { type: "mousePressed", x: dragPoint.x, y: dragPoint.y, button: "left", clickCount: 1 });
+        await command("Input.dispatchMouseEvent", { type: "mouseMoved", x: dragPoint.x - 120, y: dragPoint.y, buttons: 1 });
+        await command("Input.dispatchMouseEvent", { type: "mouseReleased", x: dragPoint.x - 120, y: dragPoint.y, button: "left", clickCount: 1 });
+        assert.ok(await evaluate(`document.querySelector('#learningPath').scrollLeft>${dragPoint.scroll}`), "Arraste real move o mapa");
+        await click("#pathCurrent");
+        await click('.path-node[data-task-id="fundamentos-001"]');
+        await waitDOM("document.querySelector('.task-panel').open", "abrir modal desktop");
+        assert.ok(await evaluate("document.querySelector('.task-panel').open"), "Aula abre em modal no desktop");
         assert.ok(await evaluate("document.querySelectorAll('.path-node:disabled').length > 30"));
         await click('#taskOptions input[value="0"]'); await click("#answerButton");
         await waitDOM("document.querySelector('#taskFeedback').textContent.includes('Ainda não')", "resposta errada educativa");
@@ -464,13 +478,14 @@ const cases = [
         await waitDOM("document.querySelector('#tasksCompleted').textContent.startsWith('1 /')&&!document.querySelector('#answerButton').disabled", "desbloqueio");
         assert.equal(await evaluate("document.querySelector('#totalXp').textContent"), "10 XP");
         await goto("educacao.html", "document.querySelector('#taskTitle').textContent==='Receitas e despesas'");
-        assert.equal(await evaluate("document.querySelector('#tasksCompleted').textContent"), "1 / 38");
+        assert.equal(await evaluate("document.querySelector('#tasksCompleted').textContent"), "1 / 78");
         await click('.path-node[data-task-id="fundamentos-001"]');
         await waitDOM("document.querySelector('#taskReward').textContent.includes('sem XP')", "revisão");
         await click('#taskOptions input[value="1"]'); await click("#answerButton");
         await waitDOM("!document.querySelector('#continueButton').hidden", "acerto revisão");
         await click("#continueButton");
         await waitDOM("document.querySelector('#educationNotice').textContent.includes('+0 XP')", "replay sem XP");
+        await click("#closeTask");
         await command("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
         await click('.path-node[data-task-id="fundamentos-002"]');
         await waitDOM("document.querySelector('.task-panel').classList.contains('is-open')", "task mobile");

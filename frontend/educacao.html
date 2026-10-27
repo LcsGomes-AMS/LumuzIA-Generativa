@@ -89,14 +89,15 @@
                 <div class="section-title-row">
                     <div>
                         <span class="education-eyebrow">Sua jornada</span>
-                        <h2 id="learningPathTitle">Trilha de aprendizado</h2>
+                        <h2 id="learningPathTitle">Árvore de habilidades</h2>
                     </div>
-                    <span class="path-legend">Selecione uma task disponível</span>
+                    <span class="path-legend">Arraste para explorar e selecione uma habilidade</span>
                 </div>
-                <div id="learningPath" class="path-list"></div>
+                <div class="skill-controls"><button id="pathPrevious" type="button" aria-label="Explorar à esquerda">←</button><button id="pathCurrent" type="button">Minha próxima aula</button><button id="pathNext" type="button" aria-label="Explorar à direita">→</button></div>
+                <div id="learningPath" class="path-list" tabindex="0" role="region" aria-label="Mapa de habilidades. Arraste ou use as setas para explorar."></div>
             </section>
 
-            <section class="task-panel" aria-label="Aula de educação financeira">
+            <dialog class="task-panel" aria-labelledby="taskTitle">
                 <div id="taskEmptyState" class="task-empty-state">
                     <div class="task-empty-icon" aria-hidden="true">$</div>
                     <h2 id="taskPanelTitle">Escolha uma task</h2>
@@ -123,7 +124,7 @@
                     <div id="taskFeedback" class="task-feedback" role="status" aria-live="polite" hidden></div>
                     <button id="continueButton" type="button" class="education-primary-button" hidden>Concluir e continuar</button>
                 </div>
-            </section>
+            </dialog>
         </section>
     </main>
 </div>

@@ -124,7 +124,16 @@ function renderPath() {
     journey.modules.forEach(module => {
         const heading = document.createElement("h3");
         heading.textContent = `${module.order}. ${module.title}${journey.progress.completedModules.includes(module.id) ? " · Concluído" : ""}`;
-        refs.learningPath.append(heading);
+        const branch = document.createElement("section");
+        branch.className = "skill-branch";
+        const count = document.createElement("p");
+        count.className = "skill-count";
+        const done = journey.progress.tasks.filter(t => t.moduleId === module.id && t.status === "completed").length;
+        count.textContent = `${done} / ${module.tasks.length} habilidades dominadas`;
+        const nodes = document.createElement("div");
+        nodes.className = "skill-nodes";
+        branch.append(heading, count, nodes);
+        refs.learningPath.append(branch);
         journey.progress.tasks.filter(task => task.moduleId === module.id).forEach(task => {
             const button = document.createElement("button");
             button.type = "button";
@@ -145,7 +154,7 @@ function renderPath() {
             state.textContent = ({ completed: "Concluída · Revisar", available: "Disponível", in_progress: "Em andamento", locked: "Bloqueada" })[task.status];
             button.append(marker, copy, state);
             button.addEventListener("click", () => openTask(task.id));
-            refs.learningPath.append(button);
+            nodes.append(button);
         });
     });
 }
@@ -179,7 +188,8 @@ async function openTask(id, focus = true) {
         continueButton.hidden = true;
         panel.classList.toggle("is-open", focus);
         document.body.classList.toggle("education-task-open", focus);
-        if (focus && window.matchMedia("(max-width: 720px)").matches) {
+        if (focus) {
+            if (!panel.open) panel.showModal();
             panel.setAttribute("role", "dialog");
             panel.setAttribute("aria-modal", "true");
         }
@@ -223,18 +233,55 @@ continueButton.addEventListener("click", async () => {
         selectedTask = null;
         const next = result.progress.nextTask;
         setBusy(false);
-        if (next) await openTask(next, false);
+        if (next) await openTask(next, true);
         else document.getElementById("certificateButton").focus();
     } catch (error) { feedback(error.message); }
     finally { setBusy(false); }
 });
 function closeTask() {
+    if (panel.open) panel.close();
     panel.classList.remove("is-open");
     panel.removeAttribute("role"); panel.removeAttribute("aria-modal");
     document.body.classList.remove("education-task-open");
     if (selectedTask) document.querySelector(`[data-task-id="${selectedTask.id}"]`)?.focus();
 }
 closeButton.addEventListener("click", closeTask);
+panel.addEventListener("cancel", event => { event.preventDefault(); closeTask(); });
+const map = refs.learningPath;
+let drag;
+let dragged = false;
+map.addEventListener("pointerdown", event => {
+    if (event.pointerType !== "mouse" || event.button !== 0) return;
+    drag = { x: event.clientX, left: map.scrollLeft, id: event.pointerId };
+    dragged = false;
+});
+map.addEventListener("pointermove", event => {
+    if (!drag) return;
+    const delta = event.clientX - drag.x;
+    if (Math.abs(delta) > 6) {
+        dragged = true;
+        map.classList.add("is-dragging");
+        map.setPointerCapture(drag.id);
+        map.scrollLeft = drag.left - delta;
+    }
+});
+function endDrag() { drag = null; map.classList.remove("is-dragging"); }
+map.addEventListener("pointerup", endDrag);
+map.addEventListener("pointercancel", endDrag);
+map.addEventListener("lostpointercapture", endDrag);
+map.addEventListener("click", event => { if (dragged) { event.preventDefault(); event.stopPropagation(); dragged = false; } }, true);
+document.getElementById("pathPrevious").addEventListener("click", () => map.scrollBy({ left: -440 }));
+document.getElementById("pathNext").addEventListener("click", () => map.scrollBy({ left: 440 }));
+document.getElementById("pathCurrent").addEventListener("click", () => {
+    const node = document.querySelector(`[data-task-id="${journey?.progress.nextTask}"]`);
+    node?.scrollIntoView({ block: "nearest", inline: "center" });
+    node?.focus({ preventScroll: true });
+});
+map.addEventListener("keydown", event => {
+    if (event.target === map && ["ArrowLeft", "ArrowRight"].includes(event.key)) {
+        event.preventDefault(); map.scrollBy({ left: event.key === "ArrowRight" ? 240 : -240 });
+    }
+});
 document.addEventListener("keydown", event => {
     if (event.key === "Escape") closeTask();
     if (event.key === "Tab" && panel.getAttribute("aria-modal") === "true") {

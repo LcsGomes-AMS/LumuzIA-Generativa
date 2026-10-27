@@ -62,6 +62,8 @@ function taskById(id) {
 }
 async function unlocked(uid, id, access = db) {
     const task = taskById(id);
+    // Conteúdo novo não impede a revisão das aulas concluídas antes da expansão.
+    if (await access.dbGet("SELECT id FROM education_progress WHERE user_id = ? AND task_id = ? AND status = 'completed'", [uid, id])) return task;
     const i = tasks.indexOf(task);
     if (i && !(await access.dbGet("SELECT id FROM education_progress WHERE user_id = ? AND task_id = ? AND status = 'completed'", [uid, tasks[i - 1].id]))) fail(403, "Conclua a task anterior para desbloquear esta etapa.");
     return task;
