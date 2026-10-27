@@ -453,6 +453,7 @@ const cases = [
     ["Educação: usuário novo, erro, acerto, progresso, revisão, reload e mobile", async () => {
         await goto("educacao.html", "document.querySelector('#taskTitle').textContent.includes('educação financeira')");
         assert.equal(await evaluate("document.querySelector('#tasksCompleted').textContent"), "0 / 38");
+        assert.ok(await evaluate("(()=>{const panel=document.querySelector('.task-panel').getBoundingClientRect(),path=document.querySelector('.learning-path').getBoundingClientRect();return panel.width>=360&&panel.left>=path.right&&panel.right<=innerWidth&&getComputedStyle(document.querySelector('.task-panel')).position==='sticky'})()"), "Aula ocupa sua coluna sem herdar dimensões da sidebar");
         assert.ok(await evaluate("document.querySelectorAll('.path-node:disabled').length > 30"));
         await click('#taskOptions input[value="0"]'); await click("#answerButton");
         await waitDOM("document.querySelector('#taskFeedback').textContent.includes('Ainda não')", "resposta errada educativa");
@@ -475,6 +476,7 @@ const cases = [
         await waitDOM("document.querySelector('.task-panel').classList.contains('is-open')", "task mobile");
         assert.equal(await evaluate("getComputedStyle(document.querySelector('.task-panel')).position"), "fixed");
         assert.equal(await evaluate("document.querySelector('.task-panel').getAttribute('aria-modal')"), "true");
+        assert.ok(await evaluate("(()=>{const p=document.querySelector('.task-panel').getBoundingClientRect();return Math.abs(p.left)<1&&Math.abs(p.width-innerWidth)<1&&Math.abs(p.height-innerHeight)<1})()"), "Aula móvel ocupa a tela inteira");
         // Eventos DOM testam o ciclo de foco sem depender do roteamento de teclas do CDP
         // após os cenários de popup/iframe executados anteriormente nesta mesma janela.
         await evaluate("document.querySelector('#answerButton').focus();document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Tab',bubbles:true,cancelable:true}))");
