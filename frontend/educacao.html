@@ -127,17 +127,41 @@
                 </div>
             </div>
 
-            <!-- Diálogo de Decisão e Feedback Educativo -->
-            <div id="gameDialogBox" class="game-dialog-card" hidden>
-                <div class="dialog-header">
-                    <span id="gameDialogSpeaker" class="dialog-speaker"></span>
-                    <h3 id="gameDialogTitle"></h3>
+            <!-- MODAL INTERATIVO DE PERGUNTAS E DECISÕES NA TELA -->
+            <div id="gameModalBackdrop" class="game-modal-backdrop" hidden>
+                <div id="gameDialogBox" class="game-modal-card" role="dialog" aria-modal="true" aria-labelledby="gameDialogTitle">
+                    <button id="btnFecharGameModal" class="game-modal-close" type="button" aria-label="Fechar diálogo">✕</button>
+                    
+                    <div class="modal-speaker-header">
+                        <div id="gameDialogAvatar" class="modal-avatar-frame">👔</div>
+                        <div class="modal-speaker-meta">
+                            <span id="gameDialogSpeaker" class="dialog-speaker">Chefe do RH</span>
+                            <span id="gameDialogRole" class="dialog-role">Empresa Lumuz · Contratação</span>
+                        </div>
+                        <div id="gameDialogMissionTag" class="modal-mission-pill">Missão 1 de 5</div>
+                    </div>
+
+                    <h3 id="gameDialogTitle" class="modal-title"></h3>
+                    
+                    <div class="modal-story-box">
+                        <p id="gameDialogDesc" class="dialog-desc"></p>
+                    </div>
+
+                    <div class="modal-question-box">
+                        <span class="question-kicker">💡 Dilema Financeiro</span>
+                        <p id="gameDialogQuestion" class="dialog-question"></p>
+                    </div>
+
+                    <div id="gameDialogOptions" class="game-dialog-options"></div>
+
+                    <div id="gameDialogFeedback" class="game-feedback" hidden></div>
+
+                    <div class="modal-actions-row">
+                        <button id="gameDialogContinue" class="education-primary-button modal-continue-btn" type="button" hidden>
+                            Continuar Jornada ➔
+                        </button>
+                    </div>
                 </div>
-                <p id="gameDialogDesc" class="dialog-desc"></p>
-                <p id="gameDialogQuestion" class="dialog-question"></p>
-                <div id="gameDialogOptions" class="game-dialog-options"></div>
-                <div id="gameDialogFeedback" class="game-feedback" hidden></div>
-                <button id="gameDialogContinue" class="education-primary-button" type="button" hidden>Continuar Jornada</button>
             </div>
 
             <!-- Banner do Projeto Godot 4 -->

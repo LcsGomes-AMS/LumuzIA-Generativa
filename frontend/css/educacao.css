@@ -638,7 +638,7 @@ body.education-task-open { overflow: hidden; }
 }
 
 /* ==========================================================================
-   ESTILOS DO MODO JOGO 2D & ALTERNÂNCIA (GODOT / CANVAS 2D)
+   ESTILOS PREMIUM DO MODO JOGO 2D & MODAL NA TELA (GODOT / CANVAS 2D)
    ========================================================================== */
 
 .education-mode-switcher {
@@ -652,7 +652,7 @@ body.education-task-open { overflow: hidden; }
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    padding: 12px 20px;
+    padding: 12px 22px;
     border-radius: 14px;
     border: 1px solid var(--border);
     background: var(--surface);
@@ -669,19 +669,20 @@ body.education-task-open { overflow: hidden; }
     border-color: var(--accent-2);
     color: var(--text);
     background: var(--surface-2);
+    transform: translateY(-1px);
 }
 
 .mode-switch-btn.is-active {
     background: var(--surface-2);
     border-color: var(--accent-2);
     color: var(--accent-2);
-    box-shadow: 0 0 20px rgba(111, 231, 221, 0.15);
+    box-shadow: 0 0 24px rgba(111, 231, 221, 0.18);
 }
 
 .mode-switch-game.is-active {
     border-color: var(--accent);
     color: var(--accent);
-    box-shadow: 0 0 20px rgba(242, 166, 90, 0.2);
+    box-shadow: 0 0 24px rgba(242, 166, 90, 0.22);
 }
 
 .game-btn-badge {
@@ -690,7 +691,7 @@ body.education-task-open { overflow: hidden; }
     font-family: var(--font-mono);
     font-size: 10px;
     font-weight: 800;
-    padding: 2px 7px;
+    padding: 3px 8px;
     border-radius: 6px;
     letter-spacing: 0.05em;
 }
@@ -699,10 +700,12 @@ body.education-task-open { overflow: hidden; }
 .finance-game-section {
     margin-bottom: 32px;
     padding: 28px;
-    background: radial-gradient(circle at 10% 10%, rgba(111, 231, 221, 0.06), transparent 40%),
-                radial-gradient(circle at 90% 90%, rgba(242, 166, 90, 0.08), transparent 40%),
+    background: radial-gradient(circle at 10% 10%, rgba(111, 231, 221, 0.08), transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(242, 166, 90, 0.09), transparent 45%),
                 var(--surface);
     border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
 }
 
 .game-header-bar {
@@ -717,7 +720,7 @@ body.education-task-open { overflow: hidden; }
 .game-title-group h2 {
     font-size: clamp(20px, 3vw, 28px);
     margin: 6px 0 8px;
-    line-height: 1.2;
+    line-height: 1.25;
 }
 
 .game-title-group p {
@@ -727,16 +730,17 @@ body.education-task-open { overflow: hidden; }
     margin: 0;
 }
 
-/* HUD Financeiro do Jogo */
+/* HUD Financeiro Premium */
 .game-hud-bar {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
-    gap: 14px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    background: rgba(10, 16, 18, 0.85);
+    border: 1px solid rgba(111, 231, 221, 0.15);
+    border-radius: 16px;
+    padding: 16px 20px;
     margin-bottom: 20px;
+    backdrop-filter: blur(8px);
 }
 
 .hud-item {
@@ -770,6 +774,7 @@ body.education-task-open { overflow: hidden; }
     justify-content: space-between;
     font-size: 11px;
     color: var(--text-muted);
+    font-family: var(--font-mono);
 }
 
 .game-bar-track {
@@ -785,7 +790,7 @@ body.education-task-open { overflow: hidden; }
     display: block;
     height: 100%;
     border-radius: 999px;
-    transition: width 0.3s ease;
+    transition: width 0.35s ease;
 }
 
 .game-bar-fill.health {
@@ -798,49 +803,99 @@ body.education-task-open { overflow: hidden; }
 
 /* Rastreador de Missão Atual */
 .game-mission-tracker {
-    background: rgba(111, 231, 221, 0.05);
-    border: 1px solid rgba(111, 231, 221, 0.2);
-    border-radius: 14px;
-    padding: 18px 22px;
+    background: rgba(14, 24, 28, 0.8);
+    border: 1px solid rgba(111, 231, 221, 0.22);
+    border-radius: 16px;
+    padding: 20px 24px;
     margin-bottom: 20px;
 }
 
-.game-mission-tracker .mission-tag {
+.mission-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.mission-steps-wrap {
+    display: flex;
+    gap: 8px;
+}
+
+.mission-step {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: var(--font-mono);
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+}
+
+.mission-step.done {
+    background: #1C443B;
+    border-color: var(--accent-2);
+    color: var(--accent-2);
+}
+
+.mission-step.current {
+    background: rgba(242, 166, 90, 0.2);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 12px rgba(242, 166, 90, 0.35);
+}
+
+.mission-counter {
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--accent);
-    text-transform: uppercase;
     font-weight: 700;
-    margin-bottom: 4px;
+    text-transform: uppercase;
 }
 
-.game-mission-tracker h3 {
-    margin: 0 0 8px;
+.mission-body-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+}
+
+.mission-body-flex h3 {
+    margin: 0 0 6px;
     font-size: 18px;
     color: var(--text);
 }
 
-.game-mission-tracker p {
-    margin: 0 0 14px;
+.mission-body-flex p {
+    margin: 0;
     color: var(--text-muted);
     font-size: 13.5px;
     line-height: 1.5;
+    max-width: 680px;
 }
 
-.mission-actions-row {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
+.mission-open-btn {
+    white-space: nowrap;
+    padding: 12px 20px;
+    border-radius: 12px;
 }
 
-/* Canvas e Controles */
+/* Canvas 2D Wrapper */
 .game-canvas-wrapper {
     position: relative;
-    background: #0c1315;
-    border: 2px solid var(--border);
-    border-radius: 16px;
+    background: #080D0F;
+    border: 2px solid rgba(111, 231, 221, 0.25);
+    border-radius: 18px;
     overflow: hidden;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
     margin-bottom: 20px;
 }
 
@@ -849,7 +904,7 @@ body.education-task-open { overflow: hidden; }
     width: 100%;
     height: auto;
     aspect-ratio: 960 / 480;
-    cursor: crosshair;
+    cursor: pointer;
 }
 
 .game-canvas-controls {
@@ -857,12 +912,12 @@ body.education-task-open { overflow: hidden; }
     justify-content: space-between;
     align-items: center;
     background: #090e10;
-    padding: 10px 18px;
+    padding: 12px 20px;
     border-top: 1px solid var(--border);
     font-size: 12px;
     color: var(--text-muted);
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
 }
 
 .game-hints {
@@ -884,7 +939,7 @@ body.education-task-open { overflow: hidden; }
     background: var(--surface);
     border: 1px solid var(--border);
     color: var(--text);
-    padding: 6px 12px;
+    padding: 6px 14px;
     border-radius: 8px;
     font-size: 12px;
     cursor: pointer;
@@ -896,7 +951,396 @@ body.education-task-open { overflow: hidden; }
     color: var(--accent-2);
 }
 
-/* Controles Direcionais (D-Pad para Mobile/Touch) */
+/* ==========================================================================
+   MODAL DE PERGUNTAS E DECISÕES NA TELA (ON-SCREEN MODAL OVERLAY)
+   ========================================================================== */
+
+.game-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(4, 9, 11, 0.85);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    animation: fadeInModal 0.2s ease;
+}
+
+@keyframes fadeInModal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.game-modal-card {
+    position: relative;
+    width: min(680px, 100%);
+    max-height: calc(100dvh - 40px);
+    overflow-y: auto;
+    background: linear-gradient(180deg, #131E23 0%, #0D1518 100%);
+    border: 1.5px solid rgba(111, 231, 221, 0.35);
+    border-radius: 22px;
+    padding: 28px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.8), 0 0 50px rgba(111, 231, 221, 0.12);
+    color: var(--text);
+    animation: modalPop 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPop {
+    from { opacity: 0; transform: scale(0.95) translateY(12px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.game-modal-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.game-modal-close:hover {
+    background: rgba(242, 139, 130, 0.2);
+    border-color: #F28B82;
+    color: #F28B82;
+    transform: rotate(90deg);
+}
+
+.modal-speaker-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+
+.modal-avatar-frame {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: radial-gradient(circle, rgba(111, 231, 221, 0.25) 0%, rgba(14, 23, 26, 0.9) 100%);
+    border: 1.5px solid var(--accent-2);
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 16px rgba(111, 231, 221, 0.2);
+}
+
+.modal-speaker-meta {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.dialog-speaker {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.dialog-role {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.modal-mission-pill {
+    background: rgba(242, 166, 90, 0.15);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid rgba(242, 166, 90, 0.3);
+}
+
+.modal-title {
+    font-size: 20px;
+    line-height: 1.3;
+    margin: 0 0 14px;
+    color: var(--text);
+}
+
+.modal-story-box {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 18px;
+}
+
+.modal-story-box p {
+    margin: 0;
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.modal-question-box {
+    background: rgba(242, 166, 90, 0.08);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 12px 18px;
+    margin-bottom: 18px;
+}
+
+.question-kicker {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.modal-question-box p {
+    margin: 0;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+/* Opções de Escolha no Modal */
+.game-dialog-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.game-modal-choice {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    width: 100%;
+    text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 20px;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.game-modal-choice:hover {
+    border-color: var(--accent);
+    background: rgba(242, 166, 90, 0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(242, 166, 90, 0.15);
+}
+
+.choice-letter-badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--accent-2);
+    flex-shrink: 0;
+}
+
+.choice-text-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.choice-text-wrap strong {
+    font-size: 14.5px;
+    color: var(--text);
+}
+
+.choice-text-wrap span {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+/* Feedback Educativo no Modal */
+.game-feedback {
+    border-radius: 14px;
+    padding: 18px 22px;
+    margin-bottom: 20px;
+    animation: fadeInModal 0.25s ease;
+}
+
+.game-feedback.is-optimal {
+    background: rgba(124, 231, 169, 0.12);
+    border: 1px solid #7CE7A9;
+    color: #7CE7A9;
+}
+
+.game-feedback.is-warning {
+    background: rgba(242, 139, 130, 0.12);
+    border: 1px solid #F28B82;
+    color: #F28B82;
+}
+
+.feedback-badge-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.feedback-status-badge {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.feedback-xp-pill {
+    background: rgba(242, 166, 90, 0.2);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+}
+
+.feedback-text {
+    margin: 0 0 14px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--text);
+}
+
+.game-feedback-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: var(--font-mono);
+    font-size: 12px;
+}
+
+.game-feedback-stats span {
+    color: var(--text-muted);
+}
+
+.modal-actions-row {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.modal-continue-btn {
+    padding: 12px 26px;
+    font-size: 14px;
+    border-radius: 12px;
+}
+
+/* Card de Vitória */
+.game-victory-card {
+    text-align: center;
+    padding: 24px 16px;
+}
+
+.victory-badge {
+    display: inline-block;
+    background: rgba(242, 166, 90, 0.2);
+    color: var(--accent);
+    font-weight: 700;
+    padding: 6px 16px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+    font-size: 13px;
+}
+
+.victory-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 24px 0;
+    padding: 20px;
+    background: var(--bg);
+    border-radius: 14px;
+    border: 1px solid var(--border);
+}
+
+.victory-stats-grid span {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.victory-stats-grid strong {
+    font-size: 20px;
+    color: var(--accent-2);
+}
+
+.victory-buttons-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+/* Banner de Código do Godot */
+.godot-source-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 22px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed var(--border);
+    border-radius: 14px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+.godot-badge {
+    background: #478cbf;
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+}
+
+.godot-info {
+    flex: 1;
+    min-width: 240px;
+}
+
+.godot-info strong {
+    display: block;
+    color: var(--text);
+    font-size: 13px;
+    margin-bottom: 2px;
+}
+
+.godot-info p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+/* Controles Direcionais na Tela (Mobile) */
 .game-dpad-container {
     display: flex;
     justify-content: center;
@@ -945,200 +1389,10 @@ body.education-task-open { overflow: hidden; }
     color: var(--accent);
 }
 
-/* Diálogo de Decisão */
-.game-dialog-card {
-    background: var(--surface-2);
-    border: 2px solid var(--accent);
-    border-radius: 16px;
-    padding: 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 10px 30px rgba(242, 166, 90, 0.15);
-    animation: fadeInDialog 0.25s ease;
-}
-
-@keyframes fadeInDialog {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.dialog-header {
-    margin-bottom: 12px;
-}
-
-.dialog-speaker {
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--accent-2);
-    text-transform: uppercase;
-}
-
-.dialog-header h3 {
-    margin: 4px 0 0;
-    font-size: 19px;
-    color: var(--text);
-}
-
-.dialog-desc {
-    color: var(--text);
-    font-size: 14px;
-    line-height: 1.6;
-    margin-bottom: 14px;
-}
-
-.dialog-question {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--accent);
-    margin-bottom: 16px;
-}
-
-.game-dialog-options {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.game-choice-btn {
-    width: 100%;
-    text-align: left;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 18px;
-    color: var(--text);
-    font-size: 13.5px;
-    line-height: 1.5;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.game-choice-btn:hover {
-    border-color: var(--accent);
-    background: rgba(242, 166, 90, 0.08);
-    transform: translateX(4px);
-}
-
-.game-feedback {
-    border-radius: 12px;
-    padding: 16px 20px;
-    margin-bottom: 18px;
-    font-size: 13.5px;
-    line-height: 1.6;
-}
-
-.game-feedback.is-optimal {
-    background: rgba(124, 231, 169, 0.12);
-    border: 1px solid #7CE7A9;
-    color: #7CE7A9;
-}
-
-.game-feedback.is-warning {
-    background: rgba(242, 139, 130, 0.12);
-    border: 1px solid #F28B82;
-    color: #F28B82;
-}
-
-.game-feedback-stats {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: var(--text);
-}
-
-/* Card de Vitória */
-.game-victory-card {
-    text-align: center;
-    padding: 20px 10px;
-}
-
-.victory-badge {
-    display: inline-block;
-    background: rgba(242, 166, 90, 0.2);
-    color: var(--accent);
-    font-weight: 700;
-    padding: 6px 14px;
-    border-radius: 999px;
-    margin-bottom: 12px;
-}
-
-.victory-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    margin: 20px 0;
-    padding: 18px;
-    background: var(--bg);
-    border-radius: 12px;
-    border: 1px solid var(--border);
-}
-
-.victory-stats-grid span {
-    display: block;
-    font-size: 12px;
-    color: var(--text-muted);
-}
-
-.victory-stats-grid strong {
-    font-size: 18px;
-    color: var(--accent-2);
-}
-
-.victory-buttons-row {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    flex-wrap: wrap;
-}
-
-/* Banner de Código do Godot */
-.godot-source-banner {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px 20px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px dashed var(--border);
-    border-radius: 14px;
-    margin-top: 24px;
-    flex-wrap: wrap;
-}
-
-.godot-badge {
-    background: #478cbf;
-    color: #fff;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    font-weight: 700;
-    padding: 6px 12px;
-    border-radius: 8px;
-    white-space: nowrap;
-}
-
-.godot-info {
-    flex: 1;
-    min-width: 240px;
-}
-
-.godot-info strong {
-    display: block;
-    color: var(--text);
-    font-size: 13px;
-    margin-bottom: 2px;
-}
-
-.godot-info p {
-    margin: 0;
-    color: var(--text-muted);
-    font-size: 12px;
-    line-height: 1.4;
-}
-
 @media (min-width: 768px) {
     .game-dpad-container {
-        display: none; /* Em desktop usa setas ou WASD */
+        display: none;
     }
 }
+
 
