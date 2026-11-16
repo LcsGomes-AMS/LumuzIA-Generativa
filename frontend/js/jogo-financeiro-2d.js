@@ -1,17 +1,17 @@
-// LumuzIA - Simulador 2D: Vida Financeira de um Jovem
-// Motor 2D Gráfico em Canvas & Modal Interativo de Decisões
+// LumuzIA - Modo História 2D: A Vida Financeira de um Jovem
+// Estilo Pixel Art RPG Top-Down (Inspirado em Forager & Stardew Valley) com Tela Cheia
 
 const MISSIONS = [
     {
         id: 1,
-        title: "Missão 1: O Primeiro Salário (Bruto vs Líquido)",
+        title: "Capítulo 1: O Primeiro Emprego & O Salário Real",
         npc: "Chefe do RH",
         role: "Empresa Contratante · Primeiro Emprego",
         avatar: "👔",
         zone: "work",
-        targetX: 180,
+        targetX: 250,
         targetY: 170,
-        intro: "Parabéns pela sua contratação! O seu salário acordado em contrato é de R$ 2.000,00 brutos. Porém, ao cair na conta corrente no 5º dia útil, o extrato exibe R$ 1.830,00 devido à dedução compulsória do INSS.",
+        intro: "Você parte da sua casa rumo ao primeiro emprego na Empresa da Ilha! Seu contrato promete R$ 2.000,00 brutos, mas ao receber o holerite, você nota o desconto obrigatório do INSS e recebe R$ 1.830,00 líquidos.",
         question: "Como você deve estruturar seus gastos a partir desta primeira remuneração?",
         choices: [
             {
@@ -24,7 +24,7 @@ const MISSIONS = [
                 deltaInvest: 0,
                 deltaHealth: -25,
                 deltaHappy: 10,
-                xp: 10,
+                xp: 15,
                 isOptimal: false,
                 feedback: "Atenção crítica! O salário bruto é apenas o valor nominal. O que entra de verdade no seu bolso é a Receita Líquida. Fazer contas pelo bruto é o primeiro passo para o endividamento precoce."
             },
@@ -46,27 +46,27 @@ const MISSIONS = [
     },
     {
         id: 2,
-        title: "Missão 2: O Desafio do Orçamento (A Regra 50/30/20)",
-        npc: "Alex & Mentor Lumuz",
-        role: "Home Office · Gestão Orçamentária",
-        avatar: "💻",
+        title: "Capítulo 2: O Orçamento da Casa (A Regra 50/30/20)",
+        npc: "Mentor LumuzIA",
+        role: "Sua Casa · Gestão Orçamentária",
+        avatar: "🏠",
         zone: "home",
         targetX: 470,
-        targetY: 170,
-        intro: "Com os R$ 1.830 líquidos em mãos, você precisa pagar transporte, alimentação e ajudar em casa, mas também quer sair no fim de semana com os amigos e construir segurança.",
-        question: "Qual metodologia de divisão de gastos você adota?",
+        targetY: 260,
+        intro: "De volta à sua humilde casa na ilha, com os R$ 1.830 líquidos, é hora de organizar o lar: pagar comida, água, luz, internet e transporte, sem abrir mão do lazer e pensando no futuro.",
+        question: "Qual divisão você adota para os seus recursos?",
         choices: [
             {
                 letter: "A",
                 icon: "🎉",
-                title: "Viver no limite do mês a mês",
-                text: "Pagar apenas os boletos mais urgentes e torrar todo o resto em baladas, fast-food e compras por impulso sem guardar nada.",
+                title: "Viver no limite sem poupança",
+                text: "Pagar apenas os boletos mais urgentes e torrar todo o resto em saídas e compras por impulso.",
                 deltaBalance: -650,
                 deltaEmergency: 0,
                 deltaInvest: 0,
                 deltaHealth: -30,
                 deltaHappy: 5,
-                xp: 10,
+                xp: 15,
                 isOptimal: false,
                 feedback: "Viver sem poupança deixa você à mercê do menor imprevisto. Guardar pelo menos 15% a 20% é a chave para a tranquilidade e independência financeira."
             },
@@ -88,27 +88,27 @@ const MISSIONS = [
     },
     {
         id: 3,
-        title: "Missão 3: A Armadilha do Cartão de Crédito",
+        title: "Capítulo 3: A Armadilha do Cartão no Mercado",
         npc: "Amigo Lucas",
-        role: "Shopping Center · Tentação de Consumo",
+        role: "Mercado da Ilha · Tentação de Consumo",
         avatar: "☕",
-        zone: "shop",
-        targetX: 250,
-        targetY: 370,
-        intro: "O banco acaba de liberar um limite de R$ 5.000 no seu cartão! Seu amigo Lucas te convida para uma viagem caríssima com a galera: 'Joga tudo em 12x no cartão, depois a gente paga o mínimo da fatura!'.",
-        question: "Como você reage diante dessa tentação?",
+        zone: "market",
+        targetX: 740,
+        targetY: 210,
+        intro: "No mercado da ilha, o banco liberou R$ 5.000 de limite no seu cartão! Seu amigo Lucas te chama para comprar roupas de marca e jogos caros: 'Passa em 12x no cartão, depois a gente paga o mínimo da fatura!'.",
+        question: "Como você lida com essa oferta tentadora?",
         choices: [
             {
                 letter: "A",
                 icon: "💳",
                 title: "Aceitar e pagar o mínimo",
-                text: "Ir na empolgação, parcelar a viagem acima da renda e planejar pagar apenas o mínimo da fatura no mês que vem.",
+                text: "Ir na empolgação, parcelar compras supérfluas e pagar apenas o mínimo da fatura no mês seguinte.",
                 deltaBalance: -350,
                 deltaEmergency: 0,
                 deltaInvest: 0,
                 deltaHealth: -40,
                 deltaHappy: -20,
-                xp: 10,
+                xp: 15,
                 isOptimal: false,
                 feedback: "Alerta vermelho! Os juros do rotativo do cartão superam 400% ao ano no Brasil. Pagar o mínimo é a via mais rápida para a inadimplência e o endividamento crônico."
             },
@@ -116,7 +116,7 @@ const MISSIONS = [
                 letter: "B",
                 icon: "🛡️",
                 title: "Ajustar limite e pagar 100% à vista",
-                text: "Dizer 'não' para a viagem agora, reduzir o limite no aplicativo e usar o cartão apenas com valor total já disponível na conta.",
+                text: "Dizer 'não' para os impulsos, manter o limite alinhado ao seu ganho e pagar sempre 100% da fatura.",
                 deltaBalance: 0,
                 deltaEmergency: 0,
                 deltaInvest: 0,
@@ -130,27 +130,27 @@ const MISSIONS = [
     },
     {
         id: 4,
-        title: "Missão 4: O Imprevisto e a Reserva de Emergência",
-        npc: "Técnico da Loja",
-        role: "Assistência Técnica · Despesa Súbita",
-        avatar: "📱",
-        zone: "shop",
-        targetX: 680,
-        targetY: 370,
-        intro: "CRASH! A tela do seu celular se estilhaçou no chão. Você depende do aparelho para estudar, trabalhar e acessar seu banco. O conserto urgente custa R$ 300,00 à vista.",
-        question: "Qual recurso você utiliza para quitar o reparo?",
+        title: "Capítulo 4: O Temporal & A Reserva de Emergência",
+        npc: "Mestre Construtor",
+        role: "Oficina da Ilha · Imprevisto Urgente",
+        avatar: "⚒️",
+        zone: "workshop",
+        targetX: 300,
+        targetY: 420,
+        intro: "CRASH! Um temporal atingiu a ilha e quebrou o telhado da sua casa e suas ferramentas essenciais de trabalho. O conserto urgente custa R$ 300,00 à vista.",
+        question: "De onde você retira o dinheiro para resolver o dano?",
         choices: [
             {
                 letter: "A",
                 icon: "⚠️",
                 title: "Entrar no Cheque Especial",
-                text: "Utilizar o limite de cheque especial do banco pagando tarifas e juros diários exorbitantes por não ter guardado nada.",
+                text: "Usar o cheque especial do banco pagando tarifas e juros diários exorbitantes por não ter reserva.",
                 deltaBalance: -390,
                 deltaEmergency: 0,
                 deltaInvest: 0,
                 deltaHealth: -35,
                 deltaHappy: -25,
-                xp: 10,
+                xp: 15,
                 isOptimal: false,
                 feedback: "Sem reserva, o imprevisto virou dívida cara. O cheque especial cobra taxas altíssimas e corrói a renda do trabalhador rapidamente."
             },
@@ -172,21 +172,21 @@ const MISSIONS = [
     },
     {
         id: 5,
-        title: "Missão 5: O Poder dos Juros Compostos (Primeiros Investimentos)",
-        npc: "Mentor Financeiro",
-        role: "Banco & Corretora · Multiplicação de Patrimônio",
+        title: "Capítulo 5: A Expansão: O Poder dos Juros Compostos",
+        npc: "Banqueiro Lumuz",
+        role: "Banco Central da Ilha · Multiplicação de Renda",
         avatar: "📈",
         zone: "bank",
-        targetX: 790,
-        targetY: 170,
-        intro: "Parabéns! Suas dívidas estão zeradas, despesas controladas e a reserva estabelecida. Sobraram R$ 400,00 este mês. Chegou a hora de colocar o dinheiro para render acima da inflação!",
-        question: "Onde você decide aplicar esses primeiros recursos?",
+        targetX: 720,
+        targetY: 420,
+        intro: "Parabéns! Sua casa está consertada, dívidas zeradas e a reserva montada. Você poupou R$ 400,00 este mês. Chegou a hora de investir no Banco Central da Ilha para bater a inflação!",
+        question: "Qual destino você dá a este primeiro aporte?",
         choices: [
             {
                 letter: "A",
                 icon: "🎲",
-                title: "Poupança tradicional ou apostas",
-                text: "Deixar tudo na poupança antiga (que perde para o IPCA) ou apostar em promessas de retorno fácil de influenciadores.",
+                title: "Poupança antiga ou apostas 'bets'",
+                text: "Deixar na poupança (que perde para o IPCA) ou colocar em apostas online esperando retorno fácil.",
                 deltaBalance: -400,
                 deltaEmergency: 0,
                 deltaInvest: 150,
@@ -200,13 +200,13 @@ const MISSIONS = [
                 letter: "B",
                 icon: "🌱",
                 title: "Tesouro Selic e CDB 100% CDI",
-                text: "Investir em títulos do Tesouro Selic e CDB com liquidez e rendimento de 100% do CDI, iniciando a mágica dos juros compostos.",
+                text: "Investir em títulos do Tesouro Selic e CDB com liquidez e rendimento de 100% do CDI, ativando os juros compostos.",
                 deltaBalance: -400,
                 deltaEmergency: 0,
                 deltaInvest: 400,
                 deltaHealth: 40,
                 deltaHappy: 30,
-                xp: 70,
+                xp: 75,
                 isOptimal: true,
                 feedback: "Sensacional, investidor! Você ativou a engrenagem mais poderosa das finanças: os juros compostos a seu favor. Com disciplina, seu patrimônio crescerá de forma sólida e protegida!"
             }
@@ -259,7 +259,7 @@ class SoundEngine {
         setTimeout(() => this.playTone(220.00, "sawtooth", 0.25, 0.18), 110);
     }
     click() {
-        this.playTone(650, "sine", 0.04, 0.08);
+        this.playTone(700, "sine", 0.04, 0.08);
     }
 }
 
@@ -267,6 +267,7 @@ export class FinancialGame2D {
     constructor(canvas, uiContainer) {
         this.canvas = canvas;
         this.ctx = canvas.getContext("2d");
+        this.ctx.imageSmoothingEnabled = false;
         this.ui = uiContainer;
         this.sound = new SoundEngine();
 
@@ -274,31 +275,43 @@ export class FinancialGame2D {
             balance: 1830.0,
             emergency: 200.0,
             investments: 0.0,
-            health: 60,
+            health: 70,
+            maxHealth: 75,
             happiness: 75,
             xp: 0,
             currentMissionIndex: 0,
-            completed: false
+            completed: false,
+            selectedHotbar: 0
         };
 
         this.player = {
-            x: 470,
-            y: 230,
-            targetX: 470,
-            targetY: 230,
-            speed: 3.8,
+            x: 430,
+            y: 300,
+            targetX: 430,
+            targetY: 300,
+            speed: 3.6,
             direction: "down",
             moving: false,
-            frame: 0,
-            blinkTimer: 0,
-            isBlinking: false
+            frame: 0
         };
+
+        this.hotbarItems = [
+            { icon: "📱", name: "Celular Lumuz" },
+            { icon: "💼", name: "Carteira CLT" },
+            { icon: "💳", name: "Cartão de Crédito" },
+            { icon: "🛡️", name: "Reserva Emergência" },
+            { icon: "📈", name: "Tesouro & Ações" }
+        ];
 
         this.keys = {};
         this.floatingTexts = [];
         this.clickRipples = [];
         this.animId = null;
         this.isModalOpen = false;
+
+        // Entidades animadas do mundo pixel art
+        this.bee = { x: 390, y: 190, baseX: 390, baseY: 190, angle: 0 };
+        this.fish = { x: 580, y: 120, jump: 0, timer: 0 };
 
         this.init();
     }
@@ -321,6 +334,10 @@ export class FinancialGame2D {
             if (["arrowdown", "s"].includes(code)) this.keys.down = true;
             if (["arrowleft", "a"].includes(code)) this.keys.left = true;
             if (["arrowright", "d"].includes(code)) this.keys.right = true;
+            if (["1", "2", "3", "4", "5"].includes(e.key)) {
+                this.state.selectedHotbar = parseInt(e.key) - 1;
+                this.sound.click();
+            }
             if (["e", " ", "enter"].includes(code)) {
                 this.tryInteract();
             }
@@ -334,7 +351,6 @@ export class FinancialGame2D {
             if (["arrowright", "d"].includes(code)) this.keys.right = false;
         });
 
-        // Clique ou toque no canvas para guiar Alex com efeito visual de ripple
         this.canvas.addEventListener("pointerdown", e => {
             if (this.isModalOpen) return;
             const rect = this.canvas.getBoundingClientRect();
@@ -343,8 +359,23 @@ export class FinancialGame2D {
             const clickX = (e.clientX - rect.left) * scaleX;
             const clickY = (e.clientY - rect.top) * scaleY;
 
-            this.player.targetX = Math.max(30, Math.min(this.canvas.width - 30, clickX));
-            this.player.targetY = Math.max(50, Math.min(this.canvas.height - 40, clickY));
+            // Verificar clique na hotbar (área inferior central)
+            const hotbarY = this.canvas.height - 52;
+            const hotbarXStart = this.canvas.width / 2 - 125;
+            if (clickY >= hotbarY - 6 && clickY <= hotbarY + 44) {
+                for (let i = 0; i < 5; i++) {
+                    const slotX = hotbarXStart + i * 50;
+                    if (clickX >= slotX && clickX <= slotX + 44) {
+                        this.state.selectedHotbar = i;
+                        this.sound.click();
+                        return;
+                    }
+                }
+            }
+
+            // Mover jogador
+            this.player.targetX = Math.max(80, Math.min(this.canvas.width - 80, clickX));
+            this.player.targetY = Math.max(90, Math.min(this.canvas.height - 90, clickY));
 
             this.clickRipples.push({
                 x: clickX,
@@ -378,7 +409,7 @@ export class FinancialGame2D {
     update(dt) {
         if (this.isModalOpen) return;
 
-        // Movimentação por teclado
+        // Movimentação
         let dx = 0;
         let dy = 0;
         if (this.keys.up) dy -= 1;
@@ -416,24 +447,28 @@ export class FinancialGame2D {
             }
         }
 
-        // Limites do canvas
-        this.player.x = Math.max(30, Math.min(this.canvas.width - 30, this.player.x));
-        this.player.y = Math.max(60, Math.min(this.canvas.height - 40, this.player.y));
+        // Limites na ilha
+        this.player.x = Math.max(90, Math.min(this.canvas.width - 90, this.player.x));
+        this.player.y = Math.max(100, Math.min(this.canvas.height - 85, this.player.y));
 
         if (this.player.moving) {
-            this.player.frame += dt * 11;
+            this.player.frame += dt * 10;
         } else {
             this.player.frame = 0;
         }
 
-        // Controle do piscar de olhos
-        this.player.blinkTimer += dt;
-        if (this.player.blinkTimer > 3.5) {
-            this.player.isBlinking = true;
-            if (this.player.blinkTimer > 3.65) {
-                this.player.isBlinking = false;
-                this.player.blinkTimer = 0;
-            }
+        // Animação da abelha voando em loop
+        this.bee.angle += dt * 3;
+        this.bee.x = this.bee.baseX + Math.cos(this.bee.angle) * 22;
+        this.bee.y = this.bee.baseY + Math.sin(this.bee.angle * 2) * 12;
+
+        // Animação do peixe saltando na água
+        this.fish.timer += dt;
+        if (this.fish.timer > 4.0) {
+            this.fish.jump = Math.sin((this.fish.timer - 4.0) * Math.PI) * 18;
+            if (this.fish.timer > 5.0) this.fish.timer = 0;
+        } else {
+            this.fish.jump = 0;
         }
 
         // Textos flutuantes
@@ -445,7 +480,7 @@ export class FinancialGame2D {
 
         // Ripples de clique
         this.clickRipples.forEach(r => {
-            r.radius += dt * 38;
+            r.radius += dt * 36;
             r.alpha -= dt * 1.8;
         });
         this.clickRipples = this.clickRipples.filter(r => r.alpha > 0);
@@ -455,7 +490,7 @@ export class FinancialGame2D {
         this.floatingTexts.push({
             text,
             x: this.player.x,
-            y: this.player.y - 38,
+            y: this.player.y - 36,
             color,
             alpha: 1.0
         });
@@ -466,31 +501,60 @@ export class FinancialGame2D {
         const w = this.canvas.width;
         const h = this.canvas.height;
 
-        // Fundo ardósia profundo com blueprint de alta resolução
-        ctx.fillStyle = "#080D0F";
+        ctx.imageSmoothingEnabled = false;
+
+        // 1. ÁGUA DO OCEANO (AZUL VIBRANTE FORAGER)
+        ctx.fillStyle = "#2CA5F5";
         ctx.fillRect(0, 0, w, h);
 
-        // Grid sutil no chão do mapa
-        ctx.strokeStyle = "rgba(111, 231, 221, 0.04)";
-        ctx.lineWidth = 1;
-        for (let x = 0; x < w; x += 32) {
-            ctx.beginPath();
-            ctx.moveTo(x, 0);
-            ctx.lineTo(x, h);
-            ctx.stroke();
-        }
-        for (let y = 0; y < h; y += 32) {
-            ctx.beginPath();
-            ctx.moveTo(0, y);
-            ctx.lineTo(w, y);
-            ctx.stroke();
-        }
+        // Ondas / reflexos pixelados na água
+        this.drawWaterWaves(w, h);
 
-        // Efeitos de ripples de clique
+        // 2. ILHA DE TERRA E GRAMA VERDE VIBRANTE COM BORDAS ESCALONADAS
+        this.drawPixelIsland();
+
+        // 3. ESTRUTURAS & CONSTRUÇÕES NA ILHA
+        // Casa do Alex (estilo idêntico à foto de referência)
+        this.drawPixelHouse(410, 200);
+
+        // Empresa / Trabalho (à esquerda)
+        this.drawPixelCompany(190, 110);
+
+        // Mercado / Comércio (à direita superior)
+        this.drawPixelMarket(680, 150);
+
+        // Banco Lumuz (à direita inferior)
+        this.drawPixelBank(660, 360);
+
+        // Oficina / Construtor (à esquerda inferior)
+        this.drawPixelWorkshop(240, 360);
+
+        // 4. ELEMENTOS DA NATUREZA (Árvores redondas, pedras, tocos, arbustos)
+        this.drawPixelTree(360, 60);
+        this.drawPixelTree(640, 80);
+        this.drawPixelTree(800, 260);
+        this.drawPixelTree(120, 240);
+        this.drawPixelTree(420, 430);
+
+        this.drawPixelRock(100, 160);
+        this.drawPixelRock(830, 160);
+        this.drawPixelStump(520, 320);
+        this.drawPixelStump(180, 440);
+
+        this.drawPixelBush(370, 340);
+        this.drawPixelBush(570, 340);
+        this.drawPixelBush(840, 370);
+        this.drawPixelBush(140, 340);
+
+        // 5. CRIATURAS VIVAS (Abelha voando e peixe na água)
+        this.drawBee(this.bee.x, this.bee.y);
+        this.drawFish(this.fish.x, this.fish.y, this.fish.jump);
+
+        // Efeito de clique no mapa
         this.clickRipples.forEach(r => {
             ctx.save();
             ctx.globalAlpha = Math.max(0, r.alpha);
-            ctx.strokeStyle = "#6FE7DD";
+            ctx.strokeStyle = "#FFFFFF";
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
@@ -498,382 +562,521 @@ export class FinancialGame2D {
             ctx.restore();
         });
 
-        // 1. ZONA 1: ESCRITÓRIO / RH (PRIMEIRO EMPREGO)
-        this.drawOfficeZone(35, 45, 275, 195);
-
-        // 2. ZONA 2: QUARTO DO ALEX (HOME OFFICE / ORÇAMENTO)
-        this.drawHomeZone(342, 45, 275, 195);
-
-        // 3. ZONA 3: BANCO & CORRETORA LUMUZ (INVESTIMENTOS)
-        this.drawBankZone(650, 45, 275, 195);
-
-        // 4. ZONA 4: CENTRO COMERCIAL & SHOPPING (TENTAÇÕES & REPARO)
-        this.drawShoppingZone(35, 260, 890, 195);
-
-        // Pontos de Missão e NPCs
-        this.drawRichNPC(180, 170, "Chefe do RH", "👔", "#4382B8", 1);
-        this.drawRichNPC(470, 170, "LumuzIA App", "💻", "#6FE7DD", 2);
-        this.drawRichNPC(790, 170, "Mentor Invest", "📈", "#7CE7A9", 5);
-        this.drawRichNPC(250, 370, "Amigo Lucas", "☕", "#F28B82", 3);
-        this.drawRichNPC(680, 370, "Técnico Loja", "📱", "#FDD663", 4);
-
-        // Verificar proximidade e desenhar Prompt Interativo
+        // 6. NPCs E BALÕES DE MISSÃO
         const curMission = MISSIONS[this.state.currentMissionIndex];
+        this.drawNPC(250, 170, "Chefe RH", "👔", 1);
+        this.drawNPC(470, 260, "Sua Casa", "🏠", 2);
+        this.drawNPC(740, 210, "Lucas", "☕", 3);
+        this.drawNPC(300, 420, "Oficina", "⚒️", 4);
+        this.drawNPC(720, 420, "Banco", "📈", 5);
+
+        // Balão de interação se estiver perto
         if (curMission && !this.state.completed && !this.isModalOpen) {
             const dist = Math.hypot(this.player.x - curMission.targetX, this.player.y - curMission.targetY);
-            if (dist < 65) {
-                this.drawInteractiveBeacon(curMission.targetX, curMission.targetY, `[ E ] Falar com ${curMission.npc}`);
+            if (dist < 75) {
+                this.drawInteractionPrompt(curMission.targetX, curMission.targetY - 50, `[ E ] Falar com ${curMission.npc}`);
             }
         }
 
-        // Desenhar Personagem Alex
-        this.drawAlex(this.player.x, this.player.y);
+        // 7. PERSONAGEM ALEX (Estilo Pixel Art Forager / RPG)
+        this.drawPixelPlayer(this.player.x, this.player.y);
 
-        // Textos flutuantes (+R$ 1.830, XP etc)
+        // 8. TEXTOS FLUTUANTES
         this.floatingTexts.forEach(ft => {
             ctx.save();
             ctx.globalAlpha = Math.max(0, ft.alpha);
             ctx.font = "bold 14px 'Space Mono', monospace";
             ctx.fillStyle = ft.color;
             ctx.shadowColor = "#000";
-            ctx.shadowBlur = 8;
+            ctx.shadowBlur = 6;
             ctx.textAlign = "center";
             ctx.fillText(ft.text, ft.x, ft.y);
             ctx.restore();
         });
+
+        // 9. HUD PIXEL ART NA TELA (Estilo idêntico à imagem enviada pelo usuário)
+        this.drawPixelHUDOverlay();
     }
 
-    drawOfficeZone(x, y, w, h) {
+    drawWaterWaves(w, h) {
         const ctx = this.ctx;
-        // Piso corporativo xadrez
-        ctx.fillStyle = "#101B20";
-        ctx.beginPath();
-        ctx.roundRect(x, y, w, h, 14);
-        ctx.fill();
-
-        ctx.strokeStyle = "rgba(67, 130, 184, 0.4)";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-
-        // Linha divisória de parede no topo
-        ctx.fillStyle = "#15242B";
-        ctx.fillRect(x + 1, y + 1, w - 2, 38);
-
-        ctx.font = "bold 13px 'Plus Jakarta Sans', sans-serif";
-        ctx.fillStyle = "#CAD5D8";
-        ctx.fillText("🏢 Escritório de RH · Emprego", x + 14, y + 24);
-
-        // Mesa de trabalho em L
-        ctx.fillStyle = "#22353E";
-        ctx.beginPath();
-        ctx.roundRect(x + 130, y + 130, 95, 45, 6);
-        ctx.fill();
-        ctx.fillStyle = "#334C58";
-        ctx.fillRect(x + 140, y + 135, 30, 20); // Monitor
-        ctx.fillStyle = "#6FE7DD";
-        ctx.fillRect(x + 143, y + 137, 24, 14); // Tela acesa
-
-        // Bebedouro de água
-        ctx.fillStyle = "#CAD5D8";
-        ctx.fillRect(x + 22, y + 55, 18, 30);
-        ctx.fillStyle = "#4382B8";
-        ctx.beginPath();
-        ctx.arc(x + 31, y + 54, 7, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Planta decorativa
-        ctx.fillStyle = "#7D5335";
-        ctx.fillRect(x + 235, y + 55, 16, 16);
-        ctx.fillStyle = "#43CD82";
-        ctx.beginPath();
-        ctx.arc(x + 243, y + 52, 12, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillStyle = "#6CD4FF";
+        const t = performance.now() * 0.002;
+        for (let i = 0; i < 18; i++) {
+            const wx = ((i * 73 + t * 25) % w);
+            const wy = (i * 37) % h;
+            ctx.fillRect(wx, wy, 16, 3);
+            ctx.fillRect(wx + 8, wy + 4, 10, 2);
+        }
     }
 
-    drawHomeZone(x, y, w, h) {
+    drawPixelIsland() {
         const ctx = this.ctx;
-        // Piso de madeira acolhedor
-        ctx.fillStyle = "#181D20";
+        // Borda de terra/sombra da ilha (verde escuro pixelado)
+        ctx.fillStyle = "#369E1C";
         ctx.beginPath();
-        ctx.roundRect(x, y, w, h, 14);
+        // Contorno escalonado da ilha principal
+        ctx.rect(70, 70, 820, 400);
         ctx.fill();
 
-        ctx.strokeStyle = "rgba(111, 231, 221, 0.4)";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
+        // Superfície de grama verde vibrante (#5BE236)
+        ctx.fillStyle = "#5BE236";
+        ctx.fillRect(75, 75, 810, 390);
 
-        // Parede topo
-        ctx.fillStyle = "#1F282C";
-        ctx.fillRect(x + 1, y + 1, w - 2, 38);
+        // Recortes de água nos cantos para formato orgânico estilo Forager
+        ctx.fillStyle = "#2CA5F5";
+        ctx.fillRect(70, 70, 60, 50);
+        ctx.fillRect(830, 70, 60, 60);
+        ctx.fillRect(70, 410, 70, 60);
+        ctx.fillRect(820, 410, 70, 60);
 
-        ctx.font = "bold 13px 'Plus Jakarta Sans', sans-serif";
-        ctx.fillStyle = "#EAEFEF";
-        ctx.fillText("🏠 Quarto do Alex · Orçamento", x + 14, y + 24);
+        // Pequenas gramas e flores pixel art
+        ctx.fillStyle = "#43BA22";
+        for (let i = 0; i < 40; i++) {
+            const gx = 100 + ((i * 67) % 760);
+            const gy = 100 + ((i * 47) % 340);
+            ctx.fillRect(gx, gy, 4, 6);
+            ctx.fillRect(gx + 3, gy + 2, 3, 4);
+        }
 
-        // Tapete geométrico
-        ctx.fillStyle = "rgba(111, 231, 221, 0.08)";
-        ctx.beginPath();
-        ctx.roundRect(x + 70, y + 100, 135, 75, 10);
-        ctx.fill();
-
-        // Cama de solteiro
-        ctx.fillStyle = "#2D3F47";
-        ctx.beginPath();
-        ctx.roundRect(x + 20, y + 60, 60, 95, 6);
-        ctx.fill();
-        ctx.fillStyle = "#CAD5D8";
-        ctx.fillRect(x + 26, y + 66, 48, 22); // Travesseiro
-        ctx.fillStyle = "#3974B8";
-        ctx.fillRect(x + 20, y + 94, 60, 61); // Coberta
-
-        // Mesa de estudos com tela LumuzIA
-        ctx.fillStyle = "#2B2621";
-        ctx.beginPath();
-        ctx.roundRect(x + 145, y + 60, 90, 42, 6);
-        ctx.fill();
-
-        // Monitor com brilho verde
-        ctx.fillStyle = "#0c1315";
-        ctx.fillRect(x + 165, y + 64, 38, 24);
-        ctx.fillStyle = "#7CE7A9";
-        ctx.fillRect(x + 168, y + 67, 32, 18);
-
-        // Abajur com halo de luz
-        const lampX = x + 215;
-        const lampY = y + 74;
-        const grad = ctx.createRadialGradient(lampX, lampY, 3, lampX, lampY, 35);
-        grad.addColorStop(0, "rgba(253, 214, 99, 0.4)");
-        grad.addColorStop(1, "rgba(253, 214, 99, 0)");
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(lampX, lampY, 35, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    drawBankZone(x, y, w, h) {
-        const ctx = this.ctx;
-        // Piso mármore tecnológico
-        ctx.fillStyle = "#0F1E1B";
-        ctx.beginPath();
-        ctx.roundRect(x, y, w, h, 14);
-        ctx.fill();
-
-        ctx.strokeStyle = "rgba(124, 231, 169, 0.4)";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-
-        ctx.fillStyle = "#142A25";
-        ctx.fillRect(x + 1, y + 1, w - 2, 38);
-
-        ctx.font = "bold 13px 'Plus Jakarta Sans', sans-serif";
-        ctx.fillStyle = "#7CE7A9";
-        ctx.fillText("🏦 Banco & Investimentos", x + 14, y + 24);
-
-        // Terminal ATM de autoatendimento
-        ctx.fillStyle = "#1D3A33";
-        ctx.fillRect(x + 25, y + 60, 36, 52);
-        ctx.fillStyle = "#F2A65A";
-        ctx.fillRect(x + 30, y + 68, 26, 16);
-
-        // Cofre / Divisória de vidro com brilho
-        ctx.strokeStyle = "rgba(111, 231, 221, 0.5)";
-        ctx.strokeRect(x + 110, y + 60, 140, 8);
-
-        // Balcão de consultoria
-        ctx.fillStyle = "#1E3C34";
-        ctx.beginPath();
-        ctx.roundRect(x + 130, y + 130, 100, 40, 8);
-        ctx.fill();
-    }
-
-    drawShoppingZone(x, y, w, h) {
-        const ctx = this.ctx;
-        // Calçada urbana de paralelepípedo
-        ctx.fillStyle = "#141517";
-        ctx.beginPath();
-        ctx.roundRect(x, y, w, h, 14);
-        ctx.fill();
-
-        ctx.strokeStyle = "rgba(242, 166, 90, 0.35)";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-
-        // Letreiro comercial
-        ctx.fillStyle = "#1B1C20";
-        ctx.fillRect(x + 1, y + 1, w - 2, 38);
-
-        ctx.font = "bold 13px 'Plus Jakarta Sans', sans-serif";
-        ctx.fillStyle = "#F2A65A";
-        ctx.fillText("🛍️ Centro Comercial: Lojas, Shopping & Assistência Técnica", x + 18, y + 24);
-
-        // Vitrine Loja de Roupas & Eletrônicos (Lucas)
-        ctx.fillStyle = "#22252A";
-        ctx.beginPath();
-        ctx.roundRect(x + 40, y + 55, 230, 60, 8);
-        ctx.fill();
-        ctx.font = "bold 11px monospace";
-        ctx.fillStyle = "#F28B82";
-        ctx.fillText("💳 PROMOÇÃO: 12x SEM JUROS", x + 55, y + 85);
-
-        // Vitrine Assistência Técnica (Celular)
-        ctx.fillStyle = "#24252A";
-        ctx.beginPath();
-        ctx.roundRect(x + 580, y + 55, 260, 60, 8);
-        ctx.fill();
-        ctx.font = "bold 11px monospace";
+        // Flores amarelas
         ctx.fillStyle = "#FDD663";
-        ctx.fillText("📱 CONSERTO EXPRESS DE CELULARES", x + 595, y + 85);
+        ctx.fillRect(320, 240, 4, 4);
+        ctx.fillRect(610, 280, 4, 4);
+        ctx.fillRect(210, 320, 4, 4);
+    }
 
-        // Poste de luz com halo no centro
-        const postX = x + 440;
-        const postY = y + 80;
-        const grad = ctx.createRadialGradient(postX, postY, 5, postX, postY, 65);
-        grad.addColorStop(0, "rgba(242, 166, 90, 0.25)");
-        grad.addColorStop(1, "rgba(242, 166, 90, 0)");
-        ctx.fillStyle = grad;
+    drawPixelHouse(x, y) {
+        const ctx = this.ctx;
+        // Sombra da casa
+        ctx.fillStyle = "rgba(0, 0, 0, 0.25)";
+        ctx.fillRect(x - 65, y + 50, 130, 18);
+
+        // Parede frontal de madeira
+        ctx.fillStyle = "#C89467";
+        ctx.fillRect(x - 50, y - 10, 100, 60);
+
+        // Detalhes das tábuas de madeira
+        ctx.strokeStyle = "#A46F46";
+        ctx.lineWidth = 1.5;
+        for (let py = y; py <= y + 40; py += 12) {
+            ctx.beginPath();
+            ctx.moveTo(x - 50, py);
+            ctx.lineTo(x + 50, py);
+            ctx.stroke();
+        }
+
+        // Porta arqueada
+        ctx.fillStyle = "#8F4525";
         ctx.beginPath();
-        ctx.arc(postX, postY, 65, 0, Math.PI * 2);
+        ctx.roundRect(x - 14, y + 16, 28, 34, [10, 10, 0, 0]);
+        ctx.fill();
+        ctx.strokeStyle = "#4D210F";
+        ctx.stroke();
+        // Maçaneta
+        ctx.fillStyle = "#FDD663";
+        ctx.fillRect(x + 5, y + 32, 3, 3);
+
+        // Janela com cruz de madeira
+        ctx.fillStyle = "#6CD4FF";
+        ctx.fillRect(x + 22, y + 4, 18, 18);
+        ctx.strokeStyle = "#8F4525";
+        ctx.strokeRect(x + 22, y + 4, 18, 18);
+
+        // Telhado triangular de telhas cerâmicas vermelhas/alaranjadas
+        ctx.fillStyle = "#C94A29";
+        ctx.beginPath();
+        ctx.moveTo(x - 65, y - 5);
+        ctx.lineTo(x, y - 65);
+        ctx.lineTo(x + 65, y - 5);
+        ctx.closePath();
+        ctx.fill();
+
+        // Linhas de telhas
+        ctx.strokeStyle = "#9C3217";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x - 48, y - 18);
+        ctx.lineTo(x, y - 65);
+        ctx.lineTo(x + 48, y - 18);
+        ctx.stroke();
+
+        ctx.strokeStyle = "#5C1B0A";
+        ctx.stroke();
+
+        // Letreiro da Casa
+        ctx.font = "bold 11px monospace";
+        ctx.fillStyle = "#0c1315";
+        ctx.fillText("🏠 Sua Casa", x - 30, y + 62);
+    }
+
+    drawPixelCompany(x, y) {
+        const ctx = this.ctx;
+        ctx.fillStyle = "#2D4B66";
+        ctx.fillRect(x - 40, y - 20, 80, 55);
+        ctx.fillStyle = "#1E3347";
+        ctx.fillRect(x - 44, y - 30, 88, 12);
+        // Janelas iluminadas
+        ctx.fillStyle = "#FDD663";
+        ctx.fillRect(x - 28, y - 10, 16, 16);
+        ctx.fillRect(x + 12, y - 10, 16, 16);
+        // Porta
+        ctx.fillStyle = "#6FE7DD";
+        ctx.fillRect(x - 10, y + 14, 20, 21);
+        ctx.font = "bold 10px monospace";
+        ctx.fillStyle = "#EAEFEF";
+        ctx.fillText("🏢 CLT / RH", x - 26, y + 48);
+    }
+
+    drawPixelMarket(x, y) {
+        const ctx = this.ctx;
+        ctx.fillStyle = "#94623E";
+        ctx.fillRect(x - 35, y - 10, 70, 45);
+        // Toldo listrado vermelho e branco
+        ctx.fillStyle = "#D9382E";
+        ctx.fillRect(x - 40, y - 24, 80, 16);
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(x - 24, y - 24, 16, 16);
+        ctx.fillRect(x + 8, y - 24, 16, 16);
+        ctx.font = "bold 10px monospace";
+        ctx.fillStyle = "#0c1315";
+        ctx.fillText("🏪 Mercado", x - 28, y + 46);
+    }
+
+    drawPixelBank(x, y) {
+        const ctx = this.ctx;
+        // Colunas clássicas de banco
+        ctx.fillStyle = "#CAD5D8";
+        ctx.fillRect(x - 40, y - 20, 80, 52);
+        ctx.fillStyle = "#F2A65A";
+        ctx.fillRect(x - 44, y - 30, 88, 12); // Frontão
+        // Colunas
+        ctx.fillStyle = "#EAEFEF";
+        ctx.fillRect(x - 30, y - 18, 10, 48);
+        ctx.fillRect(x + 20, y - 18, 10, 48);
+        ctx.fillStyle = "#168B91";
+        ctx.fillRect(x - 10, y + 10, 20, 24); // Cofre
+        ctx.font = "bold 10px monospace";
+        ctx.fillStyle = "#0c1315";
+        ctx.fillText("🏦 Banco", x - 22, y + 44);
+    }
+
+    drawPixelWorkshop(x, y) {
+        const ctx = this.ctx;
+        ctx.fillStyle = "#7D5335";
+        ctx.fillRect(x - 35, y - 10, 70, 45);
+        ctx.fillStyle = "#334C58";
+        ctx.fillRect(x - 40, y - 22, 80, 14);
+        ctx.font = "bold 10px monospace";
+        ctx.fillStyle = "#0c1315";
+        ctx.fillText("⚒️ Oficina", x - 26, y + 46);
+    }
+
+    drawPixelTree(x, y) {
+        const ctx = this.ctx;
+        // Sombra
+        ctx.fillStyle = "rgba(0, 0, 0, 0.22)";
+        ctx.beginPath();
+        ctx.ellipse(x, y + 36, 18, 7, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Tronco
+        ctx.fillStyle = "#6B4423";
+        ctx.fillRect(x - 6, y + 8, 12, 28);
+        ctx.fillStyle = "#4A2E16";
+        ctx.fillRect(x - 6, y + 8, 4, 28);
+
+        // Copa da árvore redonda e fofa estilo Forager
+        ctx.fillStyle = "#3BB522";
+        ctx.beginPath();
+        ctx.arc(x, y, 26, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Destaque de luz no topo
+        ctx.fillStyle = "#65DE3C";
+        ctx.beginPath();
+        ctx.arc(x - 6, y - 7, 16, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Sombra inferior da copa
+        ctx.fillStyle = "#258213";
+        ctx.beginPath();
+        ctx.arc(x + 5, y + 9, 15, 0, Math.PI * 2);
         ctx.fill();
     }
 
-    drawRichNPC(x, y, name, avatar, badgeColor, missionId) {
+    drawPixelRock(x, y) {
+        const ctx = this.ctx;
+        ctx.fillStyle = "rgba(0, 0, 0, 0.2)";
+        ctx.fillRect(x - 22, y + 10, 44, 10);
+
+        ctx.fillStyle = "#94A4A8";
+        ctx.beginPath();
+        ctx.roundRect(x - 20, y - 16, 40, 26, 8);
+        ctx.fill();
+
+        ctx.fillStyle = "#CAD5D8";
+        ctx.fillRect(x - 14, y - 12, 10, 6); // Brilho
+
+        ctx.fillStyle = "#5E6E74";
+        ctx.fillRect(x + 4, y + 2, 12, 6); // Sombra
+    }
+
+    drawPixelStump(x, y) {
+        const ctx = this.ctx;
+        ctx.fillStyle = "#8F563B";
+        ctx.fillRect(x - 12, y - 4, 24, 18);
+        ctx.fillStyle = "#BA7D5D";
+        ctx.beginPath();
+        ctx.ellipse(x, y - 4, 12, 6, 0, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    drawPixelBush(x, y) {
+        const ctx = this.ctx;
+        ctx.fillStyle = "#258213";
+        ctx.beginPath();
+        ctx.arc(x, y, 14, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#43BA22";
+        ctx.beginPath();
+        ctx.arc(x - 3, y - 3, 9, 0, Math.PI * 2);
+        ctx.fill();
+        // Frutinhas vermelhas
+        ctx.fillStyle = "#D9382E";
+        ctx.fillRect(x - 4, y - 1, 3, 3);
+        ctx.fillRect(x + 3, y + 2, 3, 3);
+    }
+
+    drawBee(x, y) {
+        const ctx = this.ctx;
+        // Asas brancas translúcidas
+        ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+        ctx.beginPath();
+        ctx.ellipse(x - 3, y - 5, 5, 3, -0.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(x + 3, y - 5, 5, 3, 0.4, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Corpo amarelo e listras pretas
+        ctx.fillStyle = "#F5C438";
+        ctx.fillRect(x - 5, y - 3, 10, 7);
+        ctx.fillStyle = "#0c1315";
+        ctx.fillRect(x - 2, y - 3, 2, 7);
+        ctx.fillRect(x + 2, y - 3, 2, 7);
+    }
+
+    drawFish(x, y, jump) {
+        const ctx = this.ctx;
+        const fy = y - jump;
+        // Splash de água
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(x, y, 12 + jump * 0.3, 5 + jump * 0.15, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        if (jump > 2) {
+            ctx.fillStyle = "#E07438";
+            ctx.fillRect(x - 6, fy - 4, 12, 7);
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(x - 4, fy - 2, 2, 2);
+            // Cauda
+            ctx.fillStyle = "#C45B25";
+            ctx.fillRect(x + 6, fy - 2, 4, 4);
+        }
+    }
+
+    drawPixelPlayer(x, y) {
+        const ctx = this.ctx;
+        const walk = Math.sin(this.player.frame) * 4;
+
+        // Sombra
+        ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+        ctx.beginPath();
+        ctx.ellipse(x, y + 16, 12, 5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Pernas (calça azul jeans idêntica ao personagem da foto)
+        ctx.fillStyle = "#2B65C2";
+        ctx.fillRect(x - 6, y + 4, 5, 10 + (this.player.moving ? walk : 0));
+        ctx.fillRect(x + 1, y + 4, 5, 10 - (this.player.moving ? walk : 0));
+
+        // Tronco (camiseta vermelha clássica)
+        ctx.fillStyle = "#D9382E";
+        ctx.fillRect(x - 8, y - 10, 16, 15);
+
+        // Cabeça redonda estilo Forager
+        ctx.fillStyle = "#F5C498";
+        ctx.beginPath();
+        ctx.arc(x, y - 14, 9, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Olhos pretos simples
+        ctx.fillStyle = "#0c1315";
+        const eyeOffset = this.player.direction === "right" ? 2 : this.player.direction === "left" ? -2 : 0;
+        ctx.fillRect(x - 4 + eyeOffset, y - 15, 2, 3);
+        ctx.fillRect(x + 1 + eyeOffset, y - 15, 2, 3);
+
+        // Ferramenta na mão (vara de pesca ou celular)
+        ctx.strokeStyle = "#4A2E16";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x + 6, y - 2);
+        ctx.lineTo(x + 18, y - 16);
+        ctx.stroke();
+
+        // Indicador flutuante
+        ctx.font = "bold 10px monospace";
+        ctx.fillStyle = "#FFFFFF";
+        ctx.shadowColor = "#000";
+        ctx.shadowBlur = 4;
+        ctx.textAlign = "center";
+        ctx.fillText("Alex (Você)", x, y - 28);
+        ctx.textAlign = "left";
+    }
+
+    drawNPC(x, y, name, avatar, missionId) {
         const ctx = this.ctx;
         const isCurrent = (this.state.currentMissionIndex + 1) === missionId && !this.state.completed;
 
-        // Anéis de missão pulsantes no chão
         if (isCurrent) {
-            const pulse = (Math.sin(performance.now() * 0.007) + 1) * 8;
-            ctx.beginPath();
-            ctx.arc(x, y, 22 + pulse, 0, Math.PI * 2);
-            ctx.fillStyle = "rgba(242, 166, 90, 0.18)";
-            ctx.fill();
+            const pulse = (Math.sin(performance.now() * 0.007) + 1) * 6;
             ctx.strokeStyle = "#F2A65A";
-            ctx.lineWidth = 1.5;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(x, y + 8, 16 + pulse, 0, Math.PI * 2);
             ctx.stroke();
 
             // Marcador de exclamação animado
             const bob = Math.sin(performance.now() * 0.006) * 4;
             ctx.fillStyle = "#F2A65A";
             ctx.beginPath();
-            ctx.arc(x, y - 44 + bob, 12, 0, Math.PI * 2);
+            ctx.arc(x, y - 36 + bob, 10, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = "#0c1315";
-            ctx.font = "bold 14px monospace";
+            ctx.font = "bold 13px monospace";
             ctx.textAlign = "center";
-            ctx.fillText("!", x, y - 39 + bob);
+            ctx.fillText("!", x, y - 32 + bob);
         }
 
-        // Sombra
-        ctx.beginPath();
-        ctx.ellipse(x, y + 16, 18, 7, 0, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
-        ctx.fill();
-
-        // Corpo
-        ctx.fillStyle = badgeColor;
-        ctx.beginPath();
-        ctx.roundRect(x - 14, y - 16, 28, 28, 8);
-        ctx.fill();
-
-        // Cabeça
-        ctx.fillStyle = "#F5D0A9";
-        ctx.beginPath();
-        ctx.arc(x, y - 18, 12, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Emoji avatar no peito
-        ctx.font = "14px sans-serif";
+        ctx.font = "18px sans-serif";
         ctx.textAlign = "center";
-        ctx.fillText(avatar, x, y + 5);
+        ctx.fillText(avatar, x, y + 4);
 
-        // Tag de nome elegante
-        ctx.font = "bold 11px 'Plus Jakarta Sans', sans-serif";
-        ctx.fillStyle = "#CAD5D8";
-        ctx.fillText(name, x, y + 32);
+        ctx.font = "bold 10px monospace";
+        ctx.fillStyle = "#0c1315";
+        ctx.fillText(name, x, y + 22);
         ctx.textAlign = "left";
     }
 
-    drawAlex(x, y) {
-        const ctx = this.ctx;
-        const walkCycle = Math.sin(this.player.frame) * 5;
-
-        // Sombra suave sob os pés
-        ctx.beginPath();
-        ctx.ellipse(x, y + 18, 19, 7, 0, 0, Math.PI * 2);
-        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
-        ctx.fill();
-
-        // Pernas com animação de passada
-        ctx.fillStyle = "#1E2A30";
-        ctx.fillRect(x - 9, y + 6, 7, 12 + (this.player.moving ? walkCycle : 0));
-        ctx.fillRect(x + 2, y + 6, 7, 12 - (this.player.moving ? walkCycle : 0));
-
-        // Tênis com detalhe branco
-        ctx.fillStyle = "#EAEFEF";
-        ctx.fillRect(x - 10, y + 16 + (this.player.moving ? walkCycle : 0), 8, 4);
-        ctx.fillRect(x + 2, y + 16 - (this.player.moving ? walkCycle : 0), 8, 4);
-
-        // Tronco: Jaqueta verde esmeralda LumuzIA
-        ctx.fillStyle = "#43CD82";
-        ctx.beginPath();
-        ctx.roundRect(x - 15, y - 16, 30, 24, 7);
-        ctx.fill();
-
-        // Detalhe central da camiseta branca
-        ctx.fillStyle = "#EAEFEF";
-        ctx.fillRect(x - 4, y - 14, 8, 18);
-
-        // Mochila nas costas quando olhando para cima
-        if (this.player.direction === "up") {
-            ctx.fillStyle = "#2D3F47";
-            ctx.fillRect(x - 11, y - 12, 22, 16);
-        }
-
-        // Cabeça
-        ctx.fillStyle = "#F5D0A9";
-        ctx.beginPath();
-        ctx.arc(x, y - 20, 12, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Cabelo castanho com mecha estilizada
-        ctx.fillStyle = "#3B2618";
-        ctx.beginPath();
-        ctx.arc(x, y - 23, 13, Math.PI * 0.9, Math.PI * 2.1);
-        ctx.fill();
-
-        // Olhos expressivos e piscada
-        if (!this.player.isBlinking && this.player.direction !== "up") {
-            ctx.fillStyle = "#141C1E";
-            const eyeOffset = this.player.direction === "right" ? 3 : this.player.direction === "left" ? -3 : 0;
-            ctx.fillRect(x - 5 + eyeOffset, y - 21, 2.5, 3.5);
-            ctx.fillRect(x + 2.5 + eyeOffset, y - 21, 2.5, 3.5);
-        }
-
-        // Indicador flutuante do personagem
-        ctx.font = "bold 11px 'Space Mono', monospace";
-        ctx.fillStyle = "#6FE7DD";
-        ctx.textAlign = "center";
-        ctx.fillText("Alex (Você)", x, y - 38);
-        ctx.textAlign = "left";
-    }
-
-    drawInteractiveBeacon(x, y, text) {
+    drawInteractionPrompt(x, y, text) {
         const ctx = this.ctx;
         const bob = Math.sin(performance.now() * 0.007) * 4;
-        ctx.font = "bold 13px 'Plus Jakarta Sans', sans-serif";
-        const textWidth = ctx.measureText(text).width;
+        ctx.font = "bold 12px monospace";
+        const tw = ctx.measureText(text).width;
 
-        ctx.fillStyle = "rgba(14, 23, 26, 0.95)";
+        ctx.fillStyle = "#0c1315";
         ctx.strokeStyle = "#F2A65A";
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.roundRect(x - textWidth / 2 - 12, y - 56 + bob, textWidth + 24, 30, 8);
+        ctx.roundRect(x - tw / 2 - 10, y + bob, tw + 20, 26, 6);
         ctx.fill();
         ctx.stroke();
 
         ctx.fillStyle = "#F2A65A";
         ctx.textAlign = "center";
-        ctx.fillText(text, x, y - 36 + bob);
+        ctx.fillText(text, x, y + 17 + bob);
+        ctx.textAlign = "left";
+    }
+
+    drawPixelHUDOverlay() {
+        const ctx = this.ctx;
+        const w = this.canvas.width;
+
+        // TOP-LEFT: CRISTAL / GEMA AZUL & MOEDAS (IDÊNTICO À FOTO DE REFERÊNCIA)
+        ctx.fillStyle = "rgba(12, 19, 21, 0.85)";
+        ctx.strokeStyle = "#6CD4FF";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(14, 14, 150, 42, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        // Ícone Cristal Azul com cruz verde
+        ctx.fillStyle = "#32B3F7";
+        ctx.beginPath();
+        ctx.moveTo(34, 20);
+        ctx.lineTo(46, 35);
+        ctx.lineTo(34, 50);
+        ctx.lineTo(22, 35);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = "#43CD82";
+        ctx.fillRect(40, 36, 8, 8); // badge '+'
+
+        ctx.font = "bold 13px monospace";
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillText(`R$ ${this.state.balance.toFixed(0)}`, 56, 39);
+
+        // TOP-RIGHT: BARRA DE ENERGIA / SAÚDE VERMELHA RETRÔ (69/75 DA FOTO)
+        const barW = 140;
+        const barX = w - barW - 14;
+        ctx.fillStyle = "#D9382E";
+        ctx.fillRect(barX, 14, barW, 26);
+        ctx.strokeStyle = "#FFFFFF";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(barX, 14, barW, 26);
+
+        ctx.font = "bold 12px monospace";
+        ctx.fillStyle = "#FFFFFF";
+        ctx.textAlign = "center";
+        ctx.fillText(`${this.state.health}/${this.state.maxHealth}`, barX + barW / 2, 31);
+        ctx.textAlign = "left";
+
+        // Ícones de ação no topo direito (⚙️ 📦 🧑 ⚒️ 🎒)
+        const icons = ["🎒", "🛡️", "📈", "⛶"];
+        icons.forEach((ic, idx) => {
+            const ix = w - 165 - idx * 34;
+            ctx.fillStyle = "rgba(12, 19, 21, 0.8)";
+            ctx.fillRect(ix, 14, 28, 28);
+            ctx.strokeStyle = "#CAD5D8";
+            ctx.strokeRect(ix, 14, 28, 28);
+            ctx.font = "14px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(ic, ix + 14, 34);
+        });
+        ctx.textAlign = "left";
+
+        // BOTTOM-CENTER: HOTBAR DE ITENS (5 SLOTS RETRÔ COM SELETOR)
+        const hotbarY = this.canvas.height - 52;
+        const totalW = 5 * 50;
+        const startX = w / 2 - totalW / 2;
+
+        for (let i = 0; i < 5; i++) {
+            const slotX = startX + i * 50;
+            const isSelected = this.state.selectedHotbar === i;
+
+            ctx.fillStyle = isSelected ? "rgba(111, 231, 221, 0.4)" : "rgba(10, 16, 18, 0.85)";
+            ctx.fillRect(slotX, hotbarY, 44, 44);
+            ctx.strokeStyle = isSelected ? "#FFFFFF" : "rgba(255, 255, 255, 0.4)";
+            ctx.lineWidth = isSelected ? 2.5 : 1.5;
+            ctx.strokeRect(slotX, hotbarY, 44, 44);
+
+            // Colchetes no slot selecionado
+            if (isSelected) {
+                ctx.fillStyle = "#FFFFFF";
+                ctx.fillRect(slotX - 2, hotbarY - 2, 6, 2);
+                ctx.fillRect(slotX - 2, hotbarY - 2, 2, 6);
+                ctx.fillRect(slotX + 40, hotbarY - 2, 6, 2);
+                ctx.fillRect(slotX + 44, hotbarY - 2, 2, 6);
+            }
+
+            ctx.font = "20px sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText(this.hotbarItems[i].icon, slotX + 22, hotbarY + 30);
+        }
         ctx.textAlign = "left";
     }
 
@@ -883,12 +1086,12 @@ export class FinancialGame2D {
         if (!curMission) return;
 
         const dist = Math.hypot(this.player.x - curMission.targetX, this.player.y - curMission.targetY);
-        if (dist <= 75) {
+        if (dist <= 85) {
             this.openDecisionModal(curMission);
         } else {
             this.player.targetX = curMission.targetX;
-            this.player.targetY = curMission.targetY + 20;
-            this.addFloatingText("Caminhando até a missão...", "#F2A65A");
+            this.player.targetY = curMission.targetY + 15;
+            this.addFloatingText("Caminhando...", "#F2A65A");
         }
     }
 
@@ -916,7 +1119,7 @@ export class FinancialGame2D {
         if (avatarEl) avatarEl.textContent = mission.avatar || "💬";
         if (speakerEl) speakerEl.textContent = mission.npc;
         if (roleEl) roleEl.textContent = mission.role || "Educação Financeira";
-        if (missionTagEl) missionTagEl.textContent = `Missão ${mission.id} de 5`;
+        if (missionTagEl) missionTagEl.textContent = `Capítulo ${mission.id} de 5`;
         if (titleEl) titleEl.textContent = mission.title;
         if (descEl) descEl.textContent = mission.intro;
         if (questionEl) questionEl.textContent = mission.question;
@@ -950,11 +1153,10 @@ export class FinancialGame2D {
 
         if (optionsEl) optionsEl.hidden = true;
 
-        // Atualizar valores do jogo
         this.state.balance += choice.deltaBalance;
         this.state.emergency = Math.max(0, this.state.emergency + choice.deltaEmergency);
         this.state.investments = Math.max(0, this.state.investments + choice.deltaInvest);
-        this.state.health = Math.min(100, Math.max(0, this.state.health + choice.deltaHealth));
+        this.state.health = Math.min(this.state.maxHealth, Math.max(0, this.state.health + choice.deltaHealth));
         this.state.happiness = Math.min(100, Math.max(0, this.state.happiness + choice.deltaHappy));
         this.state.xp += choice.xp;
 
@@ -979,7 +1181,7 @@ export class FinancialGame2D {
                     <div><span>💰 Saldo:</span> <strong>R$ ${this.state.balance.toFixed(2)}</strong></div>
                     <div><span>🛡️ Reserva:</span> <strong>R$ ${this.state.emergency.toFixed(2)}</strong></div>
                     <div><span>📈 Investimentos:</span> <strong>R$ ${this.state.investments.toFixed(2)}</strong></div>
-                    <div><span>📊 Saúde:</span> <strong>${this.state.health}%</strong></div>
+                    <div><span>❤️ Saúde/Energia:</span> <strong>${this.state.health}/${this.state.maxHealth}</strong></div>
                 </div>
             `;
         }
@@ -1025,10 +1227,10 @@ export class FinancialGame2D {
         setTxt("gameHudEmergency", `R$ ${this.state.emergency.toFixed(2)}`);
         setTxt("gameHudInvest", `R$ ${this.state.investments.toFixed(2)}`);
         setTxt("gameHudXp", `${this.state.xp} XP`);
-        setTxt("gameHudHealthText", `${this.state.health}%`);
+        setTxt("gameHudHealthText", `${this.state.health}/${this.state.maxHealth}`);
         setTxt("gameHudHappyText", `${this.state.happiness}%`);
 
-        setWidth("gameHudHealthFill", this.state.health);
+        setWidth("gameHudHealthFill", (this.state.health / this.state.maxHealth) * 100);
         setWidth("gameHudHappyFill", this.state.happiness);
     }
 
@@ -1046,7 +1248,7 @@ export class FinancialGame2D {
             missionBox.innerHTML = `
                 <div class="mission-header-flex">
                     <div class="mission-steps-wrap">${stepsHtml}</div>
-                    <span class="mission-counter">Etapa ${curMission.id} de 5</span>
+                    <span class="mission-counter">Capítulo ${curMission.id} de 5</span>
                 </div>
                 <div class="mission-body-flex">
                     <div>
@@ -1073,12 +1275,12 @@ export class FinancialGame2D {
         if (missionBox) {
             missionBox.innerHTML = `
                 <div class="game-victory-card">
-                    <div class="victory-badge">🏆 Parabéns, Jovem Gestor!</div>
-                    <h3>Você dominou as 5 Etapas Fundamentais da Vida Financeira!</h3>
-                    <p>Você aprendeu a planejar pela Receita Líquida real, distribuir o orçamento com a regra 50/30/20, desviar da armadilha do cartão de crédito, montar sua reserva com liquidez diária e aplicar nos primeiros investimentos com juros compostos.</p>
+                    <div class="victory-badge">🏆 Parabéns, Conquistador da Ilha!</div>
+                    <h3>Você concluiu todos os capítulos da Vida Financeira!</h3>
+                    <p>Sua ilha agora prospera: você aprendeu a viver da Receita Líquida real, organizou seu lar com o 50/30/20, blindou seu nome contra os juros do cartão, socorreu emergências à vista e colhe os frutos dos juros compostos no Banco Lumuz!</p>
                     <div class="victory-stats-grid">
                         <div><span>Patrimônio Acumulado</span><strong>R$ ${(this.state.balance + this.state.emergency + this.state.investments).toFixed(2)}</strong></div>
-                        <div><span>Saúde Financeira</span><strong>${this.state.health}%</strong></div>
+                        <div><span>Saúde & Energia</span><strong>${this.state.health}/${this.state.maxHealth}</strong></div>
                         <div><span>XP Conquistado</span><strong>${this.state.xp} XP</strong></div>
                     </div>
                     <div class="victory-buttons-row">
@@ -1100,16 +1302,18 @@ export class FinancialGame2D {
             balance: 1830.0,
             emergency: 200.0,
             investments: 0.0,
-            health: 60,
+            health: 70,
+            maxHealth: 75,
             happiness: 75,
             xp: 0,
             currentMissionIndex: 0,
-            completed: false
+            completed: false,
+            selectedHotbar: 0
         };
-        this.player.x = 470;
-        this.player.y = 230;
-        this.player.targetX = 470;
-        this.player.targetY = 230;
+        this.player.x = 430;
+        this.player.y = 300;
+        this.player.targetX = 430;
+        this.player.targetY = 300;
         this.updateHUD();
         this.updateMissionUI();
         this.closeDecisionModal();
@@ -1117,7 +1321,7 @@ export class FinancialGame2D {
     }
 }
 
-// Inicialização da interface e alternância de modos
+// Inicializador da Página & Modo Tela Cheia (Fullscreen API)
 document.addEventListener("DOMContentLoaded", () => {
     const canvas = document.getElementById("financeGameCanvas");
     const container = document.getElementById("financeGameSection");
@@ -1150,7 +1354,44 @@ document.addEventListener("DOMContentLoaded", () => {
     btnModoJogo?.addEventListener("click", () => toggleMode("game"));
     btnModoTasks?.addEventListener("click", () => toggleMode("tasks"));
 
-    document.getElementById("btnVoltarTasksHeader")?.addEventListener("click", () => toggleMode("tasks"));
+    // Alternar Tela Cheia (Fullscreen API)
+    function toggleFullscreen() {
+        const target = container;
+        if (!document.fullscreenElement) {
+            if (target.requestFullscreen) {
+                target.requestFullscreen().catch(() => {});
+            } else if (target.webkitRequestFullscreen) {
+                target.webkitRequestFullscreen();
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen().catch(() => {});
+            }
+        }
+    }
+
+    document.getElementById("btnFullscreenGame")?.addEventListener("click", () => {
+        toggleMode("game");
+        setTimeout(toggleFullscreen, 80);
+    });
+    document.getElementById("btnToggleFullscreenCanvas")?.addEventListener("click", toggleFullscreen);
+    document.getElementById("btnExitFullscreenFloating")?.addEventListener("click", () => {
+        if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    });
+
+    document.addEventListener("fullscreenchange", () => {
+        const isFs = !!document.fullscreenElement;
+        container.classList.toggle("is-fullscreen-mode", isFs);
+        const exitBtn = document.getElementById("btnExitFullscreenFloating");
+        if (exitBtn) exitBtn.hidden = !isFs;
+        const fsBtnText = document.querySelector("#btnFullscreenGame .fs-text");
+        if (fsBtnText) fsBtnText.textContent = isFs ? "Sair da Tela Cheia" : "Modo História (Tela Cheia)";
+    });
+
+    document.getElementById("btnVoltarTasksHeader")?.addEventListener("click", () => {
+        if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+        toggleMode("tasks");
+    });
     document.getElementById("btnGameRestart")?.addEventListener("click", () => gameInstance?.restart());
 
     // D-Pad Mobile

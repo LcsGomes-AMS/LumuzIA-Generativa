@@ -717,6 +717,48 @@ body.education-task-open { overflow: hidden; }
     flex-wrap: wrap;
 }
 
+.game-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
+
+.story-mode-pill {
+    background: rgba(242, 166, 90, 0.15);
+    border: 1px solid rgba(242, 166, 90, 0.35);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+}
+
+.game-header-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.fullscreen-launch-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #188B91, #43CD82);
+    box-shadow: 0 0 20px rgba(67, 205, 130, 0.3);
+}
+
+.fullscreen-launch-btn:hover {
+    box-shadow: 0 0 28px rgba(67, 205, 130, 0.45);
+    transform: translateY(-1px);
+}
+
+.fs-icon {
+    font-size: 15px;
+}
+
 .game-title-group h2 {
     font-size: clamp(20px, 3vw, 28px);
     margin: 6px 0 8px;
@@ -903,8 +945,95 @@ body.education-task-open { overflow: hidden; }
     display: block;
     width: 100%;
     height: auto;
-    aspect-ratio: 960 / 480;
+    aspect-ratio: 960 / 540;
     cursor: pointer;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+}
+
+.game-fs-floating-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 2100;
+    background: rgba(14, 23, 26, 0.92);
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    transition: all 0.2s ease;
+}
+
+.game-fs-floating-close:hover {
+    background: var(--accent);
+    color: #0c1315;
+    transform: scale(1.05);
+}
+
+/* Modo Tela Cheia Real (Fullscreen API) */
+:fullscreen.finance-game-section,
+.finance-game-section:fullscreen,
+.finance-game-section:-webkit-full-screen,
+.finance-game-section.is-fullscreen-mode {
+    background: #080D0F !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    border-radius: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+:fullscreen .game-header-bar,
+.finance-game-section:fullscreen .game-header-bar,
+.finance-game-section.is-fullscreen-mode .game-header-bar,
+:fullscreen .game-hud-bar,
+.finance-game-section:fullscreen .game-hud-bar,
+.finance-game-section.is-fullscreen-mode .game-hud-bar,
+:fullscreen .game-mission-tracker,
+.finance-game-section:fullscreen .game-mission-tracker,
+.finance-game-section.is-fullscreen-mode .game-mission-tracker,
+:fullscreen .godot-source-banner,
+.finance-game-section:fullscreen .godot-source-banner,
+.finance-game-section.is-fullscreen-mode .godot-source-banner {
+    display: none !important;
+}
+
+:fullscreen .game-canvas-wrapper,
+.finance-game-section:fullscreen .game-canvas-wrapper,
+.finance-game-section.is-fullscreen-mode .game-canvas-wrapper {
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+:fullscreen #financeGameCanvas,
+.finance-game-section:fullscreen #financeGameCanvas,
+.finance-game-section.is-fullscreen-mode #financeGameCanvas {
+    width: 100vw !important;
+    height: calc(100vh - 46px) !important;
+    max-height: calc(100vh - 46px) !important;
+    object-fit: contain !important;
 }
 
 .game-canvas-controls {

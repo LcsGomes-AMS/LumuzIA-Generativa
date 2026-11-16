@@ -56,12 +56,19 @@
         <section id="financeGameSection" class="education-card finance-game-section" hidden aria-labelledby="financeGameTitle">
             <div class="game-header-bar">
                 <div class="game-title-group">
-                    <span class="education-eyebrow">Simulador Interativo 2D</span>
-                    <h2 id="financeGameTitle">A Vida Financeira de um Jovem: Do Primeiro Emprego aos Investimentos</h2>
-                    <p>Controle Alex, tome decisões do dia a dia, encare imprevistos, evite armadilhas de cartão e construa sua reserva com sabedoria!</p>
+                    <div class="game-badge-row">
+                        <span class="education-eyebrow">Modo História 2D · Pixel RPG</span>
+                        <span class="story-mode-pill">🎮 Inspirado em Forager & Stardew Valley</span>
+                    </div>
+                    <h2 id="financeGameTitle">A Jornada Financeira: Da Pequena Ilha à Liberdade</h2>
+                    <p>Explore a ilha, cuide da sua casa, trabalhe para receber seu salário, tome decisões no mercado, desvie de juros abusivos e construa seu império com investimentos!</p>
                 </div>
                 <div class="game-header-actions">
-                    <button id="btnVoltarTasksHeader" class="education-secondary-button" type="button">📋 Fazer Tasks da Trilha</button>
+                    <button id="btnFullscreenGame" class="education-primary-button fullscreen-launch-btn" type="button" title="Jogar em Tela Cheia">
+                        <span class="fs-icon">⛶</span>
+                        <span class="fs-text">Modo História (Tela Cheia)</span>
+                    </button>
+                    <button id="btnVoltarTasksHeader" class="education-secondary-button" type="button">📋 Ir para as Tasks</button>
                 </div>
             </div>
 
@@ -96,18 +103,21 @@
             <!-- Rastreador de Missão Atual -->
             <div id="gameMissionTracker" class="game-mission-tracker"></div>
 
-            <!-- Canvas 2D do Jogo -->
-            <div class="game-canvas-wrapper">
-                <canvas id="financeGameCanvas" width="960" height="480" tabindex="0" role="application" aria-label="Simulador 2D de Vida Financeira. Mova o personagem pelas áreas do mapa."></canvas>
+            <!-- Canvas 2D do Jogo (Estilo Ilha Pixel Art / Forager / RPG) -->
+            <div class="game-canvas-wrapper" id="gameCanvasWrapper">
+                <button id="btnExitFullscreenFloating" class="game-fs-floating-close" type="button" hidden>✕ Sair da Tela Cheia (ESC)</button>
+                <canvas id="financeGameCanvas" width="960" height="540" tabindex="0" role="application" aria-label="Simulador 2D Pixel Art de Vida Financeira. Explore a ilha com as setas ou WASD."></canvas>
                 <div class="game-canvas-controls">
                     <div class="game-hints">
-                        <span>⌨️ Teclado: <strong>Setas ou WASD</strong> para andar</span>
+                        <span>⌨️ <strong>Setas ou WASD</strong> para andar</span>
                         <span><strong>E ou Espaço</strong> para interagir</span>
-                        <span>🖱️ Toque ou clique no mapa para guiar o Alex</span>
+                        <span>🖱️ Clique no mapa para mover</span>
+                        <span>🎣 <strong>Clique nos locais</strong> para trabalhar, comprar e investir</span>
                     </div>
                     <div class="game-controls-actions">
+                        <button id="btnToggleFullscreenCanvas" type="button" class="game-ctrl-btn fs-btn">⛶ Tela Cheia</button>
                         <button id="btnToggleSound" type="button" class="game-ctrl-btn">🔊 Som Ativo</button>
-                        <button id="btnGameRestart" type="button" class="game-ctrl-btn">🔄 Reiniciar Jogo</button>
+                        <button id="btnGameRestart" type="button" class="game-ctrl-btn">🔄 Reiniciar</button>
                     </div>
                 </div>
             </div>
