@@ -39,6 +39,120 @@
             <div id="educationLevel" class="education-hero-badge">Sua jornada</div>
         </header>
 
+        <!-- Barra de Alternância de Modos: Tasks da Trilha vs Jogo 2D -->
+        <nav class="education-mode-switcher" role="tablist" aria-label="Modo de Educação Financeira">
+            <button id="btnModoTasks" class="mode-switch-btn is-active" type="button" role="tab" aria-selected="true" aria-controls="modoTasksContainer">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                <span>📋 Trilha & Tasks de Educação</span>
+            </button>
+            <button id="btnModoJogo" class="mode-switch-btn mode-switch-game" type="button" role="tab" aria-selected="false" aria-controls="financeGameSection">
+                <span class="game-btn-badge">NOVO JOGO 2D</span>
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="6"/><path d="M6 12h4m-2-2v4m10-2h.01m-3 0h.01"/></svg>
+                <span>🎮 Jogar Modo Vida Financeira 2D</span>
+            </button>
+        </nav>
+
+        <!-- MODO 2D: Jogo da Vida Financeira de um Jovem -->
+        <section id="financeGameSection" class="education-card finance-game-section" hidden aria-labelledby="financeGameTitle">
+            <div class="game-header-bar">
+                <div class="game-title-group">
+                    <span class="education-eyebrow">Simulador Interativo 2D</span>
+                    <h2 id="financeGameTitle">A Vida Financeira de um Jovem: Do Primeiro Emprego aos Investimentos</h2>
+                    <p>Controle Alex, tome decisões do dia a dia, encare imprevistos, evite armadilhas de cartão e construa sua reserva com sabedoria!</p>
+                </div>
+                <div class="game-header-actions">
+                    <button id="btnVoltarTasksHeader" class="education-secondary-button" type="button">📋 Fazer Tasks da Trilha</button>
+                </div>
+            </div>
+
+            <!-- HUD de Status Financeiro do Jogo -->
+            <div class="game-hud-bar">
+                <div class="hud-item">
+                    <span class="hud-label">💰 Saldo em Conta</span>
+                    <strong id="gameHudBalance" class="hud-val">R$ 1.830,00</strong>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">🛡️ Reserva de Emergência</span>
+                    <strong id="gameHudEmergency" class="hud-val">R$ 200,00</strong>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">📈 Investimentos</span>
+                    <strong id="gameHudInvest" class="hud-val">R$ 0,00</strong>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">⭐ XP do Jogo</span>
+                    <strong id="gameHudXp" class="hud-val accent">0 XP</strong>
+                </div>
+                <div class="hud-item progress-item">
+                    <div class="hud-split"><span>📊 Saúde Financeira</span><span id="gameHudHealthText">60%</span></div>
+                    <div class="game-bar-track"><span id="gameHudHealthFill" class="game-bar-fill health" style="width: 60%"></span></div>
+                </div>
+                <div class="hud-item progress-item">
+                    <div class="hud-split"><span>❤️ Bem-Estar</span><span id="gameHudHappyText">75%</span></div>
+                    <div class="game-bar-track"><span id="gameHudHappyFill" class="game-bar-fill happy" style="width: 75%"></span></div>
+                </div>
+            </div>
+
+            <!-- Rastreador de Missão Atual -->
+            <div id="gameMissionTracker" class="game-mission-tracker"></div>
+
+            <!-- Canvas 2D do Jogo -->
+            <div class="game-canvas-wrapper">
+                <canvas id="financeGameCanvas" width="960" height="480" tabindex="0" role="application" aria-label="Simulador 2D de Vida Financeira. Mova o personagem pelas áreas do mapa."></canvas>
+                <div class="game-canvas-controls">
+                    <div class="game-hints">
+                        <span>⌨️ Teclado: <strong>Setas ou WASD</strong> para andar</span>
+                        <span><strong>E ou Espaço</strong> para interagir</span>
+                        <span>🖱️ Toque ou clique no mapa para guiar o Alex</span>
+                    </div>
+                    <div class="game-controls-actions">
+                        <button id="btnToggleSound" type="button" class="game-ctrl-btn">🔊 Som Ativo</button>
+                        <button id="btnGameRestart" type="button" class="game-ctrl-btn">🔄 Reiniciar Jogo</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controles Direcionais na Tela (Mobile & Touch) -->
+            <div class="game-dpad-container" aria-label="Controles na tela">
+                <div class="dpad-grid">
+                    <div></div>
+                    <button class="game-dpad-btn" data-dir="up" type="button" aria-label="Andar para cima">▲</button>
+                    <div></div>
+                    <button class="game-dpad-btn" data-dir="left" type="button" aria-label="Andar para esquerda">◀</button>
+                    <button id="btnDpadInteract" class="game-dpad-btn interact-btn" type="button">Interagir (E)</button>
+                    <button class="game-dpad-btn" data-dir="right" type="button" aria-label="Andar para direita">▶</button>
+                    <div></div>
+                    <button class="game-dpad-btn" data-dir="down" type="button" aria-label="Andar para baixo">▼</button>
+                    <div></div>
+                </div>
+            </div>
+
+            <!-- Diálogo de Decisão e Feedback Educativo -->
+            <div id="gameDialogBox" class="game-dialog-card" hidden>
+                <div class="dialog-header">
+                    <span id="gameDialogSpeaker" class="dialog-speaker"></span>
+                    <h3 id="gameDialogTitle"></h3>
+                </div>
+                <p id="gameDialogDesc" class="dialog-desc"></p>
+                <p id="gameDialogQuestion" class="dialog-question"></p>
+                <div id="gameDialogOptions" class="game-dialog-options"></div>
+                <div id="gameDialogFeedback" class="game-feedback" hidden></div>
+                <button id="gameDialogContinue" class="education-primary-button" type="button" hidden>Continuar Jornada</button>
+            </div>
+
+            <!-- Banner do Projeto Godot 4 -->
+            <div class="godot-source-banner">
+                <div class="godot-badge">Godot Engine 4.x & GDScript</div>
+                <div class="godot-info">
+                    <strong>Código do Jogo em Godot (GDScript)</strong>
+                    <p>Você também encontra o projeto completo estruturado com scripts GDScript em <code>game_godot/</code> para abrir na engine Godot 4 e customizar!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTAINER DAS TASKS DA TRILHA DE APRENDIZADO -->
+        <div id="modoTasksContainer">
+
         <section class="education-summary" aria-label="Resumo de progresso">
             <article class="education-card streak-card">
                 <div class="education-card-heading">
@@ -126,10 +240,12 @@
                 </div>
             </dialog>
         </section>
+        </div><!-- /#modoTasksContainer -->
     </main>
 </div>
 
 <script type="module" src="./js/educacao.js"></script>
+<script type="module" src="./js/jogo-financeiro-2d.js"></script>
 <script src="./js/sidebar.js"></script>
 </body>
 </html>

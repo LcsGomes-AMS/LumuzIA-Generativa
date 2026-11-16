@@ -1,0 +1,108 @@
+[gd_scene load_steps=2 format=3 uid="uid://c7x2n1m4k8p9"]
+
+[ext_resource type="Script" path="res://scripts/HUD.gd" id="1_hud"]
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="TopBar" type="PanelContainer" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 54.0
+grow_horizontal = 2
+
+[node name="HBox" type="HBoxContainer" parent="TopBar"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="BalanceBox" type="HBoxContainer" parent="TopBar/HBox"]
+layout_mode = 2
+
+[node name="LblTitle" type="Label" parent="TopBar/HBox/BalanceBox"]
+layout_mode = 2
+text = "💰 Saldo:"
+
+[node name="LblBalance" type="Label" parent="TopBar/HBox/BalanceBox"]
+layout_mode = 2
+text = "R$ 1830.00"
+
+[node name="EmergencyBox" type="HBoxContainer" parent="TopBar/HBox"]
+layout_mode = 2
+
+[node name="LblTitle" type="Label" parent="TopBar/HBox/EmergencyBox"]
+layout_mode = 2
+text = "🛡️ Reserva:"
+
+[node name="LblEmergency" type="Label" parent="TopBar/HBox/EmergencyBox"]
+layout_mode = 2
+text = "R$ 200.00"
+
+[node name="InvestBox" type="HBoxContainer" parent="TopBar/HBox"]
+layout_mode = 2
+
+[node name="LblTitle" type="Label" parent="TopBar/HBox/InvestBox"]
+layout_mode = 2
+text = "📈 Invest:"
+
+[node name="LblInvest" type="Label" parent="TopBar/HBox/InvestBox"]
+layout_mode = 2
+text = "R$ 0.00"
+
+[node name="HealthBox" type="HBoxContainer" parent="TopBar/HBox"]
+layout_mode = 2
+
+[node name="LblTitle" type="Label" parent="TopBar/HBox/HealthBox"]
+layout_mode = 2
+text = "Saúde Financeira:"
+
+[node name="BarHealth" type="ProgressBar" parent="TopBar/HBox/HealthBox"]
+custom_minimum_size = Vector2(80, 20)
+layout_mode = 2
+value = 60.0
+
+[node name="HappyBox" type="HBoxContainer" parent="TopBar/HBox"]
+layout_mode = 2
+
+[node name="LblTitle" type="Label" parent="TopBar/HBox/HappyBox"]
+layout_mode = 2
+text = "Bem-Estar:"
+
+[node name="BarHappy" type="ProgressBar" parent="TopBar/HBox/HappyBox"]
+custom_minimum_size = Vector2(80, 20)
+layout_mode = 2
+value = 75.0
+
+[node name="XpBox" type="HBoxContainer" parent="TopBar/HBox"]
+layout_mode = 2
+
+[node name="LblXp" type="Label" parent="TopBar/HBox/XpBox"]
+layout_mode = 2
+text = "0 XP"
+
+[node name="MissionPanel" type="PanelContainer" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -320.0
+offset_top = 64.0
+offset_right = -12.0
+offset_bottom = 180.0
+grow_horizontal = 0
+
+[node name="VBox" type="VBoxContainer" parent="MissionPanel"]
+layout_mode = 2
+
+[node name="LblHeader" type="Label" parent="MissionPanel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94902, 0.65098, 0.352941, 1)
+text = "🎯 Missão Atual"
+
+[node name="LblTitle" type="Label" parent="MissionPanel/VBox"]
+layout_mode = 2
+text = "Missão 1: O Primeiro Salário"
+
+[node name="LblDesc" type="Label" parent="MissionPanel/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Aprenda a diferença entre Salário Bruto e Salário Líquido."
+

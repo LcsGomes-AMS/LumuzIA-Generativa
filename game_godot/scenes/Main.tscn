@@ -1,0 +1,101 @@
+[gd_scene load_steps=5 format=3 uid="uid://main_godot_scene"]
+
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://scenes/HUD.tscn" id="2_hud"]
+[ext_resource type="PackedScene" path="res://scenes/DialogBox.tscn" id="3_dialog"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(1024, 20)
+
+[node name="Main" type="Node2D"]
+
+[node name="Environment" type="Node2D" parent="."]
+
+[node name="BackgroundFloor" type="ColorRect" parent="Environment"]
+offset_right = 1024.0
+offset_bottom = 600.0
+color = Color(0.054902, 0.0823529, 0.0862745, 1)
+
+[node name="RoomWork" type="ColorRect" parent="Environment"]
+offset_left = 60.0
+offset_top = 80.0
+offset_right = 320.0
+offset_bottom = 260.0
+color = Color(0.0901961, 0.133333, 0.141176, 1)
+
+[node name="LblRoom1" type="Label" parent="Environment/RoomWork"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 8.0
+offset_right = 200.0
+offset_bottom = 31.0
+text = "🏢 Escritório / Primeiro Emprego"
+
+[node name="RoomHome" type="ColorRect" parent="Environment"]
+offset_left = 360.0
+offset_top = 80.0
+offset_right = 620.0
+offset_bottom = 260.0
+color = Color(0.0901961, 0.133333, 0.141176, 1)
+
+[node name="LblRoom2" type="Label" parent="Environment/RoomHome"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 8.0
+offset_right = 200.0
+offset_bottom = 31.0
+text = "🏠 Meu Quarto / Orçamento"
+
+[node name="RoomBank" type="ColorRect" parent="Environment"]
+offset_left = 660.0
+offset_top = 80.0
+offset_right = 960.0
+offset_bottom = 260.0
+color = Color(0.0901961, 0.133333, 0.141176, 1)
+
+[node name="LblRoom3" type="Label" parent="Environment/RoomBank"]
+layout_mode = 0
+offset_left = 12.0
+offset_top = 8.0
+offset_right = 260.0
+offset_bottom = 31.0
+text = "🏦 Banco & Investimentos Lumuz"
+
+[node name="CityStreet" type="ColorRect" parent="Environment"]
+offset_left = 40.0
+offset_top = 300.0
+offset_right = 980.0
+offset_bottom = 440.0
+color = Color(0.0705882, 0.105882, 0.113725, 1)
+
+[node name="LblStreet" type="Label" parent="Environment/CityStreet"]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 10.0
+offset_right = 360.0
+offset_bottom = 33.0
+text = "🛍️ Centro Comercial: Lojas & Tentações do Cartão"
+
+[node name="Boundaries" type="StaticBody2D" parent="."]
+
+[node name="WallTop" type="CollisionShape2D" parent="Boundaries"]
+position = Vector2(512, 10)
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="WallBottom" type="CollisionShape2D" parent="Boundaries"]
+position = Vector2(512, 590)
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+position = Vector2(480, 200)
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+limit_left = 0
+limit_top = 0
+limit_right = 1024
+limit_bottom = 600
+
+[node name="HUD" parent="." instance=ExtResource("2_hud")]
+
+[node name="DialogBox" parent="." instance=ExtResource("3_dialog")]
+

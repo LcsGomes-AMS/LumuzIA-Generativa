@@ -1,0 +1,56 @@
+[gd_scene load_steps=2 format=3 uid="uid://d3m8y2k7n9w1"]
+
+[ext_resource type="Script" path="res://scripts/DialogUI.gd" id="1_dialog"]
+
+[node name="DialogBox" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_dialog")
+
+[node name="Box" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -380.0
+offset_top = -220.0
+offset_right = 380.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="VBox" type="VBoxContainer" parent="Box"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LblSpeaker" type="Label" parent="Box/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.435294, 0.905882, 0.627451, 1)
+text = "💬 Mentor Financeiro"
+
+[node name="LblText" type="Label" parent="Box/VBox"]
+layout_mode = 2
+autowrap_mode = 3
+text = "Você recebeu sua primeira remuneração. O que você decide fazer?"
+
+[node name="ChoicesBox" type="VBoxContainer" parent="Box/VBox"]
+layout_mode = 2
+
+[node name="LblFeedback" type="Label" parent="Box/VBox"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.94902, 0.65098, 0.352941, 1)
+autowrap_mode = 3
+text = "Feedback da escolha"
+
+[node name="BtnNext" type="Button" parent="Box/VBox"]
+visible = false
+layout_mode = 2
+text = "Continuar Jornada"
+
