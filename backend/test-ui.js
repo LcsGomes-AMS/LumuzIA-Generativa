@@ -516,13 +516,23 @@ const cases = [
         await waitDOM("document.querySelector('#educationNotice').textContent.includes('Certificado emitido para Pessoa Educação')", "certificado no nome do perfil");
         assert.equal(await evaluate("window.__educationPdf"), "%PDF-");
     }],
-    ["Jogo 2D: animações da missão e preferência de movimento reduzido", async () => {
+    ["Jogo 2D: caminhada até a missão, animações e movimento reduzido", async () => {
         await goto("educacao.html", "!document.documentElement.hasAttribute('data-auth-pending')");
         await command("Emulation.setEmulatedMedia", {
             features: [{ name: "prefers-reduced-motion", value: "no-preference" }]
         });
         await click("#btnModoJogo");
-        await click("#btnAbrirDecisao");
+        await evaluate(`(() => {
+            const canvas = document.querySelector("#financeGameCanvas");
+            const rect = canvas.getBoundingClientRect();
+            const scale = Math.min(rect.width / canvas.width, rect.height / canvas.height);
+            canvas.dispatchEvent(new PointerEvent("pointerdown", {
+                clientX: rect.left + (rect.width - canvas.width * scale) / 2 + 250 * scale,
+                clientY: rect.top + (rect.height - canvas.height * scale) / 2 + 134 * scale
+            }));
+        })()`);
+        assert.equal(await evaluate("document.querySelector('#gameModalBackdrop').hidden"), true);
+        await waitDOM("!document.querySelector('#gameModalBackdrop').hidden", "chegar ao marcador e abrir a missão");
         assert.equal(await evaluate("getComputedStyle(document.querySelector('#gameDialogBox')).animationName"), "game-panel-reveal");
         await click("#gameDialogOptions button:nth-child(2)");
         assert.equal(await evaluate("getComputedStyle(document.querySelector('#gameDialogFeedback')).animationName"), "game-panel-reveal");

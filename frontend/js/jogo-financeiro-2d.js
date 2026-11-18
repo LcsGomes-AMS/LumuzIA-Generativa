@@ -302,7 +302,7 @@ export class FinancialGame2D {
             y: 300,
             targetX: 430,
             targetY: 300,
-            speed: 3.6,
+            speed: 216,
             direction: "down",
             moving: false,
             frame: 0
@@ -319,14 +319,13 @@ export class FinancialGame2D {
         this.keys = {};
         this.floatingTexts = [];
         this.clickRipples = [];
+        this.footsteps = [];
+        this.worldTime = 0;
+        this.arrivalMission = null;
         this.missionCelebration = null;
         this.missionProximity = 0;
         this.animId = null;
         this.isModalOpen = false;
-
-        // Entidades animadas do mundo pixel art
-        this.bee = { x: 390, y: 190, baseX: 390, baseY: 190, angle: 0 };
-        this.fish = { x: 580, y: 120, jump: 0, timer: 0 };
 
         this.init();
     }
@@ -407,15 +406,14 @@ export class FinancialGame2D {
                 }
             }
 
-            // Mover jogador
-            this.setTarget(clickX, clickY);
-
-            this.clickRipples.push({
-                x: clickX,
-                y: clickY,
-                radius: 4,
-                alpha: 1.0
-            });
+            const mission = MISSIONS[this.state.currentMissionIndex];
+            const onMission = mission && Math.abs(clickX - mission.targetX) < 24
+                && clickY >= mission.targetY - 50 && clickY <= mission.targetY + 22;
+            if (onMission) {
+                this.tryInteract();
+            } else {
+                this.setTarget(clickX, clickY);
+            }
 
             this.sound.init();
         });
@@ -427,15 +425,19 @@ export class FinancialGame2D {
         });
     }
 
-    setTarget(x, y) {
+    setTarget(x, y, mission = null) {
         this.player.targetX = Math.max(90, Math.min(this.canvas.width - 90, x));
         this.player.targetY = Math.max(100, Math.min(this.canvas.height - 85, y));
+        this.arrivalMission = mission;
+        this.clickRipples = [{
+            x: this.player.targetX, y: this.player.targetY, radius: 4, alpha: 1
+        }];
     }
 
     startLoop() {
         let lastTime = performance.now();
         const loop = (now) => {
-            const dt = Math.min((now - lastTime) / 1000, 0.05);
+            const dt = Math.max(0, Math.min((now - lastTime) / 1000, 0.05));
             lastTime = now;
             if (!this.ui.hidden) {
                 this.update(dt);
@@ -447,81 +449,29 @@ export class FinancialGame2D {
     }
 
     update(dt) {
+        this.worldTime += dt;
         if (this.isModalOpen) return;
 
-        // Movimentação
-        let dx = 0;
-        let dy = 0;
-        if (this.keys.up) dy -= 1;
-        if (this.keys.down) dy += 1;
-        if (this.keys.left) dx -= 1;
-        if (this.keys.right) dx += 1;
-
-        if (dx !== 0 || dy !== 0) {
-            const length = Math.hypot(dx, dy);
-            this.player.x += (dx / length) * this.player.speed * (dt * 60);
-            this.player.y += (dy / length) * this.player.speed * (dt * 60);
-            this.player.targetX = this.player.x;
-            this.player.targetY = this.player.y;
-            this.player.moving = true;
-            if (Math.abs(dx) > Math.abs(dy)) {
-                this.player.direction = dx > 0 ? "right" : "left";
-            } else {
-                this.player.direction = dy > 0 ? "down" : "up";
-            }
-        } else {
-            const dist = Math.hypot(this.player.targetX - this.player.x, this.player.targetY - this.player.y);
-            if (dist > 4) {
-                const step = Math.min(dist, this.player.speed * (dt * 60));
-                const angle = Math.atan2(this.player.targetY - this.player.y, this.player.targetX - this.player.x);
-                this.player.x += Math.cos(angle) * step;
-                this.player.y += Math.sin(angle) * step;
-                this.player.moving = true;
-                if (Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))) {
-                    this.player.direction = Math.cos(angle) > 0 ? "right" : "left";
-                } else {
-                    this.player.direction = Math.sin(angle) > 0 ? "down" : "up";
-                }
-            } else {
-                this.player.moving = false;
-            }
-        }
-
-        // Limites na ilha
-        this.player.x = Math.max(90, Math.min(this.canvas.width - 90, this.player.x));
-        this.player.y = Math.max(100, Math.min(this.canvas.height - 85, this.player.y));
+        this.updatePlayer(dt);
 
         const mission = MISSIONS[this.state.currentMissionIndex];
         const isNear = mission && Math.hypot(this.player.x - mission.targetX, this.player.y - mission.targetY) <= 85;
         this.missionProximity += (Number(Boolean(isNear)) - this.missionProximity) * Math.min(1, dt * 10);
+        if (isNear && this.arrivalMission === mission
+            && Math.hypot(this.player.targetX - this.player.x, this.player.targetY - this.player.y) < 1) {
+            this.openDecisionModal(mission);
+        }
         if (this.missionCelebration) {
             this.missionCelebration.elapsed += dt;
             if (this.missionCelebration.elapsed >= 0.85) this.missionCelebration = null;
         }
 
-        if (this.player.moving) {
-            this.player.frame += dt * 10;
-        } else {
-            this.player.frame = 0;
-        }
-
-        // Animação da abelha voando em loop
-        this.bee.angle += dt * 3;
-        this.bee.x = this.bee.baseX + Math.cos(this.bee.angle) * 22;
-        this.bee.y = this.bee.baseY + Math.sin(this.bee.angle * 2) * 12;
-
-        // Animação do peixe saltando na água
-        this.fish.timer += dt;
-        if (this.fish.timer > 4.0) {
-            this.fish.jump = Math.sin((this.fish.timer - 4.0) * Math.PI) * 18;
-            if (this.fish.timer > 5.0) this.fish.timer = 0;
-        } else {
-            this.fish.jump = 0;
-        }
+        this.footsteps.forEach(step => { step.age += dt; });
+        this.footsteps = this.footsteps.filter(step => step.age < 0.32);
 
         // Textos flutuantes
         this.floatingTexts.forEach(ft => {
-            ft.y -= dt * 32;
+            if (!this.reducedMotion.matches) ft.y -= dt * 32;
             ft.alpha -= dt * 0.8;
         });
         this.floatingTexts = this.floatingTexts.filter(ft => ft.alpha > 0);
@@ -532,6 +482,42 @@ export class FinancialGame2D {
             r.alpha -= dt * 1.8;
         });
         this.clickRipples = this.clickRipples.filter(r => r.alpha > 0);
+    }
+
+    updatePlayer(dt) {
+        const player = this.player;
+        const keyX = Number(Boolean(this.keys.right)) - Number(Boolean(this.keys.left));
+        const keyY = Number(Boolean(this.keys.down)) - Number(Boolean(this.keys.up));
+        const manual = keyX !== 0 || keyY !== 0;
+        const dx = manual ? keyX : player.targetX - player.x;
+        const dy = manual ? keyY : player.targetY - player.y;
+        const length = Math.hypot(dx, dy);
+        player.moving = false;
+        if (!length) return;
+
+        const speed = manual ? player.speed : Math.min(player.speed, 48 + length * 8);
+        const distance = manual ? speed * dt : Math.min(length, speed * dt);
+        const x = Math.max(90, Math.min(this.canvas.width - 90, player.x + dx / length * distance));
+        const y = Math.max(100, Math.min(this.canvas.height - 85, player.y + dy / length * distance));
+        const traveled = Math.hypot(x - player.x, y - player.y);
+        if (manual) {
+            this.arrivalMission = null;
+            player.targetX = x;
+            player.targetY = y;
+        }
+        if (traveled < 0.001) return;
+
+        player.moving = true;
+        player.direction = Math.abs(dx) > Math.abs(dy)
+            ? (dx > 0 ? "right" : "left")
+            : (dy > 0 ? "down" : "up");
+        const nextFrame = player.frame + traveled * 0.16;
+        if (!this.reducedMotion.matches && Math.floor(nextFrame / Math.PI) > Math.floor(player.frame / Math.PI)) {
+            this.footsteps.push({ x: player.x, y: player.y + 15, age: 0 });
+        }
+        player.frame = nextFrame % (Math.PI * 2);
+        player.x = x;
+        player.y = y;
     }
 
     addFloatingText(text, color = "#6FE7DD") {
@@ -595,11 +581,13 @@ export class FinancialGame2D {
         this.drawPixelBush(140, 340);
 
         // 5. CRIATURAS VIVAS (Abelha voando e peixe na água)
-        this.drawBee(this.bee.x, this.bee.y);
-        this.drawFish(this.fish.x, this.fish.y, this.fish.jump);
+        const time = this.reducedMotion.matches ? 0 : this.worldTime;
+        this.drawBee(390 + Math.cos(time * 2) * 23, 183 + Math.sin(time * 3.8) * 12, time);
+        this.drawBee(811 + Math.cos(time * 1.7 + 2) * 17, 368 + Math.sin(time * 3) * 9, time);
+        this.drawFish(585, 508, time);
 
         // Efeito de clique no mapa
-        this.clickRipples.forEach(r => {
+        if (!this.reducedMotion.matches) this.clickRipples.forEach(r => {
             ctx.save();
             ctx.globalAlpha = Math.max(0, r.alpha);
             ctx.strokeStyle = "#FFFFFF";
@@ -609,6 +597,7 @@ export class FinancialGame2D {
             ctx.stroke();
             ctx.restore();
         });
+        this.drawRoute();
 
         // 6. NPCs E BALÕES DE MISSÃO
         const curMission = MISSIONS[this.state.currentMissionIndex];
@@ -651,13 +640,42 @@ export class FinancialGame2D {
     drawWaterWaves(w, h) {
         const ctx = this.ctx;
         ctx.fillStyle = "#6CD4FF";
-        const t = performance.now() * 0.002;
-        for (let i = 0; i < 18; i++) {
-            const wx = ((i * 73 + t * 25) % w);
+        const time = this.reducedMotion.matches ? 0 : this.worldTime;
+        for (let i = 0; i < 42; i++) {
+            const wx = Math.round(((i * 73 + time * (9 + i % 4 * 4)) % w));
             const wy = (i * 37) % h;
-            ctx.fillRect(wx, wy, 16, 3);
+            ctx.globalAlpha = 0.55 + Math.sin(time * 2.4 + i) * 0.22;
+            ctx.fillRect(wx, wy, 12 + i % 5 * 3, 2);
             ctx.fillRect(wx + 8, wy + 4, 10, 2);
         }
+        ctx.globalAlpha = 1;
+    }
+
+    drawRoute() {
+        const { x, y, targetX, targetY } = this.player;
+        const distance = Math.hypot(targetX - x, targetY - y);
+        const ctx = this.ctx;
+        ctx.save();
+        for (const step of this.footsteps) {
+            if (this.reducedMotion.matches) break;
+            ctx.globalAlpha = (1 - step.age / 0.32) * 0.55;
+            ctx.fillStyle = "#F0DAA0";
+            ctx.fillRect(Math.round(step.x - 5 - step.age * 13), step.y, 3, 3);
+            ctx.fillRect(Math.round(step.x + 3 + step.age * 13), step.y + 3, 2, 2);
+        }
+        if (distance >= 8) {
+            ctx.globalAlpha = 0.75;
+            ctx.strokeStyle = this.arrivalMission ? "#FFF0A3" : "#FFFFFF";
+            ctx.lineWidth = 2;
+            ctx.setLineDash([3, 7]);
+            ctx.beginPath();
+            ctx.moveTo(x, y + 14);
+            ctx.lineTo(targetX, targetY + 9);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.strokeRect(targetX - 5, targetY + 4, 10, 10);
+        }
+        ctx.restore();
     }
 
     drawPixelIsland() {
@@ -824,6 +842,7 @@ export class FinancialGame2D {
 
     drawPixelTree(x, y) {
         const ctx = this.ctx;
+        const sway = this.reducedMotion.matches ? 0 : Math.round(Math.sin(this.worldTime * 2.2 + x * 0.04) * 3);
         // Sombra
         ctx.fillStyle = "rgba(0, 0, 0, 0.22)";
         ctx.beginPath();
@@ -839,19 +858,19 @@ export class FinancialGame2D {
         // Copa da árvore redonda e fofa estilo Forager
         ctx.fillStyle = "#3BB522";
         ctx.beginPath();
-        ctx.arc(x, y, 26, 0, Math.PI * 2);
+        ctx.arc(x + sway, y, 26, 0, Math.PI * 2);
         ctx.fill();
 
         // Destaque de luz no topo
         ctx.fillStyle = "#65DE3C";
         ctx.beginPath();
-        ctx.arc(x - 6, y - 7, 16, 0, Math.PI * 2);
+        ctx.arc(x - 6 + sway, y - 7, 16, 0, Math.PI * 2);
         ctx.fill();
 
         // Sombra inferior da copa
         ctx.fillStyle = "#258213";
         ctx.beginPath();
-        ctx.arc(x + 5, y + 9, 15, 0, Math.PI * 2);
+        ctx.arc(x + 5 + sway, y + 9, 15, 0, Math.PI * 2);
         ctx.fill();
     }
 
@@ -898,15 +917,16 @@ export class FinancialGame2D {
         ctx.fillRect(x + 3, y + 2, 3, 3);
     }
 
-    drawBee(x, y) {
+    drawBee(x, y, time) {
         const ctx = this.ctx;
+        const wing = 0.4 + Math.sin(time * 38) * 0.65;
         // Asas brancas translúcidas
         ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
         ctx.beginPath();
-        ctx.ellipse(x - 3, y - 5, 5, 3, -0.4, 0, Math.PI * 2);
+        ctx.ellipse(x - 3, y - 5, 5, 2, -wing, 0, Math.PI * 2);
         ctx.fill();
         ctx.beginPath();
-        ctx.ellipse(x + 3, y - 5, 5, 3, 0.4, 0, Math.PI * 2);
+        ctx.ellipse(x + 3, y - 5, 5, 2, wing, 0, Math.PI * 2);
         ctx.fill();
 
         // Corpo amarelo e listras pretas
@@ -917,15 +937,30 @@ export class FinancialGame2D {
         ctx.fillRect(x + 2, y - 3, 2, 7);
     }
 
-    drawFish(x, y, jump) {
+    drawFish(x, y, time) {
         const ctx = this.ctx;
+        const cycle = time % 5;
+        const progress = Math.min(1, Math.max(0, (cycle - 3.3) / 0.9));
+        const jump = Math.sin(progress * Math.PI) * 24;
+        x += progress * 44;
         const fy = y - jump;
-        // Splash de água
-        ctx.strokeStyle = "#FFFFFF";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.ellipse(x, y, 12 + jump * 0.3, 5 + jump * 0.15, 0, 0, Math.PI * 2);
-        ctx.stroke();
+        if (cycle < 3.3 || cycle > 4.2) {
+            const ripple = cycle > 4.2 ? (cycle - 4.2) / 0.8 : 0;
+            ctx.save();
+            ctx.globalAlpha = 0.65 * (1 - ripple);
+            ctx.strokeStyle = "#FFFFFF";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.ellipse(x, y, 8 + ripple * 16, 3 + ripple * 5, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            if (cycle > 4.2 && ripple < 0.45) {
+                ctx.fillStyle = "#D1F5FF";
+                const lift = Math.sin(ripple * Math.PI / 0.45) * 12;
+                ctx.fillRect(x - ripple * 24, y - lift, 3, 3);
+                ctx.fillRect(x + ripple * 28, y - lift * 0.7, 2, 2);
+            }
+            ctx.restore();
+        }
 
         if (jump > 2) {
             ctx.fillStyle = "#E07438";
@@ -940,22 +975,35 @@ export class FinancialGame2D {
 
     drawPixelPlayer(x, y) {
         const ctx = this.ctx;
-        const walk = Math.sin(this.player.frame) * 4;
+        const animate = !this.reducedMotion.matches;
+        const walk = animate && this.player.moving ? Math.round(Math.sin(this.player.frame) * 4) : 0;
+        const bounce = this.player.moving ? Math.abs(walk) * 0.55 : (1 + Math.sin(this.worldTime * 3)) / 2;
+        const bob = animate ? -Math.round(bounce) : 0;
+        const facing = this.player.direction;
+        const side = facing === "left" ? -1 : 1;
 
         // Sombra
         ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
         ctx.beginPath();
         ctx.ellipse(x, y + 16, 12, 5, 0, 0, Math.PI * 2);
         ctx.fill();
+        x = Math.round(x);
+        y = Math.round(y + bob);
 
         // Pernas (calça azul jeans idêntica ao personagem da foto)
         ctx.fillStyle = "#2B65C2";
-        ctx.fillRect(x - 6, y + 4, 5, 10 + (this.player.moving ? walk : 0));
-        ctx.fillRect(x + 1, y + 4, 5, 10 - (this.player.moving ? walk : 0));
+        ctx.fillRect(x - 6, y + 4, 5, 10 + walk);
+        ctx.fillRect(x + 1, y + 4, 5, 10 - walk);
+        ctx.fillStyle = "#23394B";
+        ctx.fillRect(x - 6, y + 13 + walk, 5, 3);
+        ctx.fillRect(x + 1, y + 13 - walk, 5, 3);
 
         // Tronco (camiseta vermelha clássica)
         ctx.fillStyle = "#D9382E";
         ctx.fillRect(x - 8, y - 10, 16, 15);
+        ctx.fillStyle = "#F5C498";
+        ctx.fillRect(x - 10, y - 3 - walk, 3, 7);
+        ctx.fillRect(x + 7, y - 3 + walk, 3, 7);
 
         // Cabeça redonda estilo Forager
         ctx.fillStyle = "#F5C498";
@@ -964,17 +1012,23 @@ export class FinancialGame2D {
         ctx.fill();
 
         // Olhos pretos simples
-        ctx.fillStyle = "#0c1315";
-        const eyeOffset = this.player.direction === "right" ? 2 : this.player.direction === "left" ? -2 : 0;
-        ctx.fillRect(x - 4 + eyeOffset, y - 15, 2, 3);
-        ctx.fillRect(x + 1 + eyeOffset, y - 15, 2, 3);
+        if (facing === "up") {
+            ctx.fillStyle = "#704430";
+            ctx.fillRect(x - 7, y - 19, 14, 10);
+        } else {
+            ctx.fillStyle = "#0c1315";
+            const eyeOffset = facing === "down" ? 0 : side * 2;
+            const eyeHeight = animate && this.worldTime % 4.2 > 4.03 ? 1 : 3;
+            ctx.fillRect(x - 4 + eyeOffset, y - 15, 2, eyeHeight);
+            ctx.fillRect(x + 1 + eyeOffset, y - 15, 2, eyeHeight);
+        }
 
         // Ferramenta na mão (vara de pesca ou celular)
         ctx.strokeStyle = "#4A2E16";
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(x + 6, y - 2);
-        ctx.lineTo(x + 18, y - 16);
+        ctx.moveTo(x + side * 8, y - 2 + side * walk);
+        ctx.lineTo(x + side * 17, y - 13 + side * walk);
         ctx.stroke();
 
         // Indicador flutuante
@@ -993,7 +1047,7 @@ export class FinancialGame2D {
 
         if (isCurrent) {
             const proximity = this.reducedMotion.matches ? Math.round(this.missionProximity) : this.missionProximity;
-            const pulse = this.reducedMotion.matches ? 0 : (Math.sin(performance.now() * 0.007) + 1) * 4;
+            const pulse = this.reducedMotion.matches ? 0 : (Math.sin(this.worldTime * 7) + 1) * 4;
             ctx.strokeStyle = proximity > 0.5 ? "#7CE7A9" : "#F2A65A";
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -1001,7 +1055,7 @@ export class FinancialGame2D {
             ctx.stroke();
 
             // Marcador de exclamação animado
-            const bob = this.reducedMotion.matches ? 0 : Math.sin(performance.now() * 0.006) * 4;
+            const bob = this.reducedMotion.matches ? 0 : Math.sin(this.worldTime * 6) * 4;
             ctx.fillStyle = "#F2A65A";
             ctx.beginPath();
             ctx.arc(x, y - 36 + bob, 10, 0, Math.PI * 2);
@@ -1024,7 +1078,7 @@ export class FinancialGame2D {
 
     drawInteractionPrompt(x, y, text) {
         const ctx = this.ctx;
-        const bob = this.reducedMotion.matches ? 0 : Math.sin(performance.now() * 0.007) * 4;
+        const bob = this.reducedMotion.matches ? 0 : Math.sin(this.worldTime * 7) * 4;
         ctx.font = "bold 12px monospace";
         const tw = ctx.measureText(text).width;
 
@@ -1159,7 +1213,7 @@ export class FinancialGame2D {
         if (dist <= 85) {
             this.openDecisionModal(curMission);
         } else {
-            this.setTarget(curMission.targetX, curMission.targetY + 15);
+            this.setTarget(curMission.targetX, curMission.targetY + 15, curMission);
             this.addFloatingText("Caminhando...", "#F2A65A");
         }
     }
@@ -1171,6 +1225,10 @@ export class FinancialGame2D {
         this.isModalOpen = true;
         this.previousFocus = document.activeElement;
         this.keys = {};
+        this.arrivalMission = null;
+        this.player.targetX = this.player.x;
+        this.player.targetY = this.player.y;
+        this.player.moving = false;
         this.sound.click();
 
         backdrop.hidden = false;
@@ -1459,12 +1517,17 @@ export class FinancialGame2D {
         this.keys = {};
         this.floatingTexts = [];
         this.clickRipples = [];
+        this.footsteps = [];
+        this.arrivalMission = null;
         this.missionCelebration = null;
         this.missionProximity = 0;
         this.player.x = 430;
         this.player.y = 300;
         this.player.targetX = 430;
         this.player.targetY = 300;
+        this.player.direction = "down";
+        this.player.frame = 0;
+        this.player.moving = false;
         this.updateHUD();
         this.updateMissionUI();
         this.canvas.focus({ preventScroll: true });

@@ -1048,24 +1048,36 @@ body.education-task-open { overflow: hidden; }
 }
 
 @keyframes game-panel-reveal {
-    from { opacity: 0; transform: translateY(8px); }
+    from { opacity: 0; transform: translateY(14px) scale(0.98); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes game-mission-activate {
+    0% { transform: scale(0.8); box-shadow: 0 0 0 0 #6fe7dd8c; }
+    45% { transform: scale(1.1); }
+    100% { transform: scale(1); box-shadow: 0 0 0 12px #6fe7dd00; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
     .game-modal-backdrop.is-active .game-modal-card,
     .game-feedback:not([hidden]),
     .game-victory-card {
-        animation: game-panel-reveal 240ms ease-out both;
+        animation: game-panel-reveal 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
     }
 
-    .game-feedback:not([hidden]) .game-feedback-stats > div {
-        animation: game-panel-reveal 200ms ease-out 70ms both;
+    .game-modal-choice,
+    .game-feedback:not([hidden]) .game-feedback-stats > div,
+    .victory-stats-grid > div {
+        animation: game-panel-reveal 240ms ease-out 45ms backwards;
     }
 
-    .game-feedback:not([hidden]) .game-feedback-stats > div:nth-child(2) { animation-delay: 110ms; }
-    .game-feedback:not([hidden]) .game-feedback-stats > div:nth-child(3) { animation-delay: 150ms; }
-    .game-feedback:not([hidden]) .game-feedback-stats > div:nth-child(4) { animation-delay: 190ms; }
+    .game-modal-choice:nth-child(2),
+    .game-feedback:not([hidden]) .game-feedback-stats > div:nth-child(2),
+    .victory-stats-grid > div:nth-child(2) { animation-delay: 95ms; }
+    .game-feedback:not([hidden]) .game-feedback-stats > div:nth-child(3),
+    .victory-stats-grid > div:nth-child(3) { animation-delay: 145ms; }
+    .game-feedback:not([hidden]) .game-feedback-stats > div:nth-child(4) { animation-delay: 195ms; }
+    .mission-step.current { animation: game-mission-activate 520ms ease-out; }
 }
 
 .game-canvas-controls {
@@ -1146,12 +1158,6 @@ body.education-task-open { overflow: hidden; }
     padding: 28px;
     box-shadow: 0 24px 80px rgba(0, 0, 0, 0.8), 0 0 50px rgba(111, 231, 221, 0.12);
     color: var(--text);
-    animation: modalPop 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes modalPop {
-    from { opacity: 0; transform: scale(0.95) translateY(12px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .game-modal-close {
