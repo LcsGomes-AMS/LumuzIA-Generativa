@@ -1016,8 +1016,10 @@ body.education-task-open { overflow: hidden; }
 .finance-game-section:fullscreen .game-canvas-wrapper,
 .finance-game-section.is-fullscreen-mode .game-canvas-wrapper {
     width: 100vw !important;
-    height: 100vh !important;
+    height: auto !important;
     max-width: none !important;
+    min-height: 0;
+    flex: 1;
     border: none !important;
     border-radius: 0 !important;
     margin: 0 !important;
@@ -1031,9 +1033,39 @@ body.education-task-open { overflow: hidden; }
 .finance-game-section:fullscreen #financeGameCanvas,
 .finance-game-section.is-fullscreen-mode #financeGameCanvas {
     width: 100vw !important;
-    height: calc(100vh - 46px) !important;
-    max-height: calc(100vh - 46px) !important;
+    height: 0 !important;
+    min-height: 0;
+    flex: 1;
     object-fit: contain !important;
+}
+
+.game-decision-review {
+    text-align: start;
+}
+
+.game-decision-review li + li {
+    margin-block-start: 12px;
+}
+
+@keyframes game-panel-reveal {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .game-modal-backdrop.is-active .game-modal-card,
+    .game-feedback:not([hidden]),
+    .game-victory-card {
+        animation: game-panel-reveal 240ms ease-out both;
+    }
+
+    .game-feedback:not([hidden]) .game-feedback-stats > div {
+        animation: game-panel-reveal 200ms ease-out 70ms both;
+    }
+
+    .game-feedback:not([hidden]) .game-feedback-stats > div:nth-child(2) { animation-delay: 110ms; }
+    .game-feedback:not([hidden]) .game-feedback-stats > div:nth-child(3) { animation-delay: 150ms; }
+    .game-feedback:not([hidden]) .game-feedback-stats > div:nth-child(4) { animation-delay: 190ms; }
 }
 
 .game-canvas-controls {

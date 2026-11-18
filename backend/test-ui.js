@@ -516,6 +516,32 @@ const cases = [
         await waitDOM("document.querySelector('#educationNotice').textContent.includes('Certificado emitido para Pessoa Educação')", "certificado no nome do perfil");
         assert.equal(await evaluate("window.__educationPdf"), "%PDF-");
     }],
+    ["Jogo 2D: animações da missão e preferência de movimento reduzido", async () => {
+        await goto("educacao.html", "!document.documentElement.hasAttribute('data-auth-pending')");
+        await command("Emulation.setEmulatedMedia", {
+            features: [{ name: "prefers-reduced-motion", value: "no-preference" }]
+        });
+        await click("#btnModoJogo");
+        await click("#btnAbrirDecisao");
+        assert.equal(await evaluate("getComputedStyle(document.querySelector('#gameDialogBox')).animationName"), "game-panel-reveal");
+        await click("#gameDialogOptions button:nth-child(2)");
+        assert.equal(await evaluate("getComputedStyle(document.querySelector('#gameDialogFeedback')).animationName"), "game-panel-reveal");
+        await click("#gameDialogContinue");
+        assert.match(await evaluate("document.querySelector('.mission-counter').textContent"), /2 de 5/);
+        await command("Emulation.setEmulatedMedia", {
+            features: [{ name: "prefers-reduced-motion", value: "reduce" }]
+        });
+        try {
+            await click("#btnAbrirDecisao");
+            assert.equal(await evaluate("getComputedStyle(document.querySelector('#gameDialogBox')).animationName"), "none");
+            await click("#gameDialogOptions button:nth-child(2)");
+            assert.equal(await evaluate("getComputedStyle(document.querySelector('#gameDialogFeedback')).animationName"), "none");
+            await click("#gameDialogContinue");
+            assert.match(await evaluate("document.querySelector('.mission-counter').textContent"), /3 de 5/);
+        } finally {
+            await command("Emulation.setEmulatedMedia", { features: [] });
+        }
+    }],
     ["Acesso sem sessão continua bloqueado", async () => {
         await evaluate("localStorage.setItem('ui-auth','off')");
         await command("Page.navigate", { url: origin + "/dashboard.html" });

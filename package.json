@@ -25,13 +25,14 @@
     "firebase-admin": "^14.5.0",
     "helmet": "^8.3.0",
     "pdfkit": "^0.20.2",
-    "pg": "^8.23.1",
-    "sqlite3": "^6.0.1"
+    "pg": "^8.23.1"
   },
-  "allowScripts": {
-    "sqlite3@6.0.1": true
+  "overrides": {
+    "@google-cloud/firestore-api": {
+      "rimraf": "^6.1.4"
+    }
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=22.13.0"
   }
 }

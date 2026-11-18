@@ -239,19 +239,24 @@ if (isPostgres) {
 
     dbInstance = pool;
 } else {
-    const sqlite3 = require("sqlite3").verbose();
+    const { DatabaseSync } = require("node:sqlite");
     console.log(isTest ? "[DATABASE] Teste isolado: SQLite em memória." : "[DATABASE] Usando SQLite local (lumuzia.db).");
 
-    const sqliteDb = new sqlite3.Database(isTest ? ":memory:" : path.join(__dirname, "lumuzia.db"));
+    const sqliteDb = new DatabaseSync(isTest ? ":memory:" : path.join(__dirname, "lumuzia.db"));
+    let sqliteSchemaReady = true;
 
     function run(sql, label) {
-        sqliteDb.run(sql, (err) => {
-            if (err) console.error(`[DATABASE] Falha na inicialização: ${label}.`);
-        });
+        try {
+            sqliteDb.exec(sql);
+        } catch {
+            sqliteSchemaReady = false;
+            console.error(`[DATABASE] Falha na inicialização: ${label}.`);
+        }
     }
 
-    sqliteDb.serialize(() => {
+    function initializeSqlite() {
         run("PRAGMA foreign_keys = ON;", "PRAGMA foreign_keys");
+        run("PRAGMA busy_timeout = 1000;", "PRAGMA busy_timeout");
 
         run(`
             CREATE TABLE IF NOT EXISTS users (
@@ -393,27 +398,32 @@ if (isPostgres) {
             )
         `, "create chat_mensagens");
 
-        sqliteDb.all("PRAGMA table_info(investimentos)", (err, columns) => {
-            if (err) return;
+        try {
+            const columns = sqliteDb.prepare("PRAGMA table_info(investimentos)").all();
             const jaTemColuna = columns.some((col) => col.name === "data_compra");
             if (!jaTemColuna) {
                 run("ALTER TABLE investimentos ADD COLUMN data_compra TEXT", "alter investimentos");
             }
-        });
-    });
+        } catch {
+            sqliteSchemaReady = false;
+            console.error("[DATABASE] Falha na leitura do esquema de investimentos.");
+        }
+    }
+    initializeSqlite();
+    schemaReady = Promise.resolve(sqliteSchemaReady);
 
     const raw = {
-        dbRun: (sql, params = []) => new Promise((resolve, reject) => {
-            sqliteDb.run(sql, params, function (err) {
-                if (err) reject(err); else resolve({ changes: this.changes, lastID: this.lastID });
-            });
-        }),
-        dbGet: (sql, params = []) => new Promise((resolve, reject) => {
-            sqliteDb.get(sql, params, (err, row) => err ? reject(err) : resolve(row));
-        }),
-        dbAll: (sql, params = []) => new Promise((resolve, reject) => {
-            sqliteDb.all(sql, params, (err, rows) => err ? reject(err) : resolve(rows));
-        })
+        async dbRun(sql, params = []) {
+            const { changes, lastInsertRowid } = sqliteDb.prepare(sql).run(...params);
+            return { changes, lastID: lastInsertRowid };
+        },
+        async dbGet(sql, params = []) {
+            const row = sqliteDb.prepare(sql).get(...params);
+            return row === undefined ? undefined : { ...row };
+        },
+        async dbAll(sql, params = []) {
+            return sqliteDb.prepare(sql).all(...params).map(row => ({ ...row }));
+        }
     };
     // Uma única conexão SQLite: até consultas fora da transação aguardam o COMMIT.
     let pending = Promise.resolve();
@@ -440,7 +450,13 @@ if (isPostgres) {
         });
     };
 
-    dbInstance = sqliteDb;
+    dbInstance = {
+        close(callback) {
+            const closed = enqueue(() => sqliteDb.close());
+            if (callback) closed.then(() => callback(), callback);
+            return closed;
+        }
+    };
 }
 
 const exported = dbInstance;

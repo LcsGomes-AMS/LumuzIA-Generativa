@@ -11,7 +11,7 @@ const path = require("path");
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 require("dotenv").config();
 
-const sqlite3 = require("sqlite3").verbose();
+const { DatabaseSync } = require("node:sqlite");
 const { Pool } = require("pg");
 
 const databaseUrl = process.env.DATABASE_URL;
@@ -24,25 +24,24 @@ if (!databaseUrl) {
 }
 
 const sqlitePath = path.join(__dirname, "lumuzia.db");
-const sqliteDb = new sqlite3.Database(sqlitePath, (err) => {
-    if (err) {
-        console.error("❌ Não foi possível abrir o banco SQLite.");
-        process.exit(1);
-    }
-});
+let sqliteDb;
+try {
+    sqliteDb = new DatabaseSync(sqlitePath, { readOnly: true });
+} catch {
+    console.error("❌ Não foi possível abrir o banco SQLite.");
+    process.exit(1);
+}
 
 const pool = new Pool(require("./postgres-config")(databaseUrl));
 
-const getSqliteData = (table) => new Promise((resolve) => {
-    sqliteDb.all(`SELECT * FROM ${table}`, (err, rows) => {
-        if (err) {
-            console.warn(`[AVISO] Tabela ${table} não encontrada no SQLite ou vazia.`);
-            resolve([]);
-        } else {
-            resolve(rows || []);
-        }
-    });
-});
+function getSqliteData(table) {
+    try {
+        return sqliteDb.prepare(`SELECT * FROM ${table}`).all();
+    } catch {
+        console.warn(`[AVISO] Tabela ${table} não encontrada no SQLite ou vazia.`);
+        return [];
+    }
+}
 
 async function migrar() {
     console.log("🚀 Iniciando migração de SQLite para Neon PostgreSQL...");

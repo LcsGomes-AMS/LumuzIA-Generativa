@@ -33,7 +33,7 @@ const MISSIONS = [
                 icon: "📊",
                 title: "Planejar pela receita líquida real",
                 text: "Registrar os R$ 1.830 na LumuzIA e basear todo o orçamento de moradia, transporte e lazer no valor líquido.",
-                deltaBalance: 1830,
+                deltaBalance: 0,
                 deltaEmergency: 0,
                 deltaInvest: 0,
                 deltaHealth: 30,
@@ -75,7 +75,7 @@ const MISSIONS = [
                 icon: "⚖️",
                 title: "Aplicar a Regra 50/30/20",
                 text: "Destinar 50% para Necessidades (R$ 915), 30% para Desejos (R$ 549) e 20% para o Futuro / Poupança (R$ 366).",
-                deltaBalance: -915 - 549,
+                deltaBalance: -915 - 549 - 366,
                 deltaEmergency: 366,
                 deltaInvest: 0,
                 deltaHealth: 35,
@@ -110,7 +110,7 @@ const MISSIONS = [
                 deltaHappy: -20,
                 xp: 15,
                 isOptimal: false,
-                feedback: "Alerta vermelho! Os juros do rotativo do cartão superam 400% ao ano no Brasil. Pagar o mínimo é a via mais rápida para a inadimplência e o endividamento crônico."
+                feedback: "Ao pagar apenas o mínimo, o saldo restante pode entrar no crédito rotativo. Os juros reduzem o dinheiro disponível no próximo mês."
             },
             {
                 letter: "B",
@@ -158,7 +158,7 @@ const MISSIONS = [
                 letter: "B",
                 icon: "🛡️",
                 title: "Acionar a Reserva com Liquidez Diária",
-                text: "Resgatar R$ 300 da Reserva de Emergência (guardada em CDB 100% CDI) e programar a reposição no próximo salário.",
+                text: "Usar até R$ 300 da reserva, cobrir a diferença com o saldo e programar a reposição no próximo salário.",
                 deltaBalance: 0,
                 deltaEmergency: -300,
                 deltaInvest: 0,
@@ -166,7 +166,7 @@ const MISSIONS = [
                 deltaHappy: 20,
                 xp: 55,
                 isOptimal: true,
-                feedback: "Exatamente para isso serve a Reserva de Emergência! Você liquidou o problema na hora, à vista, sem dever um centavo de juros para instituições financeiras."
+                feedback: "A reserva cobre o que estiver disponível. Se faltar dinheiro, a diferença sai do saldo e pode deixar as contas no vermelho."
             }
         ]
     },
@@ -179,28 +179,28 @@ const MISSIONS = [
         zone: "bank",
         targetX: 720,
         targetY: 420,
-        intro: "Parabéns! Sua casa está consertada, dívidas zeradas e a reserva montada. Você poupou R$ 400,00 este mês. Chegou a hora de investir no Banco Central da Ilha para bater a inflação!",
+        intro: "No mês seguinte sobram R$ 400 após as despesas. Esse valor entra no saldo ao decidir. Se a conta estiver no vermelho, parte dele cobre o saldo negativo antes de qualquer aporte.",
         question: "Qual destino você dá a este primeiro aporte?",
         choices: [
             {
                 letter: "A",
                 icon: "🎲",
-                title: "Poupança antiga ou apostas 'bets'",
-                text: "Deixar na poupança (que perde para o IPCA) ou colocar em apostas online esperando retorno fácil.",
+                title: "Apostar em busca de retorno rápido",
+                text: "Apostar até R$ 400 do saldo disponível. Nesta simulação, a aposta perde todo o valor usado.",
                 deltaBalance: -400,
                 deltaEmergency: 0,
-                deltaInvest: 150,
+                deltaInvest: 0,
                 deltaHealth: -15,
                 deltaHappy: -5,
                 xp: 15,
                 isOptimal: false,
-                feedback: "Cuidado! Apostas não são investimentos e a poupança frequentemente perde para a inflação real. Dinheiro seguro exige estratégia regulada pela CVM/BCB."
+                feedback: "Apostas podem consumir o dinheiro destinado a metas. Retorno rápido prometido não garante que você recupere o que colocou."
             },
             {
                 letter: "B",
                 icon: "🌱",
-                title: "Tesouro Selic e CDB 100% CDI",
-                text: "Investir em títulos do Tesouro Selic e CDB com liquidez e rendimento de 100% do CDI, ativando os juros compostos.",
+                title: "Investir respeitando o saldo",
+                text: "Aplicar até R$ 400 do saldo disponível e deixar os rendimentos na aplicação.",
                 deltaBalance: -400,
                 deltaEmergency: 0,
                 deltaInvest: 400,
@@ -208,11 +208,32 @@ const MISSIONS = [
                 deltaHappy: 30,
                 xp: 75,
                 isOptimal: true,
-                feedback: "Sensacional, investidor! Você ativou a engrenagem mais poderosa das finanças: os juros compostos a seu favor. Com disciplina, seu patrimônio crescerá de forma sólida e protegida!"
+                feedback: "Nos juros compostos, os rendimentos deixados na aplicação também podem render. Nesta simulação, R$ 100 a 10% por período viram R$ 110 no primeiro e R$ 121 no segundo, antes de taxas e impostos."
             }
         ]
     }
 ];
+
+const PROGRESS_KEY = "lumuzia.finance-game.decisions.v1";
+const money = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const signedMoney = new Intl.NumberFormat("pt-BR", {
+    style: "currency", currency: "BRL", signDisplay: "exceptZero"
+});
+
+function initialState() {
+    return {
+        balance: 1830,
+        emergency: 200,
+        investments: 0,
+        health: 70,
+        maxHealth: 75,
+        happiness: 75,
+        xp: 0,
+        currentMissionIndex: 0,
+        completed: false,
+        selectedHotbar: 0
+    };
+}
 
 class SoundEngine {
     constructor() {
@@ -270,19 +291,11 @@ export class FinancialGame2D {
         this.ctx.imageSmoothingEnabled = false;
         this.ui = uiContainer;
         this.sound = new SoundEngine();
+        this.reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-        this.state = {
-            balance: 1830.0,
-            emergency: 200.0,
-            investments: 0.0,
-            health: 70,
-            maxHealth: 75,
-            happiness: 75,
-            xp: 0,
-            currentMissionIndex: 0,
-            completed: false,
-            selectedHotbar: 0
-        };
+        this.state = initialState();
+        this.decisions = [];
+        this.restoreProgress();
 
         this.player = {
             x: 430,
@@ -306,6 +319,8 @@ export class FinancialGame2D {
         this.keys = {};
         this.floatingTexts = [];
         this.clickRipples = [];
+        this.missionCelebration = null;
+        this.missionProximity = 0;
         this.animId = null;
         this.isModalOpen = false;
 
@@ -319,7 +334,8 @@ export class FinancialGame2D {
     init() {
         this.bindEvents();
         this.updateHUD();
-        this.updateMissionUI();
+        if (this.state.completed) this.finishGame();
+        else this.updateMissionUI();
         this.startLoop();
     }
 
@@ -327,9 +343,22 @@ export class FinancialGame2D {
         window.addEventListener("keydown", e => {
             if (this.isModalOpen) {
                 if (e.key === "Escape") this.closeDecisionModal();
+                if (e.key === "Tab") {
+                    const controls = [...document.querySelectorAll("#gameDialogBox button")]
+                        .filter(button => !button.closest("[hidden]"));
+                    const edge = e.shiftKey ? controls.at(0) : controls.at(-1);
+                    if (document.activeElement === edge) {
+                        e.preventDefault();
+                        (e.shiftKey ? controls.at(-1) : controls.at(0))?.focus();
+                    }
+                }
                 return;
             }
+            if (this.ui.hidden || e.target !== this.canvas) return;
             const code = e.key.toLowerCase();
+            if (["arrowup", "arrowdown", "arrowleft", "arrowright", " ", "enter"].includes(code)) {
+                e.preventDefault();
+            }
             if (["arrowup", "w"].includes(code)) this.keys.up = true;
             if (["arrowdown", "s"].includes(code)) this.keys.down = true;
             if (["arrowleft", "a"].includes(code)) this.keys.left = true;
@@ -338,7 +367,7 @@ export class FinancialGame2D {
                 this.state.selectedHotbar = parseInt(e.key) - 1;
                 this.sound.click();
             }
-            if (["e", " ", "enter"].includes(code)) {
+            if (!e.repeat && ["e", " ", "enter"].includes(code)) {
                 this.tryInteract();
             }
         });
@@ -351,13 +380,18 @@ export class FinancialGame2D {
             if (["arrowright", "d"].includes(code)) this.keys.right = false;
         });
 
+        const clearMovement = () => { this.keys = {}; };
+        this.canvas.addEventListener("blur", clearMovement);
+        window.addEventListener("blur", clearMovement);
+
         this.canvas.addEventListener("pointerdown", e => {
             if (this.isModalOpen) return;
             const rect = this.canvas.getBoundingClientRect();
-            const scaleX = this.canvas.width / rect.width;
-            const scaleY = this.canvas.height / rect.height;
-            const clickX = (e.clientX - rect.left) * scaleX;
-            const clickY = (e.clientY - rect.top) * scaleY;
+            const scale = Math.min(rect.width / this.canvas.width, rect.height / this.canvas.height);
+            if (!scale) return;
+            const clickX = (e.clientX - rect.left - (rect.width - this.canvas.width * scale) / 2) / scale;
+            const clickY = (e.clientY - rect.top - (rect.height - this.canvas.height * scale) / 2) / scale;
+            if (clickX < 0 || clickX > this.canvas.width || clickY < 0 || clickY > this.canvas.height) return;
 
             // Verificar clique na hotbar (área inferior central)
             const hotbarY = this.canvas.height - 52;
@@ -374,8 +408,7 @@ export class FinancialGame2D {
             }
 
             // Mover jogador
-            this.player.targetX = Math.max(80, Math.min(this.canvas.width - 80, clickX));
-            this.player.targetY = Math.max(90, Math.min(this.canvas.height - 90, clickY));
+            this.setTarget(clickX, clickY);
 
             this.clickRipples.push({
                 x: clickX,
@@ -394,13 +427,20 @@ export class FinancialGame2D {
         });
     }
 
+    setTarget(x, y) {
+        this.player.targetX = Math.max(90, Math.min(this.canvas.width - 90, x));
+        this.player.targetY = Math.max(100, Math.min(this.canvas.height - 85, y));
+    }
+
     startLoop() {
         let lastTime = performance.now();
         const loop = (now) => {
-            const dt = (now - lastTime) / 1000;
+            const dt = Math.min((now - lastTime) / 1000, 0.05);
             lastTime = now;
-            this.update(dt);
-            this.render();
+            if (!this.ui.hidden) {
+                this.update(dt);
+                this.render();
+            }
             this.animId = requestAnimationFrame(loop);
         };
         this.animId = requestAnimationFrame(loop);
@@ -450,6 +490,14 @@ export class FinancialGame2D {
         // Limites na ilha
         this.player.x = Math.max(90, Math.min(this.canvas.width - 90, this.player.x));
         this.player.y = Math.max(100, Math.min(this.canvas.height - 85, this.player.y));
+
+        const mission = MISSIONS[this.state.currentMissionIndex];
+        const isNear = mission && Math.hypot(this.player.x - mission.targetX, this.player.y - mission.targetY) <= 85;
+        this.missionProximity += (Number(Boolean(isNear)) - this.missionProximity) * Math.min(1, dt * 10);
+        if (this.missionCelebration) {
+            this.missionCelebration.elapsed += dt;
+            if (this.missionCelebration.elapsed >= 0.85) this.missionCelebration = null;
+        }
 
         if (this.player.moving) {
             this.player.frame += dt * 10;
@@ -573,13 +621,15 @@ export class FinancialGame2D {
         // Balão de interação se estiver perto
         if (curMission && !this.state.completed && !this.isModalOpen) {
             const dist = Math.hypot(this.player.x - curMission.targetX, this.player.y - curMission.targetY);
-            if (dist < 75) {
+            if (dist <= 85) {
                 this.drawInteractionPrompt(curMission.targetX, curMission.targetY - 50, `[ E ] Falar com ${curMission.npc}`);
             }
         }
 
         // 7. PERSONAGEM ALEX (Estilo Pixel Art Forager / RPG)
         this.drawPixelPlayer(this.player.x, this.player.y);
+
+        this.drawMissionCelebration();
 
         // 8. TEXTOS FLUTUANTES
         this.floatingTexts.forEach(ft => {
@@ -942,15 +992,16 @@ export class FinancialGame2D {
         const isCurrent = (this.state.currentMissionIndex + 1) === missionId && !this.state.completed;
 
         if (isCurrent) {
-            const pulse = (Math.sin(performance.now() * 0.007) + 1) * 6;
-            ctx.strokeStyle = "#F2A65A";
+            const proximity = this.reducedMotion.matches ? Math.round(this.missionProximity) : this.missionProximity;
+            const pulse = this.reducedMotion.matches ? 0 : (Math.sin(performance.now() * 0.007) + 1) * 4;
+            ctx.strokeStyle = proximity > 0.5 ? "#7CE7A9" : "#F2A65A";
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(x, y + 8, 16 + pulse, 0, Math.PI * 2);
+            ctx.ellipse(x, y + 8, 16 + pulse + proximity * 9, 7 + proximity * 4, 0, 0, Math.PI * 2);
             ctx.stroke();
 
             // Marcador de exclamação animado
-            const bob = Math.sin(performance.now() * 0.006) * 4;
+            const bob = this.reducedMotion.matches ? 0 : Math.sin(performance.now() * 0.006) * 4;
             ctx.fillStyle = "#F2A65A";
             ctx.beginPath();
             ctx.arc(x, y - 36 + bob, 10, 0, Math.PI * 2);
@@ -973,7 +1024,7 @@ export class FinancialGame2D {
 
     drawInteractionPrompt(x, y, text) {
         const ctx = this.ctx;
-        const bob = Math.sin(performance.now() * 0.007) * 4;
+        const bob = this.reducedMotion.matches ? 0 : Math.sin(performance.now() * 0.007) * 4;
         ctx.font = "bold 12px monospace";
         const tw = ctx.measureText(text).width;
 
@@ -989,6 +1040,25 @@ export class FinancialGame2D {
         ctx.textAlign = "center";
         ctx.fillText(text, x, y + 17 + bob);
         ctx.textAlign = "left";
+    }
+
+    drawMissionCelebration() {
+        if (!this.missionCelebration || this.reducedMotion.matches) return;
+        const { x, y, elapsed, completed } = this.missionCelebration;
+        const ctx = this.ctx;
+        const count = completed ? 24 : 12;
+        const colors = ["#7CE7A9", "#F2A65A", "#6FE7DD"];
+        ctx.save();
+        ctx.globalAlpha = 1 - elapsed / 0.85;
+        for (let index = 0; index < count; index++) {
+            const angle = index * Math.PI * 2 / count;
+            const speed = 48 + index % 4 * 17;
+            const offsetX = Math.cos(angle) * speed * elapsed;
+            const offsetY = Math.sin(angle) * speed * elapsed + 55 * elapsed ** 2;
+            ctx.fillStyle = colors[index % colors.length];
+            ctx.fillRect(Math.round(x + offsetX), Math.round(y + offsetY), 4, 4);
+        }
+        ctx.restore();
     }
 
     drawPixelHUDOverlay() {
@@ -1018,7 +1088,7 @@ export class FinancialGame2D {
 
         ctx.font = "bold 13px monospace";
         ctx.fillStyle = "#FFFFFF";
-        ctx.fillText(`R$ ${this.state.balance.toFixed(0)}`, 56, 39);
+        ctx.fillText(`${money.format(this.state.balance)}`, 56, 39);
 
         // TOP-RIGHT: BARRA DE ENERGIA / SAÚDE VERMELHA RETRÔ (69/75 DA FOTO)
         const barW = 140;
@@ -1089,18 +1159,19 @@ export class FinancialGame2D {
         if (dist <= 85) {
             this.openDecisionModal(curMission);
         } else {
-            this.player.targetX = curMission.targetX;
-            this.player.targetY = curMission.targetY + 15;
+            this.setTarget(curMission.targetX, curMission.targetY + 15);
             this.addFloatingText("Caminhando...", "#F2A65A");
         }
     }
 
     openDecisionModal(mission) {
-        this.isModalOpen = true;
-        this.sound.click();
-
         const backdrop = document.getElementById("gameModalBackdrop");
-        if (!backdrop) return;
+        if (!backdrop || this.isModalOpen || this.ui.hidden) return;
+
+        this.isModalOpen = true;
+        this.previousFocus = document.activeElement;
+        this.keys = {};
+        this.sound.click();
 
         backdrop.hidden = false;
         backdrop.classList.add("is-active");
@@ -1119,7 +1190,7 @@ export class FinancialGame2D {
         if (avatarEl) avatarEl.textContent = mission.avatar || "💬";
         if (speakerEl) speakerEl.textContent = mission.npc;
         if (roleEl) roleEl.textContent = mission.role || "Educação Financeira";
-        if (missionTagEl) missionTagEl.textContent = `Capítulo ${mission.id} de 5`;
+        if (missionTagEl) missionTagEl.textContent = `Capítulo ${mission.id} de ${MISSIONS.length}`;
         if (titleEl) titleEl.textContent = mission.title;
         if (descEl) descEl.textContent = mission.intro;
         if (questionEl) questionEl.textContent = mission.question;
@@ -1144,21 +1215,73 @@ export class FinancialGame2D {
                 optionsEl.append(btn);
             });
         }
+        document.getElementById("btnFecharGameModal")?.focus();
+    }
+
+    restoreProgress() {
+        try {
+            const raw = localStorage.getItem(PROGRESS_KEY);
+            if (!raw || raw.length > 64) return;
+            const saved = JSON.parse(raw);
+            if (!Array.isArray(saved) || saved.length > MISSIONS.length) return;
+            const choices = saved.map((letter, index) => MISSIONS[index].choices.find(choice => choice.letter === letter));
+            if (choices.every(Boolean)) choices.forEach(choice => this.applyChoice(choice));
+        } catch {
+            // A partida ainda funciona se o armazenamento estiver indispon?vel.
+        }
+    }
+
+    saveProgress() {
+        try {
+            localStorage.setItem(PROGRESS_KEY, JSON.stringify(this.decisions));
+        } catch {
+            // A partida atual continua em mem?ria.
+        }
+    }
+
+    applyChoice(choice) {
+        const state = this.state;
+        let balance = choice.deltaBalance;
+        let reserve = choice.deltaEmergency;
+        let investments = choice.deltaInvest;
+
+        if (reserve < 0) {
+            const available = Math.min(state.emergency, -reserve);
+            balance += reserve + available;
+            reserve = -available;
+        }
+
+        if (state.currentMissionIndex === MISSIONS.length - 1) {
+            const monthlySurplus = 400;
+            const amount = Math.min(-balance, Math.max(0, state.balance + monthlySurplus));
+            balance = monthlySurplus - amount;
+            investments = choice.deltaInvest ? amount : 0;
+        }
+
+        state.balance += balance;
+        state.emergency += reserve;
+        state.investments += investments;
+        state.health = Math.min(state.maxHealth, Math.max(0, state.health + choice.deltaHealth));
+        state.happiness = Math.min(100, Math.max(0, state.happiness + choice.deltaHappy));
+        state.xp += choice.xp;
+        state.currentMissionIndex++;
+        state.completed = state.currentMissionIndex === MISSIONS.length;
+        this.decisions.push(choice.letter);
+        return { balance, reserve, investments };
     }
 
     handleChoice(mission, choice) {
+        if (!this.isModalOpen || mission !== MISSIONS[this.state.currentMissionIndex] || !mission.choices.includes(choice)) return;
+
         const optionsEl = document.getElementById("gameDialogOptions");
         const feedbackEl = document.getElementById("gameDialogFeedback");
         const continueBtn = document.getElementById("gameDialogContinue");
 
         if (optionsEl) optionsEl.hidden = true;
 
-        this.state.balance += choice.deltaBalance;
-        this.state.emergency = Math.max(0, this.state.emergency + choice.deltaEmergency);
-        this.state.investments = Math.max(0, this.state.investments + choice.deltaInvest);
-        this.state.health = Math.min(this.state.maxHealth, Math.max(0, this.state.health + choice.deltaHealth));
-        this.state.happiness = Math.min(100, Math.max(0, this.state.happiness + choice.deltaHappy));
-        this.state.xp += choice.xp;
+        const impact = this.applyChoice(choice);
+        this.saveProgress();
+        this.refreshMissionOnClose = true;
 
         if (choice.isOptimal) {
             this.sound.success();
@@ -1178,9 +1301,9 @@ export class FinancialGame2D {
                 </div>
                 <p class="feedback-text">${choice.feedback}</p>
                 <div class="game-feedback-stats">
-                    <div><span>💰 Saldo:</span> <strong>R$ ${this.state.balance.toFixed(2)}</strong></div>
-                    <div><span>🛡️ Reserva:</span> <strong>R$ ${this.state.emergency.toFixed(2)}</strong></div>
-                    <div><span>📈 Investimentos:</span> <strong>R$ ${this.state.investments.toFixed(2)}</strong></div>
+                    <div><span>💰 Saldo:</span> <strong>${money.format(this.state.balance)}</strong> <span>(${signedMoney.format(impact.balance)})</span></div>
+                    <div><span>🛡️ Reserva:</span> <strong>${money.format(this.state.emergency)}</strong> <span>(${signedMoney.format(impact.reserve)})</span></div>
+                    <div><span>📈 Investimentos:</span> <strong>${money.format(this.state.investments)}</strong> <span>(${signedMoney.format(impact.investments)})</span></div>
                     <div><span>❤️ Saúde/Energia:</span> <strong>${this.state.health}/${this.state.maxHealth}</strong></div>
                 </div>
             `;
@@ -1191,42 +1314,61 @@ export class FinancialGame2D {
         if (continueBtn) {
             continueBtn.hidden = false;
             continueBtn.focus();
-            continueBtn.onclick = () => {
-                this.closeDecisionModal();
-                this.state.currentMissionIndex++;
-                if (this.state.currentMissionIndex >= MISSIONS.length) {
-                    this.finishGame();
-                } else {
-                    this.updateMissionUI();
-                    this.sound.coin();
-                }
-            };
+            continueBtn.onclick = () => this.closeDecisionModal();
         }
     }
 
     closeDecisionModal() {
+        if (!this.isModalOpen) return;
         const backdrop = document.getElementById("gameModalBackdrop");
-        if (backdrop) {
-            backdrop.hidden = true;
-            backdrop.classList.remove("is-active");
-        }
+        backdrop.hidden = true;
+        backdrop.classList.remove("is-active");
         this.isModalOpen = false;
+
+        if (this.refreshMissionOnClose) {
+            this.refreshMissionOnClose = false;
+            this.missionProximity = 0;
+            this.missionCelebration = {
+                x: this.player.x,
+                y: this.player.y - 24,
+                elapsed: 0,
+                completed: this.state.completed
+            };
+            if (this.state.completed) {
+                this.finishGame();
+                this.sound.success();
+            } else {
+                this.updateMissionUI();
+                this.sound.coin();
+            }
+        }
+
+        const focusTarget = this.previousFocus?.isConnected ? this.previousFocus : this.canvas;
+        focusTarget.focus({ preventScroll: true });
     }
 
     updateHUD() {
-        const setTxt = (id, val) => {
+        const setTxt = (id, val, animate = false) => {
             const el = document.getElementById(id);
-            if (el) el.textContent = val;
+            if (!el || el.textContent === val) return;
+            el.textContent = val;
+            if (animate && !this.reducedMotion.matches) {
+                el.getAnimations().forEach(animation => animation.cancel());
+                el.animate(
+                    [{ transform: "translateY(3px)", opacity: 0.65 }, { transform: "translateY(0)", opacity: 1 }],
+                    { duration: 260, easing: "ease-out" }
+                );
+            }
         };
         const setWidth = (id, val) => {
             const el = document.getElementById(id);
             if (el) el.style.width = `${Math.min(100, Math.max(0, val))}%`;
         };
 
-        setTxt("gameHudBalance", `R$ ${this.state.balance.toFixed(2)}`);
-        setTxt("gameHudEmergency", `R$ ${this.state.emergency.toFixed(2)}`);
-        setTxt("gameHudInvest", `R$ ${this.state.investments.toFixed(2)}`);
-        setTxt("gameHudXp", `${this.state.xp} XP`);
+        setTxt("gameHudBalance", money.format(this.state.balance), this.isModalOpen);
+        setTxt("gameHudEmergency", money.format(this.state.emergency), this.isModalOpen);
+        setTxt("gameHudInvest", money.format(this.state.investments), this.isModalOpen);
+        setTxt("gameHudXp", `${this.state.xp} XP`, this.isModalOpen);
         setTxt("gameHudHealthText", `${this.state.health}/${this.state.maxHealth}`);
         setTxt("gameHudHappyText", `${this.state.happiness}%`);
 
@@ -1248,7 +1390,7 @@ export class FinancialGame2D {
             missionBox.innerHTML = `
                 <div class="mission-header-flex">
                     <div class="mission-steps-wrap">${stepsHtml}</div>
-                    <span class="mission-counter">Capítulo ${curMission.id} de 5</span>
+                    <span class="mission-counter">Capítulo ${curMission.id} de ${MISSIONS.length}</span>
                 </div>
                 <div class="mission-body-flex">
                     <div>
@@ -1269,17 +1411,18 @@ export class FinancialGame2D {
     }
 
     finishGame() {
-        this.state.completed = true;
-        this.sound.success();
         const missionBox = document.getElementById("gameMissionTracker");
         if (missionBox) {
             missionBox.innerHTML = `
                 <div class="game-victory-card">
                     <div class="victory-badge">🏆 Parabéns, Conquistador da Ilha!</div>
                     <h3>Você concluiu todos os capítulos da Vida Financeira!</h3>
-                    <p>Sua ilha agora prospera: você aprendeu a viver da Receita Líquida real, organizou seu lar com o 50/30/20, blindou seu nome contra os juros do cartão, socorreu emergências à vista e colhe os frutos dos juros compostos no Banco Lumuz!</p>
+                    <details>
+                        <summary>Rever minhas decisões</summary>
+                        <ol class="game-decision-review"></ol>
+                    </details>
                     <div class="victory-stats-grid">
-                        <div><span>Patrimônio Acumulado</span><strong>R$ ${(this.state.balance + this.state.emergency + this.state.investments).toFixed(2)}</strong></div>
+                        <div><span>Patrimônio Acumulado</span><strong>${money.format(this.state.balance + this.state.emergency + this.state.investments)}</strong></div>
                         <div><span>Saúde & Energia</span><strong>${this.state.health}/${this.state.maxHealth}</strong></div>
                         <div><span>XP Conquistado</span><strong>${this.state.xp} XP</strong></div>
                     </div>
@@ -1289,6 +1432,17 @@ export class FinancialGame2D {
                     </div>
                 </div>
             `;
+            const review = missionBox.querySelector(".game-decision-review");
+            MISSIONS.forEach((mission, index) => {
+                const choice = mission.choices.find(option => option.letter === this.decisions[index]);
+                const item = document.createElement("li");
+                const title = document.createElement("strong");
+                title.textContent = choice.title;
+                const lesson = document.createElement("p");
+                lesson.textContent = choice.feedback;
+                item.append(title, lesson);
+                review.append(item);
+            });
             document.getElementById("btnReiniciarJogo")?.addEventListener("click", () => this.restart());
             document.getElementById("btnVoltarTasksVitoria")?.addEventListener("click", () => {
                 const btnTasks = document.getElementById("btnModoTasks");
@@ -1298,25 +1452,22 @@ export class FinancialGame2D {
     }
 
     restart() {
-        this.state = {
-            balance: 1830.0,
-            emergency: 200.0,
-            investments: 0.0,
-            health: 70,
-            maxHealth: 75,
-            happiness: 75,
-            xp: 0,
-            currentMissionIndex: 0,
-            completed: false,
-            selectedHotbar: 0
-        };
+        this.closeDecisionModal();
+        this.state = initialState();
+        this.decisions = [];
+        this.saveProgress();
+        this.keys = {};
+        this.floatingTexts = [];
+        this.clickRipples = [];
+        this.missionCelebration = null;
+        this.missionProximity = 0;
         this.player.x = 430;
         this.player.y = 300;
         this.player.targetX = 430;
         this.player.targetY = 300;
         this.updateHUD();
         this.updateMissionUI();
-        this.closeDecisionModal();
+        this.canvas.focus({ preventScroll: true });
         this.sound.coin();
     }
 }
@@ -1340,6 +1491,10 @@ document.addEventListener("DOMContentLoaded", () => {
         btnModoJogo?.setAttribute("aria-selected", String(isGame));
         btnModoTasks?.setAttribute("aria-selected", String(!isGame));
 
+        if (!isGame) {
+            gameInstance?.closeDecisionModal();
+            if (document.fullscreenElement === container) document.exitFullscreen().catch(() => {});
+        }
         container.hidden = !isGame;
         if (tasksContainer) tasksContainer.hidden = isGame;
 
@@ -1347,6 +1502,7 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!gameInstance) {
                 gameInstance = new FinancialGame2D(canvas, container);
             }
+            canvas.focus({ preventScroll: true });
             container.scrollIntoView({ behavior: "smooth", block: "start" });
         }
     }
@@ -1372,7 +1528,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("btnFullscreenGame")?.addEventListener("click", () => {
         toggleMode("game");
-        setTimeout(toggleFullscreen, 80);
+        toggleFullscreen();
     });
     document.getElementById("btnToggleFullscreenCanvas")?.addEventListener("click", toggleFullscreen);
     document.getElementById("btnExitFullscreenFloating")?.addEventListener("click", () => {
@@ -1380,7 +1536,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.addEventListener("fullscreenchange", () => {
-        const isFs = !!document.fullscreenElement;
+        const isFs = document.fullscreenElement === container;
         container.classList.toggle("is-fullscreen-mode", isFs);
         const exitBtn = document.getElementById("btnExitFullscreenFloating");
         if (exitBtn) exitBtn.hidden = !isFs;
@@ -1389,23 +1545,20 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     document.getElementById("btnVoltarTasksHeader")?.addEventListener("click", () => {
-        if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
         toggleMode("tasks");
+        btnModoTasks?.focus();
     });
     document.getElementById("btnGameRestart")?.addEventListener("click", () => gameInstance?.restart());
 
     // D-Pad Mobile
-    document.querySelectorAll(".game-dpad-btn").forEach(btn => {
-        const dir = btn.dataset.dir;
-        btn.addEventListener("pointerdown", () => {
-            if (gameInstance) {
-                gameInstance.sound.init();
-                const step = 45;
-                if (dir === "up") gameInstance.player.targetY -= step;
-                if (dir === "down") gameInstance.player.targetY += step;
-                if (dir === "left") gameInstance.player.targetX -= step;
-                if (dir === "right") gameInstance.player.targetX += step;
-            }
+    const touchSteps = { up: [0, -45], down: [0, 45], left: [-45, 0], right: [45, 0] };
+    document.querySelectorAll(".game-dpad-btn[data-dir]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            if (!gameInstance || gameInstance.isModalOpen) return;
+            const [dx, dy] = touchSteps[btn.dataset.dir];
+            const { targetX, targetY } = gameInstance.player;
+            gameInstance.setTarget(targetX + dx, targetY + dy);
+            gameInstance.sound.init();
         });
     });
 

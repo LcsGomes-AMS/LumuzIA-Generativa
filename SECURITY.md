@@ -43,7 +43,7 @@ O acesso ao painel e a rotação de chaves não foram executados. Os ZIPs e banc
 
 ## Configuração da aplicação
 
-- Use Node.js 22 ou superior e uma versão PHP com suporte de segurança e os patches atuais do provedor. O PHP local encontrado para os testes foi 8.2.12; a instalação global do XAMPP não foi atualizada.
+- Use Node.js 22.13.0 ou superior, com o módulo integrado `node:sqlite`, e uma versão PHP com suporte de segurança e os patches atuais do provedor. O PHP local encontrado para os testes foi 8.2.12; a instalação global do XAMPP não foi atualizada.
 - Use `.env.example` como referência sem versionar o `.env` real. O Firebase Admin precisa de credenciais válidas para consultar revogação: `FIREBASE_SERVICE_ACCOUNT_PATH`, `FIREBASE_SERVICE_ACCOUNT_JSON` ou Application Default Credentials. A chave do cliente Firebase em `frontend/js/config.js` é um identificador público; a proteção dos dados depende da autenticação e das regras, não de esconder esse identificador.
 - Sirva a aplicação pelo Node (`npm start`). Publique somente os arquivos necessários da ponte PHP em sua própria raiz pública. Nunca use o repositório inteiro como diretório público. O `.htaccess` fornecido é uma proteção adicional para Apache 2.4 com `AllowOverride` e `mod_rewrite` habilitados; outros servidores precisam de regra equivalente. A configuração do host não foi alterada nem verificada.
 - Configure HTTPS no ingresso da aplicação e da ponte. HSTS está ativo, mas não provisiona certificados. `TRUST_PROXY_HOPS` começa em `0`; configure apenas a quantidade exata de proxies confiáveis do host, sem permitir acesso direto que contorne essa cadeia.
